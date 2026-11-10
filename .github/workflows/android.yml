@@ -36,23 +36,12 @@ jobs:
           mkdir -p android/app/src/main/assets
           cp -r web/* android/app/src/main/assets/
 
-      - name: Preparar a chave de assinatura
-        env:
-          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
-        run: |
-          if [ -n "$KEYSTORE_B64" ]; then
-            echo "$KEYSTORE_B64" | base64 -d > android/app/release.keystore
-          else
-            echo "Sem chave guardada: a criar uma temporaria"
-            keytool -genkeypair -v -keystore android/app/release.keystore -alias ementa -keyalg RSA -keysize 2048 -validity 10000 -storepass temporaria -keypass temporaria -dname "CN=Ementa da Semana"
-          fi
-
       - name: Construir APK
         working-directory: android
         env:
           KEYSTORE_FILE: release.keystore
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'temporaria' }}
-          KEY_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'temporaria' }}
+          KEYSTORE_PASSWORD: epfxg1btY6reZelhaR6nPRh7
+          KEY_PASSWORD: epfxg1btY6reZelhaR6nPRh7
           KEY_ALIAS: ementa
         run: gradle assembleRelease --no-daemon
 
@@ -72,6 +61,7 @@ jobs:
 
   pages:
     runs-on: ubuntu-latest
+    continue-on-error: true
     environment:
       name: github-pages
     steps:
