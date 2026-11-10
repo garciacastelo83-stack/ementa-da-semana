@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Clube de Leitura da Família</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1E2A44">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Leitura">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="html2canvas.min.js"></script>
@@ -624,5 +632,6 @@ setInterval(()=>{const el=$('#tmr');const A=UI.ready&&active();if(el&&A&&S.timer
 (function start(){loadLocal();if(S.members.length){UI.ready=true;S.members.forEach(M=>newBadges(M.id));render()}initCloud();if(!S.members.length)setTimeout(()=>{if(!UI.ready)onReady()},11000)})();
 
 </script>
+<script>if('serviceWorker' in navigator&&!window.AndroidBridge){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}</script>
 </body>
 </html>

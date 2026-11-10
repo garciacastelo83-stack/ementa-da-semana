@@ -1,0 +1,35 @@
+name: Publicar sites (iPhone e navegador)
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'web/**', 'leitura/web/**', '.github/workflows/pages.yml' ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    steps:
+      - uses: actions/checkout@v4
+      - name: Juntar as duas apps
+        run: |
+          mkdir -p _site/leitura
+          cp -r web/* _site/
+          cp -r leitura/web/* _site/leitura/
+          touch _site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - uses: actions/deploy-pages@v4

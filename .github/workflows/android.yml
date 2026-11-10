@@ -58,15 +58,3 @@ jobs:
             Se o telemovel pedir, autorize a instalacao de aplicacoes desta origem.
           files: EmentaDaSemana-1.${{ github.run_number }}.apk
 
-  pages:
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    environment:
-      name: github-pages
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: web
-      - uses: actions/deploy-pages@v4
