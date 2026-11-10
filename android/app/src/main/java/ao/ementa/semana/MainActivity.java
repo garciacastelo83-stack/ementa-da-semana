@@ -27,8 +27,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
 
 public class MainActivity extends Activity {
     private static final String START = "https://appassets.androidplatform.net/assets/index.html";
@@ -123,16 +121,18 @@ public class MainActivity extends Activity {
 
     private class Bridge {
         @JavascriptInterface
-        public void setAlarm(int hour, int minutes, String label, boolean daily) {
+        public void setAlarm(int hour, int minutes, String label, String days) {
             Intent i = new Intent(AlarmClock.ACTION_SET_ALARM);
             i.putExtra(AlarmClock.EXTRA_HOUR, hour);
             i.putExtra(AlarmClock.EXTRA_MINUTES, minutes);
             i.putExtra(AlarmClock.EXTRA_MESSAGE, label);
             i.putExtra(AlarmClock.EXTRA_SKIP_UI, true);
-            if (daily) {
-                i.putExtra(AlarmClock.EXTRA_DAYS, new ArrayList<>(Arrays.asList(
-                        Calendar.MONDAY, Calendar.TUESDAY, Calendar.WEDNESDAY, Calendar.THURSDAY,
-                        Calendar.FRIDAY, Calendar.SATURDAY, Calendar.SUNDAY)));
+            if (days != null && !days.trim().isEmpty()) {
+                ArrayList<Integer> list = new ArrayList<>();
+                for (String d : days.split(",")) {
+                    try { list.add(Integer.parseInt(d.trim())); } catch (Exception ignored) { }
+                }
+                if (!list.isEmpty()) i.putExtra(AlarmClock.EXTRA_DAYS, list);
             }
             runOnUiThread(() -> {
                 try {

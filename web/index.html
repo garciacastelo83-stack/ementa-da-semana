@@ -494,9 +494,12 @@ function vHoje(){
  const water=ev.filter(e=>e.type==='water').reduce((a,e)=>a+(+e.ml||0),0),goal=A.agua||2000,pct=Math.min(1,water/goal),C=2*Math.PI*40;
  const nextW=isToday?WATER_PLAN.find(([t])=>toMin(t)>toMin(nowHM())):null;
  let h=S.members.length>1?`<div class="small muted" style="margin:0 2px 4px">Registar para</div>${whoChips(A.id,'who',false)}`:'';
+ if(!A.rt&&!A.rtSeen)h+=`<div class="card" style="background:linear-gradient(150deg,var(--water-l),#fff 75%)"><b>💼 Passa o dia fora de casa?</b><p class="small" style="margin:4px 0 10px">Adapto os horários e as refeições de ${esc(A.name.split(' ')[0])} de segunda a sexta: lanche para levar, almoço no restaurante e, se estudar à noite, uma refeição antes da escola e uma ceia leve.</p>
+  <div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sm" data-act="rt-quick" data-v="escola">🎓 Trabalho e escola à noite</button><button class="btn sm soft" data-act="rt-quick" data-v="trab">💼 Só trabalho</button><button class="btn sm ghost" data-act="rt-quick" data-v="casa">Não</button></div></div>`;
  if(A.fast&&isToday){const end=fastEnd(A.fast);h+=`<button class="card row between" style="width:100%;text-align:left;background:var(--terra-l);border-color:#ecc7b3" data-act="go-corpo"><div><b>🕊️ Em jejum</b><div class="small">até ${end.toLocaleString('pt-PT',{weekday:'short',hour:'2-digit',minute:'2-digit'})}${end>new Date()?' · faltam '+fmtDur(Math.round((end-new Date())/60000)):' · concluído'}</div></div><span>›</span></button>`}
- else if(isToday){const nm=MEALS.find(([m])=>!ev.some(e=>e.type==='meal'&&e.meal===m)&&toMin(S.settings.times[m])>=toMin(nowHM())-30);
-  if(nm){const it=memberItems(A,dk,nm[0]);h+=`<div class="card" style="background:linear-gradient(150deg,var(--mint),#fff 75%)"><div class="small muted">Próxima refeição</div><div class="row between" style="margin-top:2px"><b style="font-size:17px;font-family:Fraunces">${nm[2]} ${nm[1]} às ${S.settings.times[nm[0]]}</b></div><div class="small" style="margin-top:4px">${esc(itemsText(it))}</div></div>`}
+ else if(isToday){const nm=MEALS.find(([m])=>!ev.some(e=>e.type==='meal'&&e.meal===m)&&toMin(timeOf(A,dk,m))>=toMin(nowHM())-30);
+  if(nm){const it=memberItems(A,dk,nm[0]);h+=`<div class="card" style="background:linear-gradient(150deg,var(--mint),#fff 75%)"><div class="small muted">Próxima refeição</div><div class="row between" style="margin-top:2px"><b style="font-size:17px;font-family:Fraunces">${nm[2]} ${mealLabel(A,dk,nm[0])} às ${timeOf(A,dk,nm[0])}</b></div>${whereOf(A,dk,nm[0])?'<div style="margin-top:4px">'+whereTag(A,dk,nm[0])+'</div>':''}<div class="small" style="margin-top:4px">${esc(itemsText(it))}</div></div>`}
+  if(toMin(nowHM())>=toMin('20:30'))h+=`<button class="card row between" style="width:100%;text-align:left;background:var(--sun-l);border-color:#efd9a8" data-act="night"><div><b>🌙 Vontade de doce à noite?</b><div class="small">Ideias leves e o que fazer para não chegar a esta hora com fome</div></div><span>›</span></button>`;
   const W=WEEK_EX[dk];if(W.ex.length&&!ev.some(e=>e.ex&&W.ex.includes(e.ex)))h+=`<button class="card row between" style="width:100%;text-align:left" data-act="go-corpo"><div><b>🏃 ${esc(W.n)}</b><div class="small muted">Exercício previsto para hoje</div></div><span class="muted">›</span></button>`}
  h+=`<div class="row between" style="margin-bottom:10px">
   <button class="btn sm soft" data-act="day-">‹ Anterior</button>
@@ -509,16 +512,16 @@ function vHoje(){
   <button class="btn sm ghost" style="color:var(--water);border-color:var(--water)" data-act="water-c">Outra</button></div></div>`;
  h+=`<h2 style="font-size:19px;margin:16px 2px 8px">Refeições de ${dayName(dk).toLowerCase()}</h2>`;
  for(const[m,name,ic]of MEALS){
-  const items=memberItems(A,dk,m),done=ev.find(e=>e.type==='meal'&&e.meal===m),pl=S.settings.times[m];
-  h+=`<div class="card"><div class="meal-h"><h3>${ic} ${name}</h3><span class="time-pill">${pl}</span></div>
-   ${isOv(A,dk,m)?'<span class="tag" style="display:inline-block;margin-bottom:6px">Ementa própria</span>':''}
+  const items=memberItems(A,dk,m),done=ev.find(e=>e.type==='meal'&&e.meal===m),pl=timeOf(A,dk,m),wh=whereOf(A,dk,m);
+  h+=`<div class="card"><div class="meal-h"><h3>${ic} ${mealLabel(A,dk,m)}</h3><span class="time-pill">${pl}</span></div>
+   ${whereTag(A,dk,m)}${isOv(A,dk,m)&&!(A.rtOv&&A.rtOv[dk]&&A.rtOv[dk].includes(m))?'<span class="tag" style="display:inline-block;margin-bottom:6px">Ementa própria</span>':''}
    <div class="small muted">${esc(itemsText(items))||'Nada planeado'} <span style="white-space:nowrap">· ${Math.round(sumItems(items).kcal)} kcal</span></div>`;
   if(done){const diff=toMin(done.time)-toMin(pl);const cls=Math.abs(diff)<=30?'ok':Math.abs(diff)<=90?'late':'vlate';
    const txt=Math.abs(diff)<=5?'na hora':(diff>0?'+':'−')+fmtDur(Math.abs(diff));
    h+=`<div class="mealdone"><div class="row"><span class="badge ok">✓ Feita às</span><input type="time" value="${done.time}" data-act="etime" data-id="${done.id}" style="border:1px solid var(--line);border-radius:8px;padding:4px 6px;font-weight:600;background:#fff"><span class="badge ${cls}">${txt}</span></div>
     <button class="link" data-act="undo" data-id="${done.id}">Anular</button></div>
     <input placeholder="Nota (ex.: comi só metade, troquei o peixe)" value="${esc(done.note||'')}" data-act="enote" data-id="${done.id}" style="width:100%;margin-top:8px;padding:8px;border:1px solid var(--line);border-radius:10px;background:#fff">`}
-  else h+=`<div class="meal-acts"><button class="btn sm" data-act="meal" data-m="${m}">Fiz ${isToday?'agora':'esta refeição'}</button><button class="btn sm soft" data-act="meal-t" data-m="${m}">Indicar a hora</button>${items.some(([id])=>REC[id]&&REC[id].t)?`<button class="btn sm ghost" data-act="guide" data-m="${m}" data-dk="${dk}" data-w="${isOv(A,dk,m)?A.id:'casa'}">👩‍🍳 Como preparar</button>`:''}</div>`;
+  else h+=`<div class="meal-acts"><button class="btn sm" data-act="meal" data-m="${m}">Fiz ${isToday?'agora':'esta refeição'}</button><button class="btn sm soft" data-act="meal-t" data-m="${m}">Indicar a hora</button>${wh==='rest'?`<button class="btn sm ghost" data-act="rest">🍽️ Como escolher no restaurante</button>`:items.some(([id])=>REC[id]&&REC[id].t)?`<button class="btn sm ghost" data-act="guide" data-m="${m}" data-dk="${dk}" data-w="${isOv(A,dk,m)?A.id:'casa'}">👩‍🍳 Como preparar</button>`:''}</div>`;
   h+=`</div>`}
  h+=`<div class="card"><div class="row between"><h3 style="font-size:17px">Outro registo</h3>${UI.otherOpen?'':'<button class="btn sm soft" data-act="other-open">+ Adicionar</button>'}</div>`;
  if(UI.otherOpen)h+=`<div class="fgrid" style="margin-top:10px"><label class="field">Tipo<select id="oKind">${OTHER_KINDS.map(k=>`<option>${k}</option>`).join('')}</select></label>
@@ -534,7 +537,7 @@ function vHoje(){
 function fmtDur(m){return m<60?m+' min':Math.floor(m/60)+' h'+(m%60?' '+pad(m%60):'')}
 function last7(A){const out=[];const base=parseYmd(UI.date);for(let i=6;i>=0;i--){const d=new Date(base);d.setDate(d.getDate()-i);const k=ymd(d),ev=logsOf(A.id,k);
  const meals=ev.filter(e=>e.type==='meal'),w=ev.filter(e=>e.type==='water').reduce((a,e)=>a+(+e.ml||0),0);
- const delays=meals.map(e=>Math.abs(toMin(e.time)-toMin(S.settings.times[e.meal])));
+ const delays=meals.map(e=>Math.abs(toMin(e.time)-toMin(timeOf(A,dayKeyOf(d),e.meal))));
  out.push({k,d,dk:dayKeyOf(d),meals:meals.length,water:w,delay:delays.length?Math.round(delays.reduce((a,b)=>a+b,0)/delays.length):null,ev})}return out}
 function vSeteDias(A){const L=last7(A);const tm=L.reduce((a,x)=>a+x.meals,0),tw=L.reduce((a,x)=>a+x.water,0)/7;const dl=L.filter(x=>x.delay!==null);const ad=dl.length?Math.round(dl.reduce((a,x)=>a+x.delay,0)/dl.length):null;
  return `<div class="card"><h3 style="font-size:17px;margin-bottom:10px">Últimos 7 dias</h3>
@@ -552,7 +555,7 @@ function itemEditor(items,m,scope){let h='';items.forEach(([id,g],i)=>{const F=F
  return h}
 function vEmenta(){
  const dk=UI.eDay,who=UI.eWho==='casa'||!mem(UI.eWho)?'casa':UI.eWho,M=who==='casa'?null:mem(who);
- let h=S.members.length>1||M?whoChips(who,'ewho',true):'';
+ let h=whoChips(who,'ewho',true);
  h+=`<div class="chips">${DAYS.map(([k,n])=>`<button class="chip ${k===dk?'on':''} ${k===dayKeyOf(new Date())?'today':''}" data-act="eday" data-d="${k}">${n.slice(0,3)}</button>`).join('')}</div>`;
  const hasAO=DAYS.some(([k])=>MEALS.some(([m])=>(S.plan[k][m]||[]).some(([id])=>['funge_bombo','funge_milho','muamba','calulu','feijao_oleo','kizaca'].includes(id))));
  if(!hasAO&&!S.settings.aoSeen)h+=`<div class="card" style="background:linear-gradient(150deg,var(--terra-l),#fff 70%)"><b>🇦🇴 Nova ementa com cozinha angolana</b><p class="small" style="margin:4px 0 10px">Funge, muamba, calulu, mufete, kizaca, sardinha e carapau no lugar do salmão, bebidas naturais e sobremesas de fruta. Substitui a ementa da casa actual.</p><div class="row" style="gap:6px"><button class="btn sm terra" data-act="ao-plan">Usar a nova ementa</button><button class="btn sm ghost" data-act="ao-no">Agora não</button></div></div>`;
@@ -560,11 +563,11 @@ function vEmenta(){
  if(!M){const t=familyDay(dk);
   h+=`<div class="hint" style="background:var(--mint);color:var(--green)">🏠 <b>Ementa da casa.</b> Todos comem isto, cada um com a sua porção, excepto nas refeições em que alguém tem ementa própria.</div>
   <div class="sumline"><span><b>${fmtN(t.kcal)}</b> kcal por porção de adulto</span><span><b>${fmtN(t.prot)} g</b> proteína</span></div>`}
- else{const t=memberDay(M,dk),tg=targets(M);
+ else{h+=routineCard(M,dk);const t=memberDay(M,dk),tg=targets(M);
   h+=`<div class="sumline"><span><b>${fmtN(t.kcal)}</b> / ${fmtN(tg.kcal)} kcal</span><span><b>${fmtN(t.prot)} g</b> / ${tg.prot} g proteína</span><span><b>${fmtN(t.fib)} g</b> fibra</span></div>`;
   if(t.kcal<tg.kcal*0.85)h+=`<div class="hint">Este dia fica ${fmtN(tg.kcal-t.kcal)} kcal abaixo do que ${esc(M.name.split(' ')[0])} gasta. Se não é para perder peso, aumente um pouco o arroz, a batata, a fruta ou os frutos secos.</div>`}
  for(const[m,name,ic]of MEALS){
-  h+=`<div class="card"><div class="meal-h"><h3>${ic} ${name}</h3><label class="time-pill">⏰ <input type="time" value="${S.settings.times[m]}" data-act="mtime" data-m="${m}"></label></div>`;
+  const rr=M?rtOf(M,dk):'casa';h+=`<div class="card"><div class="meal-h"><h3>${ic} ${M?mealLabel(M,dk,m):name}</h3><label class="time-pill">⏰ <input type="time" value="${M?timeOf(M,dk,m):S.settings.times[m]}" data-act="mtime" data-m="${m}" data-r="${rr}"></label></div>${M?whereTag(M,dk,m):''}`;
   if(!M){const items=S.plan[dk][m]||[];const own=S.members.filter(x=>isOv(x,dk,m));
    if(own.length)h+=`<div style="margin-bottom:6px">${own.map(x=>`<span class="tag" style="margin-right:4px">${esc(x.name.split(' ')[0])} come diferente</span>`).join('')}</div>`;
    h+=itemEditor(items,m,'casa');
@@ -736,7 +739,7 @@ function exNutri(){const A=active(),tg=targets(A);let h=sheetHead('Resumo nutric
 function exLog(){const A=active(),L=last7(A);let h=sheetHead('Registo de '+esc(A.name)+', últimos 7 dias',`De ${L[0].d.toLocaleDateString('pt-PT',{day:'numeric',month:'long'})} a ${L[6].d.toLocaleDateString('pt-PT',{day:'numeric',month:'long'})}`);
  h+='<table><tr><th>Dia</th>'+MEALS.map(([m,n])=>`<th>${n}<br><span style="font-weight:400">${S.settings.times[m]}</span></th>`).join('')+'<th>Água</th></tr>';
  for(const x of L){h+=`<tr><td><b>${dayName(x.dk).slice(0,3)} ${x.d.getDate()}</b></td>`;for(const[m]of MEALS){const e=x.ev.find(e=>e.type==='meal'&&e.meal===m);
-  if(e){const df=toMin(e.time)-toMin(S.settings.times[m]);const col=Math.abs(df)<=30?'#2F5D50':Math.abs(df)<=90?'#8a5a12':'#C2603A';h+=`<td style="color:${col};font-weight:600">${e.time}${e.note?'<div style="font-weight:400;font-size:10.5px;color:#6B7269">'+esc(e.note)+'</div>':''}</td>`}else h+='<td style="color:#B9B2A3">não registada</td>'}
+  if(e){const df=toMin(e.time)-toMin(timeOf(A,x.dk,m));const col=Math.abs(df)<=30?'#2F5D50':Math.abs(df)<=90?'#8a5a12':'#C2603A';h+=`<td style="color:${col};font-weight:600">${e.time}${e.note?'<div style="font-weight:400;font-size:10.5px;color:#6B7269">'+esc(e.note)+'</div>':''}</td>`}else h+='<td style="color:#B9B2A3">não registada</td>'}
   h+=`<td><b>${fmtN(x.water/1000,1)} L</b></td></tr>`}
  h+='</table>';const others=L.flatMap(x=>x.ev.filter(e=>e.type==='other').map(e=>({...e,d:x.d})));
  if(others.length)h+='<div class="sh-cat">Outros registos</div><table>'+others.sort((a,b)=>a.d-b.d||toMin(a.time)-toMin(b.time)).map(e=>`<tr><td style="width:110px">${dayName(dayKeyOf(e.d)).slice(0,3)} ${e.d.getDate()}, ${e.time}</td><td><b>${esc(e.kind)}</b> ${esc(e.note||'')}</td></tr>`).join('')+'</table>';
@@ -1085,13 +1088,63 @@ function vCorpo(){
  // despertadores
  h+=vAlarms();
  return h}
-function alarmList(){const L=MEALS.map(([m,n])=>[S.settings.times[m],n]);WATER_PLAN.forEach(([t,ml])=>L.push([t,'Beber água ('+ml+' ml)']));return L.sort((a,b)=>toMin(a[0])-toMin(b[0]))}
+function mealAlarms(M){const map={};for(const[dk]of DAYS)for(const[m]of MEALS){const t=timeOf(M,dk,m),l=mealLabel(M,dk,m),k=t+'|'+l;(map[k]=map[k]||{t,l,d:[]}).d.push(CAL_DAY[dk])}return Object.values(map).sort((a,b)=>toMin(a.t)-toMin(b.t))}
+function daysTxt(d){if(d.length===7)return 'todos os dias';const n={1:'dom',2:'seg',3:'ter',4:'qua',5:'qui',6:'sex',7:'sáb'};return d.map(x=>n[x]).join(', ')}
+function alarmList(){const A=active();const L=mealAlarms(A).map(x=>[x.t,x.l+' · '+daysTxt(x.d),x.d,x.l]);WATER_PLAN.forEach(([t,ml])=>L.push([t,'Beber água ('+ml+' ml)',[1,2,3,4,5,6,7],'Beber água']));return L.sort((a,b)=>toMin(a[0])-toMin(b[0]))}
 function vAlarms(){const L=alarmList();const and=!!window.AndroidBridge;
  return `<div class="card"><h3 style="font-size:17px">⏰ Despertadores</h3>
  <p class="small muted" style="margin:4px 0 8px">${and?'Cria alarmes diários no relógio do telemóvel, com o nome da refeição.':'Na app Android, estes botões criam os alarmes no relógio do telemóvel. Aqui pode ver os horários e criá-los à mão.'}</p>
- ${L.map(([t,n])=>`<div class="rp"><span><b>${t}</b> · ${esc(n)}</span>${and?`<button class="btn sm soft" data-act="alarm" data-h="${+t.split(':')[0]}" data-m="${+t.split(':')[1]}" data-l="${esc(n)}">Criar</button>`:''}</div>`).join('')}
- ${and?`<div class="row" style="gap:6px;margin-top:10px"><button class="btn sm" data-act="alarm-meals">Criar as 5 refeições</button><button class="btn sm water" data-act="alarm-water">Criar os 8 de água</button></div>`:''}</div>`}
-function setAlarm(h,m,l,once){if(window.AndroidBridge&&AndroidBridge.setAlarm){try{AndroidBridge.setAlarm(+h,+m,String(l),!once);return true}catch(e){}}toast('Disponível na app Android');return false}
+ ${L.map(([t,n,d,l])=>`<div class="rp"><span><b>${t}</b> · ${esc(n)}</span>${and?`<button class="btn sm soft" data-act="alarm" data-h="${+t.split(':')[0]}" data-m="${+t.split(':')[1]}" data-l="${esc(l)}" data-d="${d.join(',')}">Criar</button>`:''}</div>`).join('')}
+ ${and?`<div class="row" style="gap:6px;margin-top:10px"><button class="btn sm" data-act="alarm-meals">Criar os das refeições</button><button class="btn sm water" data-act="alarm-water">Criar os 8 de água</button></div>`:''}</div>`}
+function setAlarm(h,m,l,days){if(window.AndroidBridge&&AndroidBridge.setAlarm){try{AndroidBridge.setAlarm(+h,+m,String(l),String(days||''));return true}catch(e){}}toast('Disponível na app Android');return false}
+
+
+/* ============ ROTINA: TRABALHO, ESCOLA, RESTAURANTE ============ */
+const ROUT={
+ casa:{n:'Em casa',ic:'🏠'},
+ trab:{n:'Trabalho',ic:'💼',t:{pa:'06:30',lm:'10:00',al:'13:00',lt:'16:30',ja:'19:30'},w:{lm:'levar',al:'rest'}},
+ escola:{n:'Trabalho e escola à noite',ic:'🎓',t:{pa:'06:30',lm:'10:00',al:'13:00',lt:'17:30',ja:'22:30'},lb:{lt:'Refeição antes da escola',ja:'Ceia leve'},w:{lm:'levar',al:'rest',lt:'levar',ja:'casa'}}
+};
+const WHERE={levar:'🎒 Levar de casa',rest:'🍽️ Restaurante',casa:'🏠 Em casa'};
+const CAL_DAY={dom:1,seg:2,ter:3,qua:4,qui:5,sex:6,sab:7};
+// refeições sugeridas para dias fora de casa (segunda a sexta, por ordem)
+const RT_MEALS={
+ lm:[[['banana',120],['jinguba',20]],[['maca',150],['amendoa',20]],[['manga',150],['nozes',20]],[['goiaba',100],['jinguba',20]],[['pera',170],['amendoa',20]]],
+ al:[[['peixe',150],['arroz',160],['feijao',100],['salada',120],['azeite',5]],[['frango',150],['funge_bombo',230],['couve',100],['azeite',5]],[['tilapia',160],['batata_doce',220],['salada',120],['azeite',5]],[['muamba',250],['funge_bombo',200],['gimboa',80]],[['peixe',160],['arroz',160],['legumes',120],['azeite',5]]],
+ lt_escola:[[['pao',70],['frango',90],['alface',20],['banana',120],['iogurte',125]],[['pao',70],['atum',80],['tomate',50],['maca',150],['jinguba',20]],[['pao',70],['ovo',110],['abacate',50],['manga',150],['iogurte',125]],[['arroz',150],['frango',110],['feijao_verde',80],['papaia',150]],[['batata_doce',200],['ovo',110],['papaia',150],['iogurte',125]]],
+ ja_escola:[[['iogurte',125],['papaia',150]],[['sopa',300],['ovo',55]],[['leite',200],['aveia',25],['banana',60]],[['iogurte',125],['nozes',10],['cha_caxinde',250]],[['sopa',300],['pao',35]]],
+ lt_trab:[[['iogurte',125],['banana',120]],[['maca',150],['jinguba',20]],[['iogurte',125],['papaia',150]],[['pao',35],['abacate',40]],[['batido',250]]]
+};
+const rtOf=(M,dk)=>(M&&M.rt&&M.rt[dk])||'casa';
+function timeOf(M,dk,m){const r=rtOf(M,dk);if(r==='casa')return S.settings.times[m];const c=S.settings.rtT&&S.settings.rtT[r]&&S.settings.rtT[r][m];return c||ROUT[r].t[m]}
+function mealLabel(M,dk,m){const R=ROUT[rtOf(M,dk)];return(R.lb&&R.lb[m])||mealName(m)}
+function whereOf(M,dk,m){const R=ROUT[rtOf(M,dk)];return R.w&&R.w[m]||null}
+function whereTag(M,dk,m){const w=whereOf(M,dk,m);return w?`<span class="tag ${w==='casa'?'home':''}" style="display:inline-block;margin:0 4px 6px 0;${w==='levar'?'background:var(--water-l);color:var(--water)':''}">${WHERE[w]}</span>`:''}
+function applyRoutine(M,dks,r){M.rt=M.rt||{};M.ov=M.ov||{};M.rtOv=M.rtOv||{};
+ for(const dk of dks){const i=Math.max(0,['seg','ter','qua','qui','sex','sab','dom'].indexOf(dk))%5;
+  // limpa o que a rotina anterior tinha posto
+  if(M.rtOv[dk]){for(const m of M.rtOv[dk])if(M.ov[dk])delete M.ov[dk][m];delete M.rtOv[dk]}
+  if(M.ov[dk]&&!Object.keys(M.ov[dk]).length)delete M.ov[dk];
+  if(r==='casa'){delete M.rt[dk];continue}
+  M.rt[dk]=r;M.ov[dk]=M.ov[dk]||{};const set={lm:RT_MEALS.lm[i],al:RT_MEALS.al[i]};
+  if(r==='escola'){set.lt=RT_MEALS.lt_escola[i];set.ja=RT_MEALS.ja_escola[i]}else set.lt=RT_MEALS.lt_trab[i];
+  const por=M.por||1;for(const m in set)M.ov[dk][m]=scaleItems(set[m],por);M.rtOv[dk]=Object.keys(set)}}
+function routineCard(M,dk){const r=rtOf(M,dk);const nm=esc(M.name.split(' ')[0]);
+ return `<div class="card"><div class="small muted" style="margin-bottom:6px">Rotina de ${nm} à ${dayName(dk).toLowerCase()}</div>
+ <div class="chips" style="padding-bottom:4px">${Object.entries(ROUT).map(([k,R])=>`<button class="chip ${r===k?'on':''}" data-act="rt-set" data-v="${k}">${R.ic} ${R.n}</button>`).join('')}</div>
+ <button class="link" data-act="rt-week" data-v="${r}">Aplicar "${ROUT[r].n}" de segunda a sexta</button>
+ ${r!=='casa'?`<p class="note" style="margin:4px 0 0">Os horários e as refeições de ${nm} neste dia foram adaptados: lanche para levar, almoço no restaurante${r==='escola'?', uma refeição a sério antes da escola e uma ceia leve ao chegar':''}. Pode mudar qualquer alimento.</p>`:''}</div>`}
+const REST_GUIDE=`<h3>A regra do prato</h3><div class="ing">Metade do prato com <b>legumes ou salada</b>, um quarto com <b>peixe, frango ou feijão</b> e um quarto com <b>arroz, funge, batata-doce ou mandioca</b>. Só um destes, não dois.</div>
+<h3>Boas escolhas num restaurante angolano</h3><div class="ing">• Peixe grelhado (carapau, garoupa, cacusso) ou frango grelhado<br>• Funge com muamba ou calulu, com pouco molho<br>• Feijão de óleo de palma em meia dose<br>• Kizaca, gimboa, couve ou salada<br>• Prato do dia cozido ou grelhado</div>
+<h3>Peça assim</h3><div class="order">"Meia dose de arroz, por favor, e mais salada."<br>"Sem batata frita: troque por legumes ou batata-doce."<br>"O molho à parte."</div>
+<h3>Evite no dia a dia</h3><div class="ing">• Fritos (peixe frito, batata frita, salgados)<br>• Dois hidratos juntos (arroz e batata frita, funge e arroz)<br>• Refrigerantes: peça água ou sumo natural sem açúcar<br>• Sobremesas doces: prefira fruta</div>
+<div class="tip">💡 Em self-service ou bufê, encha primeiro metade do prato com legumes. Coma devagar: o corpo leva 20 minutos a sentir-se satisfeito.</div>`;
+const NIGHT_GUIDE=`<h3>Porque aparece a vontade de doce à noite</h3><div class="ing">Normalmente é fome acumulada: muitas horas sem comer a sério entre o almoço e a noite, mais o cansaço do trabalho e da escola. O corpo pede energia rápida, e o doce é o mais fácil.</div>
+<h3>O que resolve de verdade</h3><div class="order">1. Faça uma <b>refeição a sério entre as 17h e as 18h</b>, antes da escola (sandes de pão integral com frango, atum ou ovo, mais fruta e iogurte).<br>2. Leve <b>fruta e jinguba</b> para o intervalo das aulas.<br>3. Ao chegar a casa, uma <b>ceia leve</b> em vez de saltar o jantar.</div>
+<h3>Se mesmo assim quiser algo doce</h3><div class="ing">• Papaia ou manga com iogurte natural<br>• Banana assada com canela<br>• Iogurte com um pouco de aveia e canela<br>• Leite morno com canela<br>• Chá de caxinde com uma tâmara ou 2 quadrados de fruta seca<br>• 3 a 4 nozes com meia banana</div>
+<div class="tip">💡 Não guarde bolachas e doces à vista em casa: o que não está à mão não se come por impulso.</div>`;
+function openInfo(title,html){const md=document.createElement('div');md.className='modal';md.innerHTML=`<div class="sheetbox"><div class="row between"><h2 style="font-size:19px">${title}</h2><button class="x" data-f="close" style="font-size:24px">×</button></div><div class="scroll rec">${html}</div></div>`;
+ document.body.appendChild(md);md.addEventListener('click',e=>{if(e.target===md||e.target.closest('[data-f=close]'))md.remove()})}
 
 /* ============ ACÇÕES ============ */
 function findEv(id){for(const mid in S.logs)for(const d in S.logs[mid]){const e=S.logs[mid][d].find(x=>x.id===id);if(e)return[mid,d,e]}return[]}
@@ -1110,8 +1163,8 @@ document.addEventListener('click',e=>{
   case 'day0':UI.date=todayYmd();render();break;
   case 'water':logArr(A.id,UI.date).push({id:uid(),type:'water',ml:+b.dataset.ml,time:UI.date===todayYmd()?nowHM():'12:00'});save(logKey(A.id,UI.date));render();toast('+'+b.dataset.ml+' ml às '+nowHM());break;
   case 'water-c':showMini('Quantos ml bebeu?','number','250',v=>{const ml=parseInt(v);if(ml>0){logArr(A.id,UI.date).push({id:uid(),type:'water',ml,time:nowHM()});save(logKey(A.id,UI.date));render()}});break;
-  case 'meal':addMeal(b.dataset.m,UI.date===todayYmd()?nowHM():S.settings.times[b.dataset.m]);toast(mealName(b.dataset.m)+' registado');break;
-  case 'meal-t':showMini('A que horas fez esta refeição?','time',S.settings.times[b.dataset.m],v=>{if(v)addMeal(b.dataset.m,v)});break;
+  case 'meal':addMeal(b.dataset.m,UI.date===todayYmd()?nowHM():timeOf(A,dayKeyOf(parseYmd(UI.date)),b.dataset.m));toast(mealName(b.dataset.m)+' registado');break;
+  case 'meal-t':showMini('A que horas fez esta refeição?','time',timeOf(A,dayKeyOf(parseYmd(UI.date)),b.dataset.m),v=>{if(v)addMeal(b.dataset.m,v)});break;
   case 'undo':case 'del':{const[mid,d,ev]=findEv(b.dataset.id);if(!ev)return;S.logs[mid][d]=S.logs[mid][d].filter(x=>x.id!==ev.id);save(logKey(mid,d));render();break}
   case 'other-open':UI.otherOpen=true;render();break;
   case 'other-close':UI.otherOpen=false;render();break;
@@ -1137,14 +1190,19 @@ document.addEventListener('click',e=>{
   case 'pais':S.pantry.pais=b.dataset.v;if(b.dataset.v==='PT'&&S.pantry.cur==='Kz')S.pantry.cur='€';if(b.dataset.v==='AO'&&S.pantry.cur==='€')S.pantry.cur='Kz';save('pantry');render();break;
   case 'group':S.pantry.group=b.dataset.v;save('pantry');render();break;
   case 'catalog':openCatalog(b.dataset.m);break;
+  case 'rt-quick':{const v=b.dataset.v;A.rtSeen=1;if(v!=='casa'){applyRoutine(A,['seg','ter','qua','qui','sex'],v);toast('Rotina adaptada de segunda a sexta')}save('members');render();break}
+  case 'rt-set':{const M=mem(UI.eWho);if(!M)break;applyRoutine(M,[UI.eDay],b.dataset.v);M.rtSeen=1;save('members');render();break}
+  case 'rt-week':{const M=mem(UI.eWho);if(!M)break;applyRoutine(M,['seg','ter','qua','qui','sex'],b.dataset.v);M.rtSeen=1;save('members');render();toast('Aplicado de segunda a sexta');break}
+  case 'rest':openInfo('Comer bem no restaurante',REST_GUIDE);break;
+  case 'night':openInfo('Fome e doce à noite',NIGHT_GUIDE);break;
   case 'go-corpo':UI.tab='corpo';render();window.scrollTo(0,0);break;
   case 'ao-plan':S.plan=clone(DEF_PLAN);S.settings.aoSeen=1;save('plan');save('settings');render();toast('Nova ementa aplicada');break;
   case 'ao-no':S.settings.aoSeen=1;save('settings');render();break;
   case 'fast-start':{const k=$('#fKind').value,K=FASTS.find(x=>x.k===k),t=$('#fStart').value||nowHM();const d=new Date();const[hh,mm]=t.split(':').map(Number);d.setHours(hh,mm,0,0);if(d>new Date())d.setDate(d.getDate()-1);A.fast={k,start:d.toISOString(),h:K.h,until:K.until,daniel:K.daniel};save('members');render();toast('Jejum iniciado');break}
   case 'fast-end':case 'fast-cancel':{const F=A.fast;if(F&&a==='fast-end'){const mins=Math.round((Date.now()-new Date(F.start))/60000);const K=FASTS.find(x=>x.k===F.k);logArr(A.id,todayYmd()).push({id:uid(),type:'other',kind:'Jejum',time:nowHM(),note:(K?K.n:'Jejum')+', '+fmtDur(mins)});save(logKey(A.id,todayYmd()))}delete A.fast;save('members');render();break}
   case 'ex-done':{const id=b.dataset.id,E=EX[id];logArr(A.id,todayYmd()).push({id:uid(),type:'other',kind:id==='along'?'Alongamentos':'Exercício',ex:id,time:nowHM(),note:id==='along'?'8 min':E.n+', '+E.t});save(logKey(A.id,todayYmd()));render();toast('Registado. Bom trabalho!');break}
-  case 'alarm':if(setAlarm(b.dataset.h,b.dataset.m,b.dataset.l,b.dataset.once))toast('Despertador criado: '+b.dataset.l);break;
-  case 'alarm-meals':case 'alarm-water':{const L=a==='alarm-meals'?MEALS.map(([m,n])=>[S.settings.times[m],n]):WATER_PLAN.map(([t,ml])=>[t,'Beber água ('+ml+' ml)']);L.forEach(([t,n],i)=>setTimeout(()=>setAlarm(+t.split(':')[0],+t.split(':')[1],n),i*900));toast('A criar '+L.length+' despertadores…');break}
+  case 'alarm':if(setAlarm(b.dataset.h,b.dataset.m,b.dataset.l,b.dataset.once?'':(b.dataset.d||'1,2,3,4,5,6,7')))toast('Despertador criado: '+b.dataset.l);break;
+  case 'alarm-meals':case 'alarm-water':{const L=a==='alarm-meals'?mealAlarms(A).map(x=>[x.t,x.l,x.d]):WATER_PLAN.map(([t,ml])=>[t,'Beber água ('+ml+' ml)',[1,2,3,4,5,6,7]]);L.forEach(([t,n,d],i)=>setTimeout(()=>setAlarm(+t.split(':')[0],+t.split(':')[1],n,d.join(',')),i*900));toast('A criar '+L.length+' despertadores…');break}
   case 'buy':if(S.pantry.bought[b.dataset.id])delete S.pantry.bought[b.dataset.id];else S.pantry.bought[b.dataset.id]=true;save('pantry');render();break;
   case 'restock':{const P=S.pantry,days=P.period||7,scope=P.scope==='all'||mem(P.scope)?P.scope:'all';const{need}=needs(scope,days),rate=weeklyRate();let n=0,total=0;
    for(const id in P.bought){const F=FOODS[id];if(!F||need[id]===undefined)continue;const st=estStock(id,rate);let tb=Math.max(0,need[id]-st);if(F.pu)tb=Math.ceil(tb/F.pu-0.05)*F.pu;total+=costOf(id,tb);P.stock[id]={q:st+tb,d:todayYmd()};n++}
@@ -1164,7 +1222,7 @@ document.addEventListener('change',e=>{
  if(a==='etime'){const[mid,d,ev]=findEv(t.dataset.id);if(ev&&t.value){ev.time=t.value;save(logKey(mid,d));render()}}
  else if(a==='enote'){const[mid,d,ev]=findEv(t.dataset.id);if(ev){ev.note=t.value.trim();save(logKey(mid,d))}}
  else if(a==='iqty'){const it=listFor(t.dataset.s,t.dataset.m)[+t.dataset.i];const f=FOODS[it[0]];const v=parseFloat(String(t.value).replace(',','.'));if(!(v>=0))return;it[1]=f.pu?v*f.pu:v;saveScope(t.dataset.s);render()}
- else if(a==='mtime'){if(t.value){S.settings.times[t.dataset.m]=t.value;save('settings')}}
+ else if(a==='mtime'){if(t.value){const r=t.dataset.r||'casa';if(r==='casa')S.settings.times[t.dataset.m]=t.value;else{S.settings.rtT=S.settings.rtT||{};S.settings.rtT[r]=S.settings.rtT[r]||{};S.settings.rtT[r][t.dataset.m]=t.value}save('settings')}}
  else if(a==='stock'){let v=parseFloat(String(t.value).replace(',','.'));const F=FOODS[t.dataset.id];if(!(v>=0))v=0;S.pantry.stock[t.dataset.id]={q:F.pu?v*F.pu:v,d:todayYmd()};save('pantry');render()}
  else if(a==='restore'){if(t.files&&t.files[0])doRestore(t.files[0]);t.value=''}
  else if(a==='price'){const v=parseFloat(String(t.value).replace(',','.'));if(v>0)S.pantry.prices[t.dataset.id]=v;else delete S.pantry.prices[t.dataset.id];save('pantry');render()}
