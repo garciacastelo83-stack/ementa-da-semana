@@ -117,7 +117,7 @@ main{padding:14px 14px 20px;max-width:720px;margin:0 auto}
 .share-card .tx{flex:1}
 .share-card h3{font-size:16px}
 nav.tabs{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;z-index:30;padding-bottom:env(safe-area-inset-bottom)}
-nav.tabs button{flex:1;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600;color:var(--muted)}
+nav.tabs button{flex:1;min-width:0;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600;color:var(--muted)}
 nav.tabs button svg{width:22px;height:22px}
 nav.tabs button.on{color:var(--green)}
 .modal{position:fixed;inset:0;background:rgba(20,28,24,.55);z-index:50;display:flex;align-items:flex-end;justify-content:center}
@@ -197,6 +197,7 @@ details summary::-webkit-details-marker{display:none}
   <button data-tab="ementa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2v4M16 2v4M4 10h16"/></svg>Ementa</button>
   <button data-tab="nutri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Nutrientes</button>
   <button data-tab="compras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="10" cy="20.5" r="1"/><circle cx="17" cy="20.5" r="1"/></svg>Compras</button>
+  <button data-tab="corpo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="13" cy="4" r="2"/><path d="M8 21l3-6 3 3v3M7 11l3-3 4 1 3 3M11 15l1-6"/></svg>Corpo</button>
   <button data-tab="partilhar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Partilhar</button>
 </nav>
 <div id="exportRoot"></div>
@@ -360,8 +361,11 @@ const NUTR_INFO=[['fib','Fibra','g',0],['vA','Vitamina A','µg',0],['vC','Vitami
 
 /* ============ COMPRAS E DESPENSA ============ */
 const rawOf=(id,g)=>g*(FOODS[id].f||1);
+function addNeed(id,g,need,ext,depth){const F=FOODS[id];if(!F)return;const x=REC[id]&&REC[id].x;if(x)for(const e in x)ext[e]=(ext[e]||0)+x[e]*g/100;
+ if(F.dish){if((depth||0)<3)for(const[i2,r]of(F.ing||[]))addNeed(i2,g*r,need,ext,(depth||0)+1);return}
+ need[id]=(need[id]||0)+rawOf(id,g)}
 function needs(scope,days){const need={},ext={};const ms=scope==='all'?S.members:[mem(scope)].filter(Boolean);
- for(const M of ms)for(const[dk]of DAYS)for(const[m]of MEALS)for(const[id,g]of memberItems(M,dk,m)){if(!FOODS[id])continue;need[id]=(need[id]||0)+rawOf(id,g);const x=REC[id]&&REC[id].x;if(x)for(const e in x)ext[e]=(ext[e]||0)+x[e]*g/100}
+ for(const M of ms)for(const[dk]of DAYS)for(const[m]of MEALS)for(const[id,g]of memberItems(M,dk,m))addNeed(id,g,need,ext)
  const k=days/7;for(const i in need)need[i]*=k;for(const i in ext)ext[i]*=k;return{need,ext}}
 function buyLabel(id,raw,ceil){const F=FOODS[id];if(F.pu){const u=raw/F.pu;const q=ceil?Math.ceil(u-0.05):Math.round(u*10)/10;return fmtN(q,1)+' '+unitWord(F,q)}
  if(raw>=1000)return fmtN(raw/1000,raw>=10000?0:1)+(F.u==='ml'?' L':' kg');
@@ -478,9 +482,9 @@ function render(){
  const A=active();
  $('#personBtn').innerHTML=A?`${avatar(A)}<span class="nmx">${esc(A.name.split(' ')[0])}</span><span class="muted">▾</span>`:'Pessoas';
  if(!A){$('#main').innerHTML='';return}
- const T={hoje:['Hoje',fmtDate(parseYmd(UI.date))],ementa:['Ementa','Da casa e de cada pessoa'],nutri:['Nutrientes',A.name],compras:['Compras','Lista, despensa e custos'],partilhar:['Partilhar','PDF ou imagem para enviar']}[UI.tab];
+ const T={hoje:['Hoje',fmtDate(parseYmd(UI.date))],ementa:['Ementa','Da casa e de cada pessoa'],nutri:['Nutrientes',A.name],compras:['Compras','Lista, despensa e custos'],partilhar:['Partilhar','PDF ou imagem para enviar'],corpo:['Corpo','Jejum, exercício e despertadores']}[UI.tab];
  $('#title').textContent=T[0];$('#subtitle').textContent=T[1];
- $('#main').innerHTML={hoje:vHoje,ementa:vEmenta,nutri:vNutri,compras:vCompras,partilhar:vPartilhar}[UI.tab]();
+ $('#main').innerHTML={hoje:vHoje,ementa:vEmenta,nutri:vNutri,compras:vCompras,partilhar:vPartilhar,corpo:vCorpo}[UI.tab]();
 }
 function whoChips(cur,act,withHouse){return `<div class="chips">${withHouse?`<button class="chip ${cur==='casa'?'on':''}" data-act="${act}" data-v="casa">🏠 Casa</button>`:''}${S.members.map(M=>`<button class="chip ${cur===M.id?'on':''}" data-act="${act}" data-v="${M.id}">${avatar(M)}${esc(M.name.split(' ')[0])}</button>`).join('')}</div>`}
 
@@ -490,6 +494,10 @@ function vHoje(){
  const water=ev.filter(e=>e.type==='water').reduce((a,e)=>a+(+e.ml||0),0),goal=A.agua||2000,pct=Math.min(1,water/goal),C=2*Math.PI*40;
  const nextW=isToday?WATER_PLAN.find(([t])=>toMin(t)>toMin(nowHM())):null;
  let h=S.members.length>1?`<div class="small muted" style="margin:0 2px 4px">Registar para</div>${whoChips(A.id,'who',false)}`:'';
+ if(A.fast&&isToday){const end=fastEnd(A.fast);h+=`<button class="card row between" style="width:100%;text-align:left;background:var(--terra-l);border-color:#ecc7b3" data-act="go-corpo"><div><b>🕊️ Em jejum</b><div class="small">até ${end.toLocaleString('pt-PT',{weekday:'short',hour:'2-digit',minute:'2-digit'})}${end>new Date()?' · faltam '+fmtDur(Math.round((end-new Date())/60000)):' · concluído'}</div></div><span>›</span></button>`}
+ else if(isToday){const nm=MEALS.find(([m])=>!ev.some(e=>e.type==='meal'&&e.meal===m)&&toMin(S.settings.times[m])>=toMin(nowHM())-30);
+  if(nm){const it=memberItems(A,dk,nm[0]);h+=`<div class="card" style="background:linear-gradient(150deg,var(--mint),#fff 75%)"><div class="small muted">Próxima refeição</div><div class="row between" style="margin-top:2px"><b style="font-size:17px;font-family:Fraunces">${nm[2]} ${nm[1]} às ${S.settings.times[nm[0]]}</b></div><div class="small" style="margin-top:4px">${esc(itemsText(it))}</div></div>`}
+  const W=WEEK_EX[dk];if(W.ex.length&&!ev.some(e=>e.ex&&W.ex.includes(e.ex)))h+=`<button class="card row between" style="width:100%;text-align:left" data-act="go-corpo"><div><b>🏃 ${esc(W.n)}</b><div class="small muted">Exercício previsto para hoje</div></div><span class="muted">›</span></button>`}
  h+=`<div class="row between" style="margin-bottom:10px">
   <button class="btn sm soft" data-act="day-">‹ Anterior</button>
   ${isToday?'<span class="badge ok">Hoje · '+dayName(dk)+'</span>':`<button class="btn sm ghost" data-act="day0">Voltar a hoje</button>`}
@@ -539,13 +547,16 @@ function itemEditor(items,m,scope){let h='';items.forEach(([id,g],i)=>{const F=F
   h+=`<div class="item"><div class="nm">${esc(F.n)}<div class="small muted">${Math.round(F.v[0]*g/100)} kcal · ${fmtN(F.v[1]*g/100,1)} g prot${F.tip?' · '+F.tip:''}</div></div>
   <label class="qty"><input type="number" inputmode="decimal" min="0" step="${F.pu?0.5:5}" value="${val}" data-act="iqty" data-m="${m}" data-i="${i}" data-s="${scope}"><span>${F.pu?F.un:(F.u||'g')}</span></label>
   <button class="x" data-act="idel" data-m="${m}" data-i="${i}" data-s="${scope}" aria-label="Remover">×</button></div>`});
- if(UI.addOpen===m)h+=`<div class="add-line"><select id="addSel">${Object.entries(CATS).map(([c,cn])=>`<optgroup label="${cn}">${Object.entries(FOODS).filter(([,F])=>F.c===c).map(([id,F])=>`<option value="${id}">${esc(F.n)}</option>`).join('')}</optgroup>`).join('')}</select>
+ if(UI.addOpen===m)h+=`<div class="add-line"><select id="addSel">${Object.entries(CATS).filter(([c])=>c!=='ing').map(([c,cn])=>`<optgroup label="${cn}">${Object.entries(FOODS).filter(([,F])=>F.c===c).map(([id,F])=>`<option value="${id}">${esc(F.n)}</option>`).join('')}</optgroup>`).join('')}</select>
   <input id="addQty" type="number" inputmode="decimal" placeholder="g / un"><button class="btn sm" data-act="iadd" data-m="${m}" data-s="${scope}">Juntar</button><button class="btn sm ghost" data-act="add-close">×</button></div>`;
  return h}
 function vEmenta(){
  const dk=UI.eDay,who=UI.eWho==='casa'||!mem(UI.eWho)?'casa':UI.eWho,M=who==='casa'?null:mem(who);
  let h=S.members.length>1||M?whoChips(who,'ewho',true):'';
  h+=`<div class="chips">${DAYS.map(([k,n])=>`<button class="chip ${k===dk?'on':''} ${k===dayKeyOf(new Date())?'today':''}" data-act="eday" data-d="${k}">${n.slice(0,3)}</button>`).join('')}</div>`;
+ const hasAO=DAYS.some(([k])=>MEALS.some(([m])=>(S.plan[k][m]||[]).some(([id])=>['funge_bombo','funge_milho','muamba','calulu','feijao_oleo','kizaca'].includes(id))));
+ if(!hasAO&&!S.settings.aoSeen)h+=`<div class="card" style="background:linear-gradient(150deg,var(--terra-l),#fff 70%)"><b>🇦🇴 Nova ementa com cozinha angolana</b><p class="small" style="margin:4px 0 10px">Funge, muamba, calulu, mufete, kizaca, sardinha e carapau no lugar do salmão, bebidas naturais e sobremesas de fruta. Substitui a ementa da casa actual.</p><div class="row" style="gap:6px"><button class="btn sm terra" data-act="ao-plan">Usar a nova ementa</button><button class="btn sm ghost" data-act="ao-no">Agora não</button></div></div>`;
+ h+=`<button class="card row between" style="width:100%;text-align:left" data-act="catalog"><div><b>🍲 Pratos angolanos, bebidas e sobremesas</b><div class="small muted">Escolha e junte a uma refeição de ${dayName(dk).toLowerCase()}</div></div><span class="muted">›</span></button>`;
  if(!M){const t=familyDay(dk);
   h+=`<div class="hint" style="background:var(--mint);color:var(--green)">🏠 <b>Ementa da casa.</b> Todos comem isto, cada um com a sua porção, excepto nas refeições em que alguém tem ementa própria.</div>
   <div class="sumline"><span><b>${fmtN(t.kcal)}</b> kcal por porção de adulto</span><span><b>${fmtN(t.prot)} g</b> proteína</span></div>`}
@@ -557,7 +568,7 @@ function vEmenta(){
   if(!M){const items=S.plan[dk][m]||[];const own=S.members.filter(x=>isOv(x,dk,m));
    if(own.length)h+=`<div style="margin-bottom:6px">${own.map(x=>`<span class="tag" style="margin-right:4px">${esc(x.name.split(' ')[0])} come diferente</span>`).join('')}</div>`;
    h+=itemEditor(items,m,'casa');
-   if(UI.addOpen!==m)h+=`<div class="row between" style="margin-top:6px"><button class="link" data-act="add-open" data-m="${m}">+ Alimento</button><button class="link" data-act="guide" data-m="${m}" data-dk="${dk}" data-w="casa">👩‍🍳 Como preparar</button></div>`}
+   if(UI.addOpen!==m)h+=`<div class="row between" style="margin-top:6px;flex-wrap:wrap"><button class="link" data-act="add-open" data-m="${m}">+ Alimento</button><button class="link" data-act="catalog" data-m="${m}">+ Prato</button><button class="link" data-act="guide" data-m="${m}" data-dk="${dk}" data-w="casa">👩‍🍳 Como preparar</button></div>`}
   else if(isOv(M,dk,m)){const items=M.ov[dk][m];
    h+=`<span class="tag" style="display:inline-block;margin-bottom:6px">Só para ${esc(M.name.split(' ')[0])}</span>`+itemEditor(items,m,M.id);
    if(UI.addOpen!==m)h+=`<div class="row between" style="margin-top:6px;flex-wrap:wrap"><button class="link" data-act="add-open" data-m="${m}">+ Alimento</button><button class="link" data-act="guide" data-m="${m}" data-dk="${dk}" data-w="${M.id}">👩‍🍳 Como preparar</button><button class="link" style="color:var(--muted)" data-act="ov-off" data-m="${m}">Voltar à da casa</button></div>`}
@@ -569,6 +580,26 @@ function vEmenta(){
   ${UI.confirmReset?`<div class="row" style="gap:6px"><button class="btn sm soft" data-act="reset-day">Só ${dayName(dk).slice(0,3)}.</button><button class="btn sm terra" data-act="reset-ok">Todos</button><button class="btn sm ghost" data-act="reset-no">Não</button></div>`:`<button class="btn sm ghost" data-act="reset">Repor</button>`}</div></div>`;
  else h+=`<p class="note" style="padding:0 4px">Mude uma refeição só para ${esc(M.name.split(' ')[0])} quando, nesse dia, come algo diferente do resto da família. As outras pessoas continuam com a ementa da casa.</p>`;
  return h}
+
+/* ---------- CATÁLOGO ---------- */
+function addItemsTo(m,items){const who=UI.eWho==='casa'||!mem(UI.eWho)?'casa':UI.eWho;let L;
+ if(who==='casa')L=S.plan[UI.eDay][m]||(S.plan[UI.eDay][m]=[]);else{const M=mem(who);M.ov=M.ov||{};M.ov[UI.eDay]=M.ov[UI.eDay]||{};if(!M.ov[UI.eDay][m])M.ov[UI.eDay][m]=scaleItems(S.plan[UI.eDay][m]||[],M.por||1);L=M.ov[UI.eDay][m]}
+ items.forEach(it=>L.push(clone(it)));save(who==='casa'?'plan':'members')}
+function openCatalog(mDef){const md=document.createElement('div');md.className='modal';let tab='pratos';
+ const sel=()=>`<label class="field" style="margin-bottom:8px">Juntar a<select id="catMeal">${MEALS.map(([m,n])=>`<option value="${m}">${n} de ${dayName(UI.eDay).toLowerCase()}</option>`).join('')}</select></label>`;
+ const item=(id,g)=>{const F=FOODS[id],k=Math.round(F.v[0]*g/100);return`<div class="pl-row"><div style="flex:1;min-width:0"><button style="font-weight:600;text-align:left;padding:0" data-c="info" data-id="${id}">${esc(F.n)} <span class="muted" style="font-weight:400">ⓘ</span></button><div class="small muted">${qtyLabel(id,g)} · ${k} kcal${F.occ?' · <span style="color:var(--terra)">só em ocasiões</span>':''}</div></div><button class="btn sm soft" data-c="add" data-id="${id}" data-g="${g}">Juntar</button></div>`};
+ const draw=()=>{let h=`<div class="row between"><h2 style="font-size:19px">Cozinha angolana e mais</h2><button class="x" data-c="close" style="font-size:24px">×</button></div>
+  <div class="seg" style="display:flex;margin:0">${[['pratos','Pratos'],['bebidas','Bebidas'],['sobremesas','Sobremesas'],['fruta','Fruta']].map(([k,n])=>`<button style="flex:1" class="${tab===k?'on':''}" data-c="tab" data-v="${k}">${n}</button>`).join('')}</div><div class="scroll">${sel()}`;
+  if(tab==='pratos')h+=COMBOS.map((C,i)=>`<div class="card" style="margin-bottom:8px"><div class="row between"><b>${esc(C.n)}</b><button class="btn sm" data-c="combo" data-i="${i}">Juntar</button></div><div class="small muted" style="margin-top:2px">${esc(C.d)}</div><div class="small" style="margin-top:4px">${esc(itemsText(C.it))} · ${Math.round(sumItems(C.it).kcal)} kcal</div></div>`).join('')+`<p class="note">Os pratos levam o modo de preparo completo no botão "Como preparar" de cada refeição.</p>`;
+  if(tab==='bebidas')h+=`<div class="hint">Todas sem álcool e sem cafeína. A água continua a ser a bebida principal: registe-a no separador Hoje.</div>`+['sumo_mucua','sumo_maracuja','agua_coco','cha_caxinde','batido','leite'].map(id=>item(id,id==='cha_caxinde'?250:200)).join('');
+  if(tab==='sobremesas')h+=['salada_frutas','papaia_iogurte','banana_assada','cocada','doce_ginguba'].map(id=>item(id,FOODS[id].occ?40:150)).join('')+`<p class="note">No dia a dia, prefira fruta. Os doces tradicionais ficam para festas, em porção pequena.</p>`;
+  if(tab==='fruta')h+=['manga','papaia','abacaxi','goiaba','maracuja','banana','abacate','jinguba'].map(id=>item(id,FOODS[id].pu?FOODS[id].pu:id==='jinguba'?25:150)).join('');
+  md.innerHTML=`<div class="sheetbox">${h}</div></div>`;if(mDef){const s=md.querySelector('#catMeal');if(s)s.value=mDef}};
+ draw();document.body.appendChild(md);
+ md.addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(!b){if(e.target===md)md.remove();return}const c=b.dataset.c,m=(md.querySelector('#catMeal')||{}).value||'al';
+  if(c==='close')md.remove();else if(c==='tab'){mDef=m;tab=b.dataset.v;draw()}else if(c==='info')openFood(b.dataset.id);
+  else if(c==='add'){addItemsTo(m,[[b.dataset.id,+b.dataset.g]]);toast(FOODS[b.dataset.id].n+' juntado');render()}
+  else if(c==='combo'){const C=COMBOS[+b.dataset.i];addItemsTo(m,C.it);md.remove();render();toast(C.n+' juntado a '+mealName(m).toLowerCase())}})}
 
 /* ---------- MODO DE PREPARO ---------- */
 function guideData(dk,m,w){
@@ -582,7 +613,7 @@ function guideHTML(dk,m,w,forSheet){
  const ext={};for(const[id,g]of items){const x=REC[id]&&REC[id].x;if(x)for(const e in x)ext[e]=(ext[e]||0)+x[e]*g/100}
  const total=cook.length?REC[cook[0][0]].t+5:5;
  let h=`<div class="rec"><div class="small muted">Para: <b style="color:var(--ink)">${esc(G.who)}</b>${w==='casa'?` · ${fmtN(G.portions,1)} ${G.portions===1?'porção':'porções'}`:''} · cerca de ${total} min</div>`;
- h+=`<h3>Ingredientes</h3><div class="ing">${items.map(([id,g])=>`• ${esc(FOODS[id].n)}: <b>${qtyLabel(id,g)}</b>${FOODS[id].f&&FOODS[id].f!==1&&FOODS[id].bl?` <span class="muted">(${buyLabel(id,rawOf(id,g))} ${FOODS[id].bl})</span>`:''}`).join('<br>')}
+ h+=`<h3>Ingredientes</h3><div class="ing">${items.map(([id,g])=>`• ${esc(FOODS[id].n)}: <b>${qtyLabel(id,g)}</b>${FOODS[id].dish&&(FOODS[id].ing||[]).length?`<div class="small muted" style="margin-left:12px">leva ${FOODS[id].ing.map(([i2,r])=>esc(shortName(i2).toLowerCase())+' '+buyLabel(i2,rawOf(i2,g*r))).join(', ')}</div>`:''}${FOODS[id].f&&FOODS[id].f!==1&&FOODS[id].bl?` <span class="muted">(${buyLabel(id,rawOf(id,g))} ${FOODS[id].bl})</span>`:''}`).join('<br>')}
   ${Object.keys(ext).length?'<br><span class="muted">Temperos: '+Object.entries(ext).map(([e,q])=>EXTRAS[e].n.split(' (')[0].toLowerCase()+' '+extraLabel(e,q)).join(', ')+'</span>':''}</div>`;
  if(cook.length>1)h+=`<h3>Por onde começar</h3><div class="order">${cook.map(([id],i)=>`${i+1}. ${i===0?'Comece por':'Depois'}: <b>${esc(REC[id].ti.toLowerCase())}</b> (${REC[id].t} min)`).join('<br>')}<br><span style="font-size:12.5px">Enquanto o mais demorado coze, vá preparando os outros, para tudo ficar pronto ao mesmo tempo.</span></div>`;
  for(const[id,g]of[...cook,...raw]){const R=REC[id];if(!R)continue;
@@ -632,12 +663,16 @@ function vCompras(){
  const ids=Object.keys(need);let total=0,priced=0;const nBought=ids.filter(id=>P.bought[id]).length;
  h+=`<button class="card row between" style="width:100%;text-align:left" data-act="storage"><div><b>📦 Onde guardar cada alimento</b><div class="small muted">Geleira, congelador, despensa e quanto tempo dura</div></div><span class="muted">›</span></button>`;
  h+=`<div class="hint">Lista para ${days===7?'uma semana':days===14?'15 dias':'um mês'}${scope==='all'?(S.members.length>1?', para toda a casa':''):', só para '+esc(mem(scope).name.split(' ')[0])}. Escreva quanto tem em casa e a lista mostra só o que falta. A despensa vai descontando sozinha ao ritmo da ementa.${days>7?' Nas compras longas, os alimentos que se estragam depressa estão marcados: congele-os ou compre-os frescos todas as semanas.':''}</div>`;
- for(const[c,cn]of Object.entries(CATS)){const list=ids.filter(id=>FOODS[id].c===c);if(!list.length)continue;
-  h+=`<div class="card"><div class="cat">${cn}</div>`;
+ const pais=P.pais||'AO',grp=P.group||'cat';
+ h+=`<div class="row between" style="flex-wrap:wrap;gap:8px;margin-bottom:10px"><div class="seg" style="margin:0"><button class="${pais==='AO'?'on':''}" data-act="pais" data-v="AO">🇦🇴 Angola</button><button class="${pais==='PT'?'on':''}" data-act="pais" data-v="PT">🇵🇹 Portugal</button></div>
+  <div class="seg" style="margin:0"><button class="${grp==='cat'?'on':''}" data-act="group" data-v="cat">Por secção</button><button class="${grp==='onde'?'on':''}" data-act="group" data-v="onde">Por loja</button></div></div>`;
+ const GRP=grp==='onde'?Object.entries(ONDE_TXT[pais]).map(([k,t])=>[k,t,ids.filter(id=>(ondeOf(id)||{k:'super'}).k===k)]):Object.entries(CATS).map(([c,cn])=>[c,cn,ids.filter(id=>FOODS[id].c===c)]);
+ for(const[c,cn,list]of GRP){if(!list.length)continue;
+  h+=`<div class="card"><div class="cat">${grp==='onde'?'🛒 ':''}${esc(cn)}</div>`;
   for(const id of list){const F=FOODS[id],st=estStock(id,rate),tb=Math.max(0,need[id]-st),done=!!P.bought[id],cost=costOf(id,tb);if(cost){total+=cost;priced++}
    const sv=F.pu?Math.round(st/F.pu*10)/10:Math.round(st);const old=P.stock[id]&&P.stock[id].d!==todayYmd();
    h+=`<div class="shop ${done?'done':''}"><button class="ck" data-act="buy" data-id="${id}" aria-label="Comprado">${done?'✓':''}</button>
-    <div class="sn"><button style="font-weight:600;text-align:left;padding:0" data-act="food" data-id="${id}">${esc(shortName(id))} <span class="muted" style="font-weight:400">ⓘ</span></button><div class="small muted">precisa de ${buyLabel(id,need[id])}${F.bl?' '+F.bl:''}</div><div class="small" style="color:var(--water)">${storeLine(id)}</div>${periodWarn(id,days)?`<span class="tag" style="display:inline-block;margin-top:3px">${periodWarn(id,days)}</span>`:''}</div>
+    <div class="sn"><button style="font-weight:600;text-align:left;padding:0" data-act="food" data-id="${id}">${esc(shortName(id))} <span class="muted" style="font-weight:400">ⓘ</span></button><div class="small muted">precisa de ${buyLabel(id,need[id])}${F.bl?' '+F.bl:''}</div><div class="small" style="color:var(--water)">${storeLine(id)}</div>${grp==='cat'&&ondeOf(id)?`<div class="small" style="color:var(--terra)">🛒 ${esc(ondeOf(id).t)}</div>`:''}${periodWarn(id,days)?`<span class="tag" style="display:inline-block;margin-top:3px">${periodWarn(id,days)}</span>`:''}</div>
     <div class="need" style="color:${tb>0?'var(--terra)':'var(--green2)'}">${tb>0?buyLabel(id,tb,true):'Tem'}${cost?`<div class="small muted" style="font-weight:500">${money(cost)}</div>`:''}</div>
     <div class="stock">Tenho <input type="number" inputmode="decimal" min="0" value="${sv||''}" placeholder="0" data-act="stock" data-id="${id}"> ${stockUnit(id)}${old&&sv?' <span>(estimado)</span>':''}
      <span style="margin-left:auto">Preço/${priceUnit(id)}</span><input type="number" inputmode="decimal" min="0" value="${P.prices[id]||''}" placeholder="–" data-act="price" data-id="${id}"></div></div>`}
@@ -783,15 +818,15 @@ const STO={
  nozes:{l:'geleira',t:'3 a 6 meses',v:120,n:'Ganham ranço depressa com o calor; na geleira, em frasco, duram mais.',fq:'Um punhado (25 a 30 g) por dia.'}
 };
 const GROUPS=[
- {n:'Peixe',ids:['pescada','peixe','salmao','tilapia','bacalhau','atum'],min:3,max:99,u:'refeições',rec:'3 a 4 ou mais por semana'},
+ {n:'Peixe',ids:['pescada','peixe','salmao','tilapia','bacalhau','atum','sardinha','calulu'],min:3,max:99,u:'refeições',rec:'3 a 4 ou mais por semana'},
  {n:'Carne vermelha',ids:['vaca'],min:0,max:2,u:'refeições',rec:'no máximo 2 por semana'},
- {n:'Frango',ids:['frango','frango_assado'],min:1,max:7,u:'refeições',rec:'2 a 3 por semana'},
- {n:'Leguminosas (feijão, grão)',ids:['feijao','grao'],min:2,max:99,u:'refeições',rec:'2 a 3 ou mais por semana'},
+ {n:'Frango',ids:['frango','frango_assado','muamba','moamba_ginguba'],min:1,max:7,u:'refeições',rec:'2 a 3 por semana'},
+ {n:'Leguminosas (feijão, grão)',ids:['feijao','grao','feijao_oleo'],min:2,max:99,u:'refeições',rec:'2 a 3 ou mais por semana'},
  {n:'Ovos',ids:['ovo'],min:0,max:14,u:'ovos',rec:'até 1 a 2 por dia',count:'units'},
- {n:'Fruta',ids:['banana','maca','pera','papaia','abacate'],min:14,max:99,u:'peças',rec:'2 a 3 peças por dia',count:'items'},
- {n:'Legumes e verduras',ids:['brocolos','cenoura','espinafres','couve','feijao_verde','alface','legumes','salada','sopa'],min:10,max:99,u:'porções',rec:'2 ou mais porções por dia',count:'items'},
- {n:'Lacticínios',ids:['iogurte','leite'],min:14,max:99,u:'porções',rec:'2 a 3 porções por dia',count:'items'},
- {n:'Frutos secos',ids:['amendoa','nozes'],min:5,max:99,u:'dias',rec:'um punhado quase todos os dias',count:'days'}
+ {n:'Fruta',ids:['banana','maca','pera','papaia','abacate','manga','abacaxi','goiaba','maracuja','salada_frutas'],min:14,max:99,u:'peças',rec:'2 a 3 peças por dia',count:'items'},
+ {n:'Legumes e verduras',ids:['brocolos','cenoura','espinafres','couve','feijao_verde','alface','legumes','salada','sopa','gimboa','kizaca','tomate'],min:10,max:99,u:'porções',rec:'2 ou mais porções por dia',count:'items'},
+ {n:'Lacticínios',ids:['iogurte','leite','batido','papas_milho','papaia_iogurte'],min:14,max:99,u:'porções',rec:'2 a 3 porções por dia',count:'items'},
+ {n:'Frutos secos',ids:['amendoa','nozes','jinguba'],min:5,max:99,u:'dias',rec:'um punhado quase todos os dias',count:'days'}
 ];
 function weekGroups(M){return GROUPS.map(G=>{let n=0;for(const[dk]of DAYS){let dayHas=false;for(const[m]of MEALS){const it=memberItems(M,dk,m).filter(([id])=>G.ids.includes(id));if(!it.length)continue;dayHas=true;
   if(G.count==='units')n+=it.reduce((a,[id,g])=>a+(FOODS[id].pu?g/FOODS[id].pu:1),0);else if(G.count==='items')n+=it.length;else if(G.count!=='days')n+=1}
@@ -827,6 +862,236 @@ function doRestore(file){const r=new FileReader();r.onload=()=>{try{const d=JSON
   if(d.plan)S.plan=d.plan;if(d.settings)S.settings={times:{...DEF_TIMES,...(d.settings.times||{})}};if(d.members)S.members=d.members;if(d.active)S.active=d.active;if(d.pantry)applyDoc('pantry',d.pantry);
   if(d.logs)for(const mid in d.logs){S.logs[mid]=S.logs[mid]||{};for(const dt in d.logs[mid]){S.logs[mid][dt]=d.logs[mid][dt];save(logKey(mid,dt))}}
   ['plan','settings','members','pantry'].forEach(k=>save(k));const w=$('.welcome');if(w)w.remove();UI.ready=true;render();toast('Dados recuperados')}catch(e){toast('Este ficheiro não é uma cópia válida')}};r.readAsText(file)}
+
+
+/* ============ GASTRONOMIA ANGOLANA, BEBIDAS E SOBREMESAS ============ */
+CATS.bev='Bebidas';CATS.sob='Sobremesas';CATS.ing='Ingredientes da cozinha angolana';
+Object.assign(FOODS,{
+ // ingredientes (entram nas compras)
+ fuba_bombo:{n:'Fuba de bombó (mandioca)',c:'ing',v:[357,1.4,87,0.3,4,0,0,0,0,40,1.2,120,30,5]},
+ fuba_milho:{n:'Fuba de milho',c:'ing',v:[362,8.1,76,3.6,7.3,11,0,0,0,7,2.4,287,93,5]},
+ oleo_palma:{n:'Óleo de palma (dendém)',c:'ing',u:'ml',v:[884,0,0,100,0,1500,0,0,0,0,0,0,0,0]},
+ quiabo:{n:'Quiabos',c:'ing',f:1.1,v:[22,1.9,4.5,0.2,2.5,14,16,0,0,77,0.3,135,36,6]},
+ abobora:{n:'Abóbora',c:'ing',f:1.3,v:[20,0.7,4.9,0.1,1.1,426,4.7,0,0,15,0.6,230,6,1]},
+ folhas_mandioca:{n:'Folhas de mandioca pisadas',c:'ing',v:[40,4,7,0.6,3.5,500,40,0,0,170,2.8,400,60,10]},
+ jinguba:{n:'Jinguba (amendoim)',c:'gor',v:[585,24,21,50,8.5,0,0,0,0,54,2.3,660,176,6]},
+ peixe_seco:{n:'Peixe seco (corvina, bagre)',c:'prot',v:[290,62,0,3,0,30,0,4,6,200,2,800,90,1500]},
+ beringela:{n:'Beringela',c:'ing',f:1.1,v:[35,0.8,8.7,0.2,2.5,2,1.3,0,0,6,0.3,123,11,1]},
+ tomate:{n:'Tomate',c:'hor',f:1.05,v:[18,0.9,3.9,0.2,1.2,42,13.7,0,0,10,0.3,237,11,5]},
+ // pratos
+ funge_bombo:{n:'Funge de bombó',c:'cer',dish:1,ing:[['fuba_bombo',0.3]],v:[110,0.4,27,0.1,1.2,0,0,0,0,12,0.4,36,9,2]},
+ funge_milho:{n:'Funge de milho',c:'cer',dish:1,ing:[['fuba_milho',0.25]],v:[90,2,19,0.9,1.8,3,0,0,0,2,0.6,72,23,1]},
+ papas_milho:{n:'Papas de milho com leite',c:'cer',dish:1,ing:[['fuba_milho',0.12],['leite',0.6]],v:[72,2.9,12,1.4,0.9,25,0,0.1,0.27,73,0.3,124,18,27]},
+ muamba:{n:'Muamba de galinha',c:'prot',dish:1,ing:[['frango_assado',0.45],['oleo_palma',0.05],['quiabo',0.15],['abobora',0.15],['tomate',0.08]],v:[150,14,4,8.5,1.2,240,6,0.1,0.2,30,1.1,260,25,180]},
+ calulu:{n:'Calulu de peixe',c:'prot',dish:1,ing:[['peixe_seco',0.08],['peixe',0.25],['quiabo',0.1],['beringela',0.08],['tomate',0.1],['oleo_palma',0.03]],v:[115,15,4,4.5,1.5,150,10,2,2.5,60,1,380,35,350]},
+ moamba_ginguba:{n:'Moamba de ginguba (galinha)',c:'prot',dish:1,ing:[['frango_assado',0.45],['jinguba',0.12],['tomate',0.08]],v:[190,17,5,11.5,1.5,20,3,0.1,0.2,20,1.1,300,40,170]},
+ feijao_oleo:{n:'Feijão de óleo de palma',c:'leg',dish:1,ing:[['feijao',0.85],['oleo_palma',0.05]],v:[160,7.4,19.4,4.8,5.4,75,1,0,0,24,2.5,345,38,120]},
+ kizaca:{n:'Kizaca (folhas de mandioca)',c:'hor',dish:1,ing:[['folhas_mandioca',0.75],['jinguba',0.08],['oleo_palma',0.02]],v:[105,5,7,6.5,4,420,25,0,0,140,2.4,360,58,60]},
+ gimboa:{n:'Gimboa refogada',c:'hor',f:1.5,bl:'fresca',v:[30,3,4.5,0.5,2.5,300,40,0,0,210,2.3,600,55,20]},
+ banana_pao:{n:'Banana-pão cozida',c:'cer',f:1.4,bl:'com casca',v:[116,0.8,31,0.2,2.3,45,11,0,0,2,0.6,465,32,5]},
+ sardinha:{n:'Sardinha grelhada',c:'prot',f:1.5,bl:'inteira',v:[208,25,0,11.5,0,32,0,4.8,8.9,382,2.9,397,39,307]},
+ // fruta tropical
+ manga:{n:'Manga',c:'fru',f:1.5,bl:'inteira',v:[60,0.8,15,0.4,1.6,54,36,0,0,11,0.2,168,10,1]},
+ abacaxi:{n:'Abacaxi (ananás)',c:'fru',f:1.8,bl:'inteiro',v:[50,0.5,13,0.1,1.4,3,48,0,0,13,0.3,109,12,1]},
+ goiaba:{n:'Goiaba',c:'fru',pu:100,un:'un',v:[68,2.6,14,1,5.4,31,228,0,0,18,0.3,417,22,2]},
+ maracuja:{n:'Maracujá',c:'fru',pu:30,un:'un',v:[97,2.2,23,0.7,10,64,30,0,0,12,1.6,348,29,28]},
+ // bebidas (sem álcool)
+ sumo_mucua:{n:'Sumo de múcua (sem açúcar)',c:'bev',u:'ml',buy:'Múcua (polpa ou pó)',f:0.12,v:[35,0.3,8,0.1,4,0,40,0,0,40,1,240,15,1]},
+ sumo_maracuja:{n:'Sumo de maracujá natural',c:'bev',u:'ml',buy:'Maracujá para sumo',f:0.3,v:[30,0.6,7,0.2,0.5,20,10,0,0,4,0.4,100,8,8]},
+ agua_coco:{n:'Água de coco',c:'bev',u:'ml',buy:'Coco verde',v:[19,0.7,3.7,0.2,1.1,0,2.4,0,0,24,0.3,250,25,105]},
+ cha_caxinde:{n:'Chá de caxinde',c:'bev',u:'ml',buy:'Caxinde (folhas)',f:0.01,v:[1,0,0.2,0,0,0,0,0,0,2,0,10,1,1]},
+ batido:{n:'Batido de banana e papaia com leite',c:'bev',u:'ml',dish:1,ing:[['banana',0.25],['papaia',0.25],['leite',0.5]],v:[68,2.1,12.8,0.9,1,35,17,0.1,0.2,64,0.1,200,13,24]},
+ // sobremesas
+ salada_frutas:{n:'Salada de frutas tropicais',c:'sob',dish:1,ing:[['manga',0.3],['papaia',0.3],['abacaxi',0.2],['banana',0.2]],v:[56,0.6,14,0.2,1.6,45,40,0,0,14,0.2,170,15,2]},
+ banana_assada:{n:'Banana assada com canela',c:'sob',dish:1,ing:[['banana',1]],v:[95,1.1,23.5,0.3,2.6,3,8,0,0,6,0.3,360,27,1]},
+ papaia_iogurte:{n:'Papaia com iogurte',c:'sob',dish:1,ing:[['papaia',0.6],['iogurte',0.4]],v:[50,1.7,8.4,1.5,1,39,37,0,0.15,60,0.2,171,17,23]},
+ cocada:{n:'Cocada amarela (ocasional)',c:'sob',dish:1,occ:1,ing:[],buy:'',v:[430,5,52,23,5,60,1,0.5,0.3,20,1.5,250,40,30]},
+ doce_ginguba:{n:'Doce de ginguba (ocasional)',c:'sob',dish:1,occ:1,ing:[['jinguba',0.6]],v:[480,15,48,27,5,0,0,0,0,40,1.5,450,120,10]}
+});
+FOODS.tilapia.n='Cacusso ou tilápia grelhada';
+FOODS.peixe.n='Carapau ou garoupa grelhada';
+
+Object.assign(REC,{
+ funge_bombo:{t:15,ti:'Funge de bombó',s:['Ponha a ferver 1 litro de água por cada 2 chávenas de fuba (para 3 a 4 pessoas).','Quando ferver, tire o tacho do lume ou baixe para o mínimo e retire meio copo de água para um lado.','Vá deitando a fuba aos poucos, com uma mão, enquanto mexe com força com a colher de pau (o mexedor), sempre no mesmo sentido.','Continue a mexer e a "bater" encostando a massa às paredes do tacho, até ficar lisa, brilhante e elástica, sem grumos. Se ficar muito dura, junte um pouco da água que guardou.','Deixe 2 a 3 minutos em lume mínimo, tapado.','Para servir, molhe a colher em água e faça bolas.'],d:'O segredo está em mexer com força desde o início. Funge é só fuba e água: a energia vem dos hidratos, por isso combine sempre com peixe, galinha ou feijão e folhas.'},
+ funge_milho:{t:25,ti:'Funge de milho',s:['Dissolva primeiro 3 colheres de fuba num copo de água fria (evita grumos).','Ponha 1 litro de água a ferver e junte essa mistura, mexendo.','Deixe cozinhar 5 minutos, mexendo de vez em quando.','Vá juntando o resto da fuba aos poucos, mexendo com força com a colher de pau.','Baixe o lume e deixe cozinhar 10 a 15 minutos, mexendo, até a massa se soltar das paredes.','Sirva em bolas, com a colher molhada.'],d:'O funge de milho tem mais proteína, ferro e magnésio do que o de bombó.'},
+ papas_milho:{t:12,ti:'Papas de milho',s:['Dissolva a fuba de milho num pouco de água fria.','Aqueça o leite e, quando começar a ferver, junte a mistura, mexendo sempre.','Deixe 8 a 10 minutos em lume brando, mexendo, até engrossar.','Sirva morna, com banana às rodelas e canela. Evite juntar açúcar.']},
+ muamba:{t:60,ti:'Muamba de galinha',x:{alho:3,cebola:10,louro:0.4,sal:0.4},s:['Corte a galinha em pedaços e retire a pele e a gordura visível. Tempere com alho esmagado, louro e pouco sal; deixe 20 minutos.','Num tacho largo, aqueça o óleo de palma (pouco: 1 colher de sopa por pessoa chega) com a cebola e o tomate picados, 5 minutos.','Junte a galinha e deixe ganhar cor, virando os pedaços, 10 minutos.','Acrescente água até quase cobrir e deixe cozinhar tapado 25 minutos.','Junte a abóbora em cubos e os quiabos às rodelas. Cozinhe mais 15 a 20 minutos, até a abóbora desfazer um pouco e o molho engrossar.','Prove e acerte o sal. Sirva com funge.'],d:'Sem jindungo no tacho: quem gostar de picante junta à parte, no prato. O óleo de palma dá cor e vitamina A, mas é gordura saturada, por isso use pouco.'},
+ calulu:{t:60,ti:'Calulu de peixe',x:{alho:3,cebola:15,louro:0.4,sal:0.3},s:['Na véspera, ponha o peixe seco de molho em água, trocando a água 2 vezes, para tirar o sal.','Corte em pedaços o peixe fresco, o peixe seco, a cebola e o tomate em rodelas, os quiabos e a beringela.','Num tacho, faça camadas: cebola, tomate, peixe seco, peixe fresco, quiabos, beringela e gimboa (ou espinafres). Repita.','Regue com um fio de óleo de palma e meio copo de água. Junte o louro e o alho.','Tape e deixe cozinhar 35 a 40 minutos em lume brando, sem mexer, só abanando o tacho de vez em quando.','Sirva com funge, feijão de óleo de palma ou batata-doce.'],d:'O peixe seco já tem muito sal: não junte sal antes de provar.'},
+ moamba_ginguba:{t:55,ti:'Moamba de ginguba',x:{alho:3,cebola:10,sal:0.4},s:['Tempere a galinha sem pele com alho e pouco sal.','Refogue a cebola e o tomate num fio de óleo, junte a galinha e deixe ganhar cor, 10 minutos.','Junte água até quase cobrir e deixe cozinhar 20 minutos.','Dissolva a pasta de jinguba (ou jinguba moída) num copo de água morna e junte ao tacho.','Cozinhe mais 15 a 20 minutos em lume brando, mexendo muitas vezes para não pegar ao fundo.','Sirva com funge ou arroz.']},
+ feijao_oleo:{t:75,ti:'Feijão de óleo de palma',x:{cebola:12,alho:2,sal:0.4},s:['Coza o feijão (ou use feijão já cozido de frasco, passado por água).','Num tacho, aqueça um pouco de óleo de palma com a cebola picada, 5 minutos.','Junte o feijão cozido e um pouco da água da cozedura.','Deixe apurar 15 minutos em lume brando, mexendo e esmagando alguns grãos para engrossar.'],d:'Faça para 2 a 3 dias: guarda bem na geleira.'},
+ kizaca:{t:90,ti:'Kizaca',x:{cebola:10,alho:2,sal:0.3},s:['Compre as folhas de mandioca já pisadas no mercado (ou pise-as no pilão).','Coza as folhas em bastante água durante pelo menos 1 hora, em lume médio. É importante cozer bem: as folhas cruas não são seguras.','Escorra parte da água. Junte a cebola picada, o alho e a jinguba moída.','Cozinhe mais 20 minutos, mexendo, e junte um fio de óleo de palma no fim.'],d:'Nunca encurte o tempo de cozedura das folhas de mandioca.'},
+ gimboa:{t:10,ti:'Gimboa refogada',x:{alho:3,cebola:10},s:['Lave bem as folhas e corte grosseiramente.','Refogue alho e cebola num fio de azeite, 2 minutos.','Junte a gimboa e mexa 4 a 5 minutos, até murchar.'],d:'Em Portugal, se não encontrar gimboa, use espinafres ou couve.'},
+ banana_pao:{t:25,ti:'Banana-pão cozida',x:{sal:0.2},s:['Corte as pontas e corte a banana-pão em 2 ou 3 pedaços, com casca.','Coza em água com uma pitada de sal 20 a 25 minutos.','Retire a casca e sirva.'],d:'Também pode assar no forno 25 minutos, a 200 °C.'},
+ sardinha:{t:15,ti:'Sardinha grelhada',x:{sal:0.4},s:['Sardinhas inteiras: polvilhe com sal grosso 20 minutos antes.','Grelhe 4 a 5 minutos de cada lado no grelhador ou frigideira bem quente.','Coma também as espinhas pequenas: dão muito cálcio.'],d:'A sardinha e o carapau são os melhores substitutos do salmão: têm ómega-3 e vitamina D e são baratos.'},
+ manga:{t:3,ti:'Manga',s:['Corte as duas "bochechas" de cada lado do caroço.','Faça quadrados na polpa sem cortar a casca e vire do avesso.']},
+ abacaxi:{t:5,ti:'Abacaxi',s:['Corte a coroa e a base. De pé, retire a casca às tiras.','Corte em rodelas e retire o centro duro.']},
+ goiaba:{t:1,ti:'Goiaba',s:['Lave bem e coma com casca e sementes.']},
+ maracuja:{t:1,ti:'Maracujá',s:['Corte ao meio e coma a polpa com uma colher.']},
+ sumo_mucua:{t:5,ti:'Sumo de múcua',s:['Por cada copo de água fria, junte 2 colheres de sopa de polpa de múcua.','Mexa bem ou bata 30 segundos e deixe repousar 5 minutos.','Coe e beba fresco, no próprio dia. Sem açúcar ou com muito pouco.'],d:'A múcua é muito rica em vitamina C e fibra.'},
+ sumo_maracuja:{t:5,ti:'Sumo de maracujá',s:['Retire a polpa de 3 maracujás por cada litro de água.','Bata rapidamente (sem partir as sementes) e coe.','Sirva fresco, sem açúcar ou com muito pouco.']},
+ agua_coco:{t:2,ti:'Água de coco',s:['Faça um furo no coco verde e beba fresca. Depois de aberta, guarde na geleira e beba no dia.'],d:'Óptima para repor líquidos depois do exercício ou para quebrar um jejum.'},
+ cha_caxinde:{t:8,ti:'Chá de caxinde',s:['Por cada chávena, ferva água e junte 4 a 5 folhas de caxinde.','Deixe 5 minutos tapado, coe e beba quente ou frio, sem açúcar.'],d:'Sem cafeína: bom à noite e boa alternativa ao café.'},
+ batido:{t:5,ti:'Batido de banana e papaia',s:['Junte no copo da varinha: 1 banana, uma fatia de papaia e um copo de leite.','Bata 1 minuto e beba logo.']},
+ salada_frutas:{t:10,ti:'Salada de frutas tropicais',s:['Lave e descasque manga, papaia, abacaxi e banana.','Corte tudo em cubos pequenos e misture.','Sirva fresca, sem açúcar. Um pouco de sumo de maracujá por cima dá sabor.']},
+ banana_assada:{t:15,ti:'Banana assada com canela',s:['Corte a banana ao meio ao comprido, com casca.','Leve ao forno a 200 °C, 12 a 15 minutos (ou frigideira tapada, 8 minutos).','Polvilhe com canela e sirva morna.']},
+ papaia_iogurte:{t:5,ti:'Papaia com iogurte',s:['Corte a papaia em cubos e cubra com iogurte natural.','Pode juntar um pouco de aveia ou jinguba picada por cima.']},
+ cocada:{t:30,ti:'Cocada amarela',s:['É um doce tradicional, rico em açúcar e gordura.','Reserve para festas ou um domingo de vez em quando, em porção pequena.']},
+ doce_ginguba:{t:20,ti:'Doce de ginguba',s:['Doce tradicional rico em açúcar.','Reserve para ocasiões especiais e coma uma porção pequena.']}
+});
+
+Object.assign(STO,{
+ fuba_bombo:{l:'despensa',t:'3 a 6 meses',v:120,n:'Saco bem fechado ou frasco, longe da humidade e dos bichos.',fq:'Funge 2 a 4 vezes por semana, sempre com proteína e folhas.'},
+ fuba_milho:{l:'despensa',t:'2 a 3 meses',v:60,n:'Frasco fechado. Com calor, pode ganhar bicho: compre em quantidades para o mês.',fq:'Funge ou papas de milho 2 a 4 vezes por semana.'},
+ oleo_palma:{l:'despensa',t:'6 a 12 meses',v:300,n:'Garrafa fechada, longe do sol. Pode solidificar com o frio, é normal.',fq:'Pouca quantidade: 1 colher de sopa por pessoa no prato, 2 a 3 vezes por semana.'},
+ quiabo:{l:'geleira',t:'2 a 3 dias',v:3,c:'Às rodelas, congela até 6 meses.',n:'Num saco de papel, na gaveta. Lave só antes de cozinhar.',fq:'Legumes ao almoço e jantar todos os dias.'},
+ abobora:{l:'fora',t:'1 a 2 meses inteira',v:30,c:'Em cubos, congela até 6 meses.',n:'Depois de cortada: geleira, embrulhada, até 5 dias.',fq:'Várias vezes por semana; rica em vitamina A.'},
+ folhas_mandioca:{l:'geleira',t:'1 a 2 dias (pisadas)',v:2,c:'Pisadas e cozidas, congelam até 3 meses.',n:'Compre no dia em que vai cozinhar.',fq:'1 a 2 vezes por semana.'},
+ jinguba:{l:'despensa',t:'1 a 3 meses',v:60,n:'Frasco fechado. Com calor, guarde na geleira. Deite fora se tiver bolor ou sabor a ranço.',fq:'Um punhado (25 g) por dia, sem sal.'},
+ peixe_seco:{l:'despensa',t:'1 a 2 meses',v:45,n:'Embrulhado, em local seco e arejado. Demolhe antes de usar.',fq:'1 vez por semana (é muito salgado).'},
+ beringela:{l:'geleira',t:'4 a 5 dias',v:5,fq:'Legumes todos os dias.'},
+ tomate:{l:'fora',t:'3 a 5 dias até maduro',v:5,n:'Maduro, pode ir à geleira mais 2 a 3 dias.',fq:'Todos os dias, em saladas e refogados.'},
+ funge_bombo:{l:'geleira',t:'pronto: 1 dia',v:1,n:'O funge é melhor feito na hora. Sobras: geleira, 1 dia.',fq:'2 a 4 vezes por semana.'},
+ funge_milho:{l:'geleira',t:'pronto: 1 dia',v:1,n:'Melhor feito na hora.',fq:'2 a 4 vezes por semana.'},
+ papas_milho:{l:'geleira',t:'pronta: 1 dia',v:1,fq:'Ao pequeno-almoço, 2 a 3 vezes por semana.'},
+ muamba:{l:'geleira',t:'pronta: 3 dias',v:3,c:'Congela bem em caixas, até 3 meses.',fq:'1 a 2 vezes por semana.'},
+ calulu:{l:'geleira',t:'pronto: 2 dias',v:2,c:'Congela até 2 meses.',fq:'1 vez por semana.'},
+ moamba_ginguba:{l:'geleira',t:'pronta: 3 dias',v:3,c:'Congela até 3 meses.',fq:'1 vez por semana (é mais calórica).'},
+ feijao_oleo:{l:'geleira',t:'pronto: 3 a 4 dias',v:4,c:'Congela até 3 meses.',fq:'2 a 3 vezes por semana.'},
+ kizaca:{l:'geleira',t:'pronta: 3 dias',v:3,c:'Congela até 3 meses.',fq:'1 a 2 vezes por semana.'},
+ gimboa:{l:'geleira',t:'2 a 3 dias',v:3,n:'Embrulhada em papel, na gaveta.',fq:'Folhas verdes 3 ou mais vezes por semana.'},
+ banana_pao:{l:'fora',t:'4 a 7 dias',v:6,n:'Na fruteira. Pode cozinhar verde ou madura.',fq:'2 a 3 vezes por semana.'},
+ sardinha:{l:'geleira',t:'1 dia (fresca)',v:1,c:'Arranjada, congela até 3 meses.',fq:'Peixe gordo 1 a 2 vezes por semana.'},
+ manga:{l:'fora',t:'até amadurecer, depois 3 a 5 dias na geleira',v:5,fq:'Fruta 3 peças por dia, variando.'},
+ abacaxi:{l:'fora',t:'2 a 3 dias; cortado 3 dias na geleira',v:3,fq:'Fruta 3 peças por dia, variando.'},
+ goiaba:{l:'fora',t:'2 a 3 dias; madura 4 dias na geleira',v:4,fq:'Muito rica em vitamina C.'},
+ maracuja:{l:'fora',t:'1 semana',v:7,c:'A polpa congela muito bem em cuvetes de gelo.',fq:'Fruta e sumo, várias vezes por semana.'},
+ sumo_mucua:{l:'despensa',t:'polpa seca: 6 meses',v:180,n:'Sumo feito: geleira, beber no dia.',fq:'Até 1 copo por dia, sem açúcar.'},
+ sumo_maracuja:{l:'geleira',t:'sumo feito: 1 dia',v:7,fq:'Até 1 copo por dia, sem açúcar.'},
+ agua_coco:{l:'fora',t:'coco inteiro 1 semana',v:7,n:'Aberto: geleira, beber no dia.',fq:'Depois do exercício ou em dias de muito calor.'},
+ cha_caxinde:{l:'despensa',t:'folhas secas: 6 meses',v:180,n:'Folhas frescas: geleira, 1 semana.',fq:'À vontade, sem açúcar.'},
+ batido:{l:'geleira',t:'beber logo',v:1,fq:'2 a 3 vezes por semana, ao lanche.'},
+ salada_frutas:{l:'geleira',t:'1 dia',v:1,fq:'Sobremesa diária, à vontade.'},
+ banana_assada:{l:'geleira',t:'1 dia',v:1,fq:'Sobremesa, várias vezes por semana.'},
+ papaia_iogurte:{l:'geleira',t:'comer logo',v:1,fq:'Sobremesa ou lanche, à vontade.'},
+ cocada:{l:'despensa',t:'1 semana em caixa fechada',v:7,fq:'Ocasional: uma porção pequena em dias de festa.'},
+ doce_ginguba:{l:'despensa',t:'2 semanas em caixa fechada',v:14,fq:'Ocasional: uma porção pequena em dias de festa.'}
+});
+STO.salmao.n='Em Angola é difícil e caro de encontrar. Use carapau, sardinha ou cavala: têm os mesmos benefícios (ómega-3 e vitamina D) e encontram-se em qualquer mercado.';
+STO.tilapia.fq='Cacusso ou tilápia, 1 a 2 vezes por semana (é a base do mufete).';
+
+/* Onde comprar: [Angola, Portugal] */
+const ONDE_TXT={
+ AO:{super:'Supermercado (Kero, Candando e outros)',mercado:'Mercado (Kikolo, São Paulo, 30)',zunga:'Zungueiras e bancas de rua',peixe:'Mercado do peixe ou peixaria',talho:'Talho ou supermercado',dificil:'Difícil em Angola: só em supermercados grandes, caro'},
+ PT:{super:'Supermercado (Continente, Pingo Doce, Lidl)',mercado:'Mercado municipal ou frutaria',africana:'Loja de produtos africanos',peixe:'Peixaria ou banca de peixe',talho:'Talho ou supermercado'}
+};
+const ONDE={
+ aveia:['super','super'],pao:['super','super'],arroz:['super','super'],arroz_int:['super','super'],batata:['mercado','mercado'],batata_doce:['mercado','mercado'],mandioca:['mercado','africana'],
+ frango:['talho','talho'],frango_assado:['talho','talho'],vaca:['talho','talho'],pescada:['peixe','peixe'],peixe:['peixe','peixe'],salmao:['dificil','super'],tilapia:['peixe','africana'],bacalhau:['super','super'],atum:['super','super'],sardinha:['peixe','peixe'],
+ ovo:['mercado','super'],iogurte:['super','super'],leite:['super','super'],feijao:['mercado','super'],grao:['super','super'],
+ banana:['zunga','mercado'],maca:['super','mercado'],pera:['super','mercado'],papaia:['zunga','mercado'],abacate:['zunga','mercado'],manga:['zunga','mercado'],abacaxi:['zunga','mercado'],goiaba:['zunga','africana'],maracuja:['zunga','mercado'],
+ brocolos:['super','mercado'],cenoura:['mercado','mercado'],espinafres:['super','mercado'],couve:['mercado','mercado'],feijao_verde:['mercado','mercado'],alface:['mercado','mercado'],legumes:['mercado','mercado'],salada:['mercado','mercado'],sopa:['mercado','mercado'],tomate:['zunga','mercado'],beringela:['mercado','mercado'],
+ azeite:['super','super'],amendoa:['super','super'],nozes:['super','super'],
+ fuba_bombo:['mercado','africana'],fuba_milho:['mercado','africana'],oleo_palma:['mercado','africana'],quiabo:['mercado','africana'],abobora:['mercado','mercado'],folhas_mandioca:['mercado','africana'],jinguba:['zunga','africana'],peixe_seco:['mercado','africana'],gimboa:['mercado','africana'],banana_pao:['zunga','africana'],
+ sumo_mucua:['mercado','africana'],sumo_maracuja:['zunga','mercado'],agua_coco:['zunga','super'],cha_caxinde:['mercado','africana']
+};
+function ondeOf(id){const p=(S.pantry.pais||'AO')==='PT'?1:0;const o=ONDE[id];if(!o)return null;const k=o[p];return{k,t:ONDE_TXT[p?'PT':'AO'][k]||k}}
+
+/* Pratos completos para juntar a uma refeição */
+const COMBOS=[
+ {n:'Funge com muamba de galinha',d:'O clássico de domingo, com quiabos e abóbora.',m:'al',it:[['muamba',250],['funge_bombo',200],['gimboa',80]]},
+ {n:'Mufete',d:'Cacusso grelhado com feijão de óleo de palma, banana-pão e batata-doce.',m:'al',it:[['tilapia',150],['feijao_oleo',150],['banana_pao',120],['batata_doce',100],['salada',80]]},
+ {n:'Calulu de peixe com funge',d:'Peixe seco e fresco com legumes, cozinhado em camadas.',m:'al',it:[['calulu',300],['funge_milho',200]]},
+ {n:'Moamba de ginguba com funge',d:'Galinha em molho de jinguba.',m:'al',it:[['moamba_ginguba',220],['funge_bombo',180],['couve',80]]},
+ {n:'Kizaca com peixe e funge',d:'Folhas de mandioca bem cozidas, com carapau grelhado.',m:'ja',it:[['kizaca',150],['peixe',120],['funge_milho',150]]},
+ {n:'Sardinha com batata-doce e salada',d:'Barato e cheio de cálcio, ómega-3 e vitamina D.',m:'ja',it:[['sardinha',150],['batata_doce',180],['salada',150],['azeite',5]]},
+ {n:'Papas de milho com banana',d:'Pequeno-almoço quente e tradicional.',m:'pa',it:[['papas_milho',250],['banana',120]]},
+ {n:'Batata-doce com ovos',d:'Pequeno-almoço que sustenta até ao almoço.',m:'pa',it:[['batata_doce',150],['ovo',110],['papaia',150]]}
+];
+
+const DEF_PLAN_AO={
+ seg:{pa:[['aveia',40],['leite',150],['banana',120],['iogurte',125],['pao',35],['abacate',40]],lm:[['manga',150],['jinguba',20]],al:[['frango',130],['arroz_int',150],['brocolos',80],['cenoura',70],['azeite',5]],lt:[['iogurte',125],['papaia',150]],ja:[['pescada',150],['batata_doce',200],['espinafres',120],['azeite',5]]},
+ ter:{pa:[['ovo',110],['pao',70],['abacate',50],['banana',120]],lm:[['papaia',200],['nozes',20]],al:[['peixe',150],['arroz',150],['feijao_verde',100],['salada',100],['azeite',5]],lt:[['sumo_mucua',200],['jinguba',20]],ja:[['sopa',350],['frango',80],['pao',35]]},
+ qua:{pa:[['papas_milho',250],['banana',120]],lm:[['goiaba',100],['amendoa',20]],al:[['muamba',250],['funge_bombo',200],['gimboa',80],['abacaxi',120]],lt:[['pao',35],['abacate',40],['iogurte',125]],ja:[['sardinha',150],['batata_doce',180],['salada',150],['azeite',5]]},
+ qui:{pa:[['aveia',40],['leite',200],['maca',150],['pao',35],['abacate',40]],lm:[['banana',120],['nozes',20]],al:[['frango_assado',130],['batata_doce',200],['brocolos',100],['alface',50],['azeite',5]],lt:[['batido',250]],ja:[['atum',100],['grao',120],['tomate',80],['alface',50],['pao',35],['azeite',5]]},
+ sex:{pa:[['ovo',110],['pao',70],['banana',120]],lm:[['manga',150],['jinguba',20]],al:[['bacalhau',150],['batata',200],['couve',100],['cenoura',60],['azeite',10]],lt:[['iogurte',125],['aveia',30]],ja:[['kizaca',150],['peixe',120],['funge_milho',150]]},
+ sab:{pa:[['batata_doce',150],['ovo',110],['papaia',150]],lm:[['abacaxi',150],['amendoa',25]],al:[['tilapia',150],['feijao_oleo',150],['banana_pao',120],['batata_doce',100],['salada',80]],lt:[['agua_coco',300],['banana',120]],ja:[['sopa',350],['frango',120]]},
+ dom:{pa:[['ovo',110],['pao',35],['abacate',40],['banana',120],['iogurte',125]],lm:[['maracuja',60],['nozes',20]],al:[['calulu',300],['funge_milho',200],['salada_frutas',150]],lt:[['papaia_iogurte',200]],ja:[['sopa',300],['sardinha',120],['batata_doce',120]]}
+};
+
+Object.assign(DEF_PLAN,clone(DEF_PLAN_AO));S.plan=clone(DEF_PLAN);
+
+/* ============ CORPO: JEJUM, EXERCÍCIO, ALONGAMENTOS, DESPERTADORES ============ */
+const FASTS=[
+ {k:'12',n:'Jejum nocturno 12 h',h:12,d:'Do jantar ao pequeno-almoço. O mais simples para começar.'},
+ {k:'14',n:'Jejum 14 h',h:14,d:'Jante cedo e tome o pequeno-almoço mais tarde.'},
+ {k:'16',n:'Jejum 16 h (16:8)',h:16,d:'Come numa janela de 8 horas, por exemplo das 11h às 19h.'},
+ {k:'r12',n:'Jejum religioso até às 12h',until:'12:00',d:'Só água (e chá sem açúcar, se a sua prática o permitir) até ao meio-dia.'},
+ {k:'r18',n:'Jejum religioso até às 18h',until:'18:00',d:'Só água até ao fim da tarde. Quebre o jejum com calma.'},
+ {k:'dan',n:'Jejum de Daniel (dia inteiro)',h:0,daniel:1,d:'Come só legumes, fruta, leguminosas, cereais integrais e água. Sem carne, peixe, doces nem pão branco.'}
+];
+const EX={
+ caminhada:{n:'Caminhada rápida',t:'30 a 40 min',kcal:4,s:['Ritmo em que consegue falar, mas não cantar.','Comece devagar 5 minutos e termine devagar 5 minutos.','Leve água. Em Luanda, prefira o início da manhã ou o fim da tarde.']},
+ futsal:{n:'Futsal',t:'45 a 60 min',kcal:8,s:['Aqueça 10 minutos: corrida leve e rotação de tornozelos, joelhos e anca.','Beba água nos intervalos.','No fim, faça os alongamentos das pernas.']},
+ agachamento:{n:'Agachamento na cadeira',t:'3 séries de 10',s:['De pé, em frente a uma cadeira, pés à largura dos ombros.','Desça devagar até tocar com o rabo na cadeira, sem sentar. Suba.','Joelhos na direcção dos pés; costas direitas.']},
+ flexoes:{n:'Flexões na parede ou na mesa',t:'3 séries de 10',s:['Mãos apoiadas na parede (ou na borda de uma mesa firme), à largura dos ombros.','Corpo direito; dobre os cotovelos e aproxime o peito. Empurre de volta.','Quando ficar fácil, passe para a mesa e depois para o chão com joelhos apoiados.']},
+ prancha:{n:'Prancha',t:'3 vezes 20 a 30 s',s:['Apoie os antebraços e as pontas dos pés (ou os joelhos, para começar).','Corpo em linha recta; aperte a barriga. Respire normalmente.']},
+ ponte:{n:'Ponte de glúteos',t:'3 séries de 12',s:['Deitado de costas, joelhos dobrados, pés no chão.','Suba a anca até o corpo ficar em linha dos ombros aos joelhos. Desça devagar.']},
+ remada:{n:'Remada com garrafas de água',t:'3 séries de 12',s:['Uma garrafa de 1,5 L em cada mão (ou mochila com livros).','Incline o tronco à frente, costas direitas, e puxe as garrafas até à cintura.']},
+ escadas:{n:'Subir escadas',t:'5 a 10 min',kcal:8,s:['Suba a ritmo constante, segurando no corrimão se precisar.','Desça devagar. Bom para dias sem tempo para caminhar.']}
+};
+const STRETCH=[
+ ['Pescoço','Incline a cabeça para um lado, levando a orelha ao ombro. 20 s de cada lado.'],
+ ['Ombros','Faça 10 círculos para trás e 10 para a frente.'],
+ ['Peito','Numa porta, apoie o antebraço na ombreira e rode o corpo para o lado contrário. 20 s de cada lado.'],
+ ['Costas (gato e vaca)','De gatas, arredonde as costas e depois arqueie devagar. 8 vezes.'],
+ ['Parte de trás das pernas','Sentado na beira da cadeira, perna esticada, incline o tronco à frente com as costas direitas. 30 s de cada lado.'],
+ ['Coxas','De pé, apoiado na parede, segure o pé atrás junto ao rabo. 30 s de cada lado.'],
+ ['Gémeos','Mãos na parede, uma perna atrás esticada com o calcanhar no chão. 30 s de cada lado.'],
+ ['Zona lombar','Deitado, abrace os joelhos junto ao peito. 30 s.']
+];
+const WEEK_EX={seg:{n:'Caminhada',ex:['caminhada']},ter:{n:'Força A',ex:['agachamento','flexoes','prancha']},qua:{n:'Caminhada',ex:['caminhada']},qui:{n:'Força B e alongamentos',ex:['ponte','remada','prancha'],st:1},sex:{n:'Caminhada',ex:['caminhada','escadas']},sab:{n:'Futsal ou caminhada longa',ex:['futsal']},dom:{n:'Descanso activo',ex:[],st:1}};
+
+function fastEnd(F){const st=new Date(F.start);if(F.until){const[h,m]=F.until.split(':').map(Number);const e=new Date(st);e.setHours(h,m,0,0);if(e<=st)e.setDate(e.getDate()+1);return e}if(F.h)return new Date(st.getTime()+F.h*3600e3);const e=new Date(st);e.setHours(23,59,0,0);return e}
+function vCorpo(){
+ const A=active(),dk=dayKeyOf(new Date()),F=A.fast;let h=S.members.length>1?whoChips(A.id,'who',false):'';
+ // jejum
+ h+=`<div class="card"><div class="row between"><h3 style="font-size:17px">🕊️ Jejum</h3>${F?'<span class="badge late">a decorrer</span>':''}</div>`;
+ if(F){const end=fastEnd(F),now=new Date(),tot=end-new Date(F.start),done=Math.min(1,(now-new Date(F.start))/tot),left=Math.max(0,end-now),C=2*Math.PI*40;
+  const kind=FASTS.find(x=>x.k===F.k)||FASTS[0];
+  h+=`<div class="row" style="gap:14px;margin-top:10px"><svg class="ring" viewBox="0 0 96 96"><circle cx="48" cy="48" r="40" fill="none" stroke="var(--bg)" stroke-width="10"/><circle cx="48" cy="48" r="40" fill="none" stroke="var(--terra)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-done)}" transform="rotate(-90 48 48)"/><text x="48" y="53" text-anchor="middle" font-family="Fraunces" font-weight="700" font-size="18" fill="var(--terra)">${Math.round(done*100)}%</text></svg>
+   <div><b>${esc(kind.n)}</b><div class="small muted">Começou ${new Date(F.start).toLocaleString('pt-PT',{weekday:'short',hour:'2-digit',minute:'2-digit'})}</div><div class="small muted">Termina ${end.toLocaleString('pt-PT',{weekday:'short',hour:'2-digit',minute:'2-digit'})}</div><div style="font-weight:700;margin-top:4px">${left>0?'Faltam '+fmtDur(Math.round(left/60000)):'Jejum concluído'}</div></div></div>
+   ${kind.daniel?'<div class="tip" style="margin-top:10px">Hoje: só legumes, fruta, leguminosas, cereais integrais e água.</div>':''}
+   <div class="tip" style="margin-top:10px">💧 Beba água ao longo do jejum. Quebre-o com calma: água de coco ou fruta, depois sopa ou uma refeição leve.</div>
+   <div class="row" style="gap:6px;margin-top:10px"><button class="btn sm terra" data-act="fast-end">Terminar jejum</button><button class="btn sm ghost" data-act="fast-cancel">Cancelar</button>${window.AndroidBridge?`<button class="btn sm soft" data-act="alarm" data-once="1" data-h="${end.getHours()}" data-m="${end.getMinutes()}" data-l="Fim do jejum">⏰ Despertador no fim</button>`:''}</div>`}
+ else h+=`<p class="small muted" style="margin:6px 0 10px">Escolha o tipo de jejum. A hora de início é agora (pode alterar).</p>
+   <div class="fgrid"><label class="field" style="grid-column:1/-1">Tipo<select id="fKind">${FASTS.map(x=>`<option value="${x.k}">${x.n}</option>`).join('')}</select></label><label class="field">Começou às<input type="time" id="fStart" value="${nowHM()}"></label><div class="field">&nbsp;<button class="btn" data-act="fast-start">Começar</button></div></div>
+   <div class="small muted" style="margin-top:8px">${FASTS.map(x=>`<div style="margin-top:4px"><b>${x.n}:</b> ${x.d}</div>`).join('')}</div>`;
+ h+=`<p class="note" style="margin:10px 0 0">Não faça jejum prolongado se tiver diabetes, tensão baixa, tomar medicação diária ou se sentir tonturas: fale antes com o médico.</p></div>`;
+ // exercício do dia
+ const W=WEEK_EX[dk],evs=logsOf(A.id,todayYmd()).filter(e=>e.type==='other');
+ h+=`<div class="card"><div class="row between"><h3 style="font-size:17px">🏃 Exercício de hoje</h3><span class="badge ok">${esc(W.n)}</span></div>`;
+ if(!W.ex.length)h+=`<p class="small muted">Dia de descanso. Faça os alongamentos e uma caminhada leve se lhe apetecer.</p>`;
+ for(const id of W.ex){const E=EX[id],did=evs.some(e=>e.ex===id);
+  h+=`<div class="item" style="align-items:flex-start"><div class="nm"><b>${E.n}</b> <span class="small muted">· ${E.t}</span><ul class="small muted" style="margin:4px 0 0;padding-left:16px">${E.s.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>${did?'<span class="badge ok">✓ Feito</span>':`<button class="btn sm" data-act="ex-done" data-id="${id}">Fiz</button>`}</div>`}
+ h+=`</div>`;
+ // alongamentos
+ const stDone=evs.some(e=>e.ex==='along');
+ h+=`<div class="card"><div class="row between"><h3 style="font-size:17px">🧘 Alongamentos (8 min)</h3>${stDone?'<span class="badge ok">✓ Feito hoje</span>':'<button class="btn sm" data-act="ex-done" data-id="along">Fiz</button>'}</div>
+  <p class="small muted" style="margin:4px 0 6px">De manhã ao acordar ou depois do exercício. Movimentos suaves, sem dor.</p>
+  ${STRETCH.map(([n,d],i)=>`<div class="rp" style="align-items:flex-start"><div><b>${i+1}. ${n}</b><div class="small muted">${d}</div></div></div>`).join('')}</div>`;
+ // semana
+ h+=`<div class="card"><h3 style="font-size:17px;margin-bottom:6px">Plano da semana</h3>${DAYS.map(([k,n])=>`<div class="rp"><span style="${k===dk?'font-weight:700;color:var(--green)':''}">${n}</span><span class="small">${esc(WEEK_EX[k].n)}</span></div>`).join('')}
+  <p class="note" style="margin:8px 0 0">Pare e procure um médico se sentir dor no peito, falta de ar fora do normal ou tonturas durante o exercício.</p></div>`;
+ // despertadores
+ h+=vAlarms();
+ return h}
+function alarmList(){const L=MEALS.map(([m,n])=>[S.settings.times[m],n]);WATER_PLAN.forEach(([t,ml])=>L.push([t,'Beber água ('+ml+' ml)']));return L.sort((a,b)=>toMin(a[0])-toMin(b[0]))}
+function vAlarms(){const L=alarmList();const and=!!window.AndroidBridge;
+ return `<div class="card"><h3 style="font-size:17px">⏰ Despertadores</h3>
+ <p class="small muted" style="margin:4px 0 8px">${and?'Cria alarmes diários no relógio do telemóvel, com o nome da refeição.':'Na app Android, estes botões criam os alarmes no relógio do telemóvel. Aqui pode ver os horários e criá-los à mão.'}</p>
+ ${L.map(([t,n])=>`<div class="rp"><span><b>${t}</b> · ${esc(n)}</span>${and?`<button class="btn sm soft" data-act="alarm" data-h="${+t.split(':')[0]}" data-m="${+t.split(':')[1]}" data-l="${esc(n)}">Criar</button>`:''}</div>`).join('')}
+ ${and?`<div class="row" style="gap:6px;margin-top:10px"><button class="btn sm" data-act="alarm-meals">Criar as 5 refeições</button><button class="btn sm water" data-act="alarm-water">Criar os 8 de água</button></div>`:''}</div>`}
+function setAlarm(h,m,l,once){if(window.AndroidBridge&&AndroidBridge.setAlarm){try{AndroidBridge.setAlarm(+h,+m,String(l),!once);return true}catch(e){}}toast('Disponível na app Android');return false}
 
 /* ============ ACÇÕES ============ */
 function findEv(id){for(const mid in S.logs)for(const d in S.logs[mid]){const e=S.logs[mid][d].find(x=>x.id===id);if(e)return[mid,d,e]}return[]}
@@ -869,6 +1134,17 @@ document.addEventListener('click',e=>{
   case 'period':S.pantry.period=+b.dataset.v;save('pantry');render();break;
   case 'scope':S.pantry.scope=b.dataset.v;save('pantry');render();break;
   case 'cur':S.pantry.cur=b.dataset.v;save('pantry');render();break;
+  case 'pais':S.pantry.pais=b.dataset.v;if(b.dataset.v==='PT'&&S.pantry.cur==='Kz')S.pantry.cur='€';if(b.dataset.v==='AO'&&S.pantry.cur==='€')S.pantry.cur='Kz';save('pantry');render();break;
+  case 'group':S.pantry.group=b.dataset.v;save('pantry');render();break;
+  case 'catalog':openCatalog(b.dataset.m);break;
+  case 'go-corpo':UI.tab='corpo';render();window.scrollTo(0,0);break;
+  case 'ao-plan':S.plan=clone(DEF_PLAN);S.settings.aoSeen=1;save('plan');save('settings');render();toast('Nova ementa aplicada');break;
+  case 'ao-no':S.settings.aoSeen=1;save('settings');render();break;
+  case 'fast-start':{const k=$('#fKind').value,K=FASTS.find(x=>x.k===k),t=$('#fStart').value||nowHM();const d=new Date();const[hh,mm]=t.split(':').map(Number);d.setHours(hh,mm,0,0);if(d>new Date())d.setDate(d.getDate()-1);A.fast={k,start:d.toISOString(),h:K.h,until:K.until,daniel:K.daniel};save('members');render();toast('Jejum iniciado');break}
+  case 'fast-end':case 'fast-cancel':{const F=A.fast;if(F&&a==='fast-end'){const mins=Math.round((Date.now()-new Date(F.start))/60000);const K=FASTS.find(x=>x.k===F.k);logArr(A.id,todayYmd()).push({id:uid(),type:'other',kind:'Jejum',time:nowHM(),note:(K?K.n:'Jejum')+', '+fmtDur(mins)});save(logKey(A.id,todayYmd()))}delete A.fast;save('members');render();break}
+  case 'ex-done':{const id=b.dataset.id,E=EX[id];logArr(A.id,todayYmd()).push({id:uid(),type:'other',kind:id==='along'?'Alongamentos':'Exercício',ex:id,time:nowHM(),note:id==='along'?'8 min':E.n+', '+E.t});save(logKey(A.id,todayYmd()));render();toast('Registado. Bom trabalho!');break}
+  case 'alarm':if(setAlarm(b.dataset.h,b.dataset.m,b.dataset.l,b.dataset.once))toast('Despertador criado: '+b.dataset.l);break;
+  case 'alarm-meals':case 'alarm-water':{const L=a==='alarm-meals'?MEALS.map(([m,n])=>[S.settings.times[m],n]):WATER_PLAN.map(([t,ml])=>[t,'Beber água ('+ml+' ml)']);L.forEach(([t,n],i)=>setTimeout(()=>setAlarm(+t.split(':')[0],+t.split(':')[1],n),i*900));toast('A criar '+L.length+' despertadores…');break}
   case 'buy':if(S.pantry.bought[b.dataset.id])delete S.pantry.bought[b.dataset.id];else S.pantry.bought[b.dataset.id]=true;save('pantry');render();break;
   case 'restock':{const P=S.pantry,days=P.period||7,scope=P.scope==='all'||mem(P.scope)?P.scope:'all';const{need}=needs(scope,days),rate=weeklyRate();let n=0,total=0;
    for(const id in P.bought){const F=FOODS[id];if(!F||need[id]===undefined)continue;const st=estStock(id,rate);let tb=Math.max(0,need[id]-st);if(F.pu)tb=Math.ceil(tb/F.pu-0.05)*F.pu;total+=costOf(id,tb);P.stock[id]={q:st+tb,d:todayYmd()};n++}
@@ -900,11 +1176,11 @@ function showMini(q,type,def,cb){const m=document.createElement('div');m.classNa
 /* ============ ARRANQUE ============ */
 (function start(){
  UI.date=todayYmd();UI.eDay=dayKeyOf(new Date());UI.nDay=UI.eDay;
- const h=(location.hash||'').slice(1);if(['hoje','ementa','nutri','compras','partilhar'].includes(h))UI.tab=h;
+ const h=(location.hash||'').slice(1);if(['hoje','ementa','nutri','compras','partilhar','corpo'].includes(h))UI.tab=h;
  loadLocal();setStatus('');
  if(S.members.length){UI.ready=true;migrateLegacy();render()}
  initCloud();
- setInterval(()=>{if(UI.tab==='hoje'&&!document.querySelector('.modal'))safeRender()},60000);
+ setInterval(()=>{if((UI.tab==='hoje'||UI.tab==='corpo')&&!document.querySelector('.modal'))safeRender()},60000);
 })();
 </script>
 <script>if('serviceWorker' in navigator&&!window.AndroidBridge){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}</script>
