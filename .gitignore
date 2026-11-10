@@ -3,3 +3,7 @@ android/build/
 android/app/build/
 android/app/src/main/assets/
 local.properties
+leitura/android/.gradle/
+leitura/android/build/
+leitura/android/app/build/
+leitura/android/app/src/main/assets/

@@ -13,3 +13,7 @@ Cada vez que a app é actualizada, aparece uma nova versão em Releases. Basta i
 ## Versão web
 
 Também funciona no navegador em https://garciacastelo83-stack.github.io/ementa-da-semana/
+
+## Clube de Leitura da Família
+
+Segunda app deste repositório (pasta `leitura/`). Os APK aparecem em Releases com o nome `ClubeDeLeitura-1.X.apk`.

@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Clube de Leitura da Família</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="html2canvas.min.js"></script>
+<script src="jspdf.umd.min.js"></script>
+<style>
+:root{--bg:#F6F2EA;--card:#FFFDF9;--ink:#1D2438;--muted:#6C7080;--line:#E6DFD1;--navy:#1E2A44;--navy2:#33456E;--amber:#D99A2B;--amber-l:#F8EBCF;--teal:#2E7D7A;--teal-l:#DDEFEC;--rose:#B5536B;--rose-l:#F5DEE4;--sky:#3F6FB5;--sky-l:#E0E9F6;--r:16px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.45}
+body{padding-bottom:calc(78px + env(safe-area-inset-bottom))}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:700;margin:0;letter-spacing:-.01em}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input,select,textarea{font:inherit;color:inherit}
+.top{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;padding:calc(12px + env(safe-area-inset-top)) 16px 12px}
+.top-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.top h1{font-size:21px}
+.top .sub{font-size:12.5px;opacity:.75;margin-top:2px}
+.person-btn{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.12);border-radius:999px;padding:4px 10px 4px 4px;font-weight:600;font-size:13.5px;color:#fff;max-width:50vw}
+.person-btn .nmx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:12.5px;flex:0 0 auto}
+.av.lg{width:42px;height:42px;font-size:16px}.av.sm{width:22px;height:22px;font-size:10px}
+main{padding:14px 14px 22px;max-width:720px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.card.dark{background:linear-gradient(155deg,var(--navy),var(--navy2));color:#fff;border:0}
+.card.dark .muted{color:rgba(255,255,255,.7)}
+.row{display:flex;align-items:center;gap:8px}.between{justify-content:space-between}.wrap{flex-wrap:wrap}
+.muted{color:var(--muted)}.small{font-size:12.5px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;padding:7px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.btn{padding:10px 14px;border-radius:12px;font-weight:600;background:var(--navy);color:#fff}
+.btn.amber{background:var(--amber);color:#2b1d00}.btn.teal{background:var(--teal)}.btn.rose{background:var(--rose)}
+.btn.ghost{background:transparent;color:var(--navy);border:1px solid var(--navy2)}
+.btn.soft{background:var(--sky-l);color:var(--navy)}
+.btn.sm{padding:7px 11px;font-size:13px;border-radius:10px}.btn.lg{padding:14px 18px;font-size:16px;border-radius:14px}
+.btn:disabled{opacity:.45}
+.link{color:var(--sky);font-weight:600;font-size:13.5px;padding:6px 0}
+.badge{font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:999px;display:inline-block}
+.b-teal{background:var(--teal-l);color:var(--teal)}.b-amber{background:var(--amber-l);color:#7a5208}.b-rose{background:var(--rose-l);color:var(--rose)}.b-sky{background:var(--sky-l);color:var(--sky)}
+.bar{height:9px;background:var(--bg);border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;border-radius:99px;background:var(--teal)}
+.card.dark .bar{background:rgba(255,255,255,.15)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--bg);border-radius:12px;padding:10px;text-align:center}
+.stat b{display:block;font-size:19px;font-family:Fraunces,serif}.stat span{font-size:11.5px;color:var(--muted)}
+.card.dark .stat{background:rgba(255,255,255,.1)}.card.dark .stat span{color:rgba(255,255,255,.7)}
+.rings{display:flex;gap:14px;overflow-x:auto;padding:4px 0}
+.ringbox{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:72px;font-size:12px;font-weight:600}
+.book{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--line);align-items:flex-start}
+.book:first-child{border-top:0}
+.cover{width:46px;height:64px;border-radius:4px 8px 8px 4px;flex:0 0 auto;display:flex;align-items:flex-end;padding:4px;color:#fff;font-size:9px;font-weight:700;line-height:1.1;box-shadow:inset 4px 0 0 rgba(0,0,0,.18),0 2px 6px rgba(0,0,0,.12);overflow:hidden}
+.cover.lg{width:70px;height:98px;font-size:11px;padding:6px}
+.fmt{font-size:11px;font-weight:600;color:var(--muted)}
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:10px}
+.seg button{padding:7px 11px;border-radius:9px;font-weight:600;font-size:13px;color:var(--muted)}
+.seg button.on{background:var(--navy);color:#fff}
+.rp{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-top:1px solid var(--line);gap:8px}
+.rp:first-child{border-top:0}
+.field{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted);min-width:0}
+.field input,.field select,.field textarea{padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font-size:15px;width:100%}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.fgrid>*{min-width:0}.full{grid-column:1/-1}
+.note{font-size:12px;color:var(--muted);line-height:1.5}
+.tip{font-size:13px;background:var(--amber-l);color:#6d4a10;border-radius:12px;padding:10px 12px;margin-bottom:12px}
+.insight{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.insight:first-child{border-top:0}
+.insight .ic{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;font-size:16px}
+.weekbars{display:flex;align-items:flex-end;gap:6px;height:130px;padding-top:8px}
+.weekbars .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.weekbars .col i{width:100%;max-width:30px;background:var(--teal);border-radius:6px 6px 2px 2px}
+.weekbars .col i.scr{background:var(--rose-l)}
+.weekbars .col span{font-size:11px;color:var(--muted)}
+.medal{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:8px 4px;border-radius:12px;font-size:11.5px;font-weight:600}
+.medal .m{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:22px;background:var(--amber-l)}
+.medal.off{opacity:.35;filter:grayscale(1)}
+.medals{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.lb{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.lb:first-child{border-top:0}
+.lb .pos{width:24px;font-family:Fraunces;font-weight:700;font-size:18px;color:var(--amber)}
+.timer{font-family:Fraunces,serif;font-size:44px;font-weight:700;letter-spacing:.02em}
+nav.tabs{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;z-index:30;padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs button{flex:1;min-width:0;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600;color:var(--muted)}
+nav.tabs button svg{width:22px;height:22px}nav.tabs button.on{color:var(--navy)}
+.modal{position:fixed;inset:0;background:rgba(18,22,36,.55);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheetbox{background:var(--card);width:100%;max-width:720px;max-height:92vh;border-radius:20px 20px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px}
+.scroll{overflow:auto;flex:1}
+.preview{flex:1;overflow:auto;background:var(--bg);border-radius:12px;padding:8px;min-height:200px}
+.preview img{width:100%;display:block;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:13.5px;z-index:80;max-width:90vw;text-align:center}
+.x{width:30px;height:30px;border-radius:50%;color:var(--muted);font-size:22px;line-height:1}
+.empty{text-align:center;color:var(--muted);padding:16px 0;font-size:13.5px}
+.welcome{position:fixed;inset:0;background:var(--bg);z-index:70;overflow:auto;padding:calc(30px + env(safe-area-inset-top)) 20px 30px}
+.welcome .inner{max-width:480px;margin:0 auto}
+.rec h3{font-size:16px;margin:14px 0 6px}
+.box{background:var(--bg);border-radius:12px;padding:10px 12px;font-size:13.5px}
+.ntype{font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;margin-right:6px}
+.qcard{background:linear-gradient(150deg,var(--amber-l),#fff 75%);border-color:#efd9a8}
+#exportRoot{position:fixed;left:-10000px;top:0;width:794px}
+.sheet{width:794px;background:#FFFDF9;color:#1D2438;padding:40px 44px;font-family:Inter,sans-serif;font-size:13px}
+.sheet h1{font-size:28px;color:#1E2A44}.sheet .sh-sub{color:#6C7080;margin:2px 0 18px}
+.sheet table{width:100%;border-collapse:collapse;margin-bottom:14px}.sheet th{text-align:left;font-size:11.5px;color:#6C7080;border-bottom:2px solid #E6DFD1;padding:6px}.sheet td{padding:6px;border-bottom:1px solid #EFE8DA;vertical-align:top}
+.sheet .sh-cat{font-family:Fraunces,serif;font-size:17px;color:#1E2A44;margin:14px 0 6px}
+.sheet .foot{margin-top:18px;font-size:11px;color:#6C7080}
+.cert{width:794px;height:560px;background:#FFFDF9;padding:30px;font-family:Inter,sans-serif}
+.cert .in{height:100%;border:3px double #D99A2B;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;background:#FFF8EA}
+</style>
+</head>
+<body>
+<header class="top">
+ <div class="top-row"><div><h1 id="title">Clube de Leitura</h1><div class="sub" id="subtitle"></div></div><button class="person-btn" data-act="people" id="personBtn"></button></div>
+</header>
+<main id="main"><div class="empty">A carregar…</div></main>
+<nav class="tabs" id="tabs">
+ <button data-tab="hoje"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Hoje</button>
+ <button data-tab="estante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19V5a1 1 0 0 1 1-1h3v15M8 4h3v15M14 5l3-1 4 14-3 1z"/><path d="M3 20h18"/></svg>Estante</button>
+ <button data-tab="desafios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>Desafios</button>
+ <button data-tab="progresso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Progresso</button>
+ <button data-tab="mais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Mais</button>
+</nav>
+<div id="exportRoot"></div>
+<script>
+
+/* ============ DADOS ============ */
+const FORMATS={fisico:['📖','Livro físico','pag'],logos:['💻','Logos','pag'],pdf:['🖥️','PDF no computador','pag'],kindle:['📱','Kindle','pct']};
+const GENRES={
+ teologia:{n:'Bíblia e Teologia',c:'#1E2A44',gain:'Profundidade na fé, base sólida para pregar, ensinar e aconselhar.',
+  notes:['O texto bíblico principal e o contexto','A ideia central do autor numa frase','Como o tema aponta para Cristo','Uma aplicação concreta para esta semana','Citações para sermões ou estudos, com página'],
+  q:['Que verdade sobre Deus aprendeste esta semana?','Como é que isto muda a forma como vivemos em família?']},
+ devocional:{n:'Devocional e vida cristã',c:'#5B4B8A',gain:'Vida de oração mais constante, paz interior e hábitos espirituais.',
+  notes:['O versículo do dia','O que Deus me disse através da leitura','Um motivo de oração','Uma atitude a mudar hoje'],
+  q:['Que versículo te acompanhou esta semana?','Por quem podemos orar juntos?']},
+ lideranca:{n:'Liderança e gestão',c:'#2E5E8C',gain:'Decisões mais claras, equipas mais motivadas, melhor gestão do tempo.',
+  notes:['Princípio ou lei apresentada','Exemplo real que o ilustra','Como aplicar na minha equipa ou serviço','Erro que devo evitar'],
+  q:['Que ideia podias aplicar amanhã no trabalho ou na escola?']},
+ financas:{n:'Finanças e economia',c:'#2E7D5B',gain:'Melhor relação com o dinheiro, poupança e decisões de investimento mais seguras.',
+  notes:['Conceito financeiro e definição','Números ou regras práticas (percentagens, prazos)','Comportamento que o autor critica','Decisão concreta para o orçamento da família'],
+  q:['O que faríamos de diferente com o dinheiro da casa depois desta leitura?']},
+ direito:{n:'Direito',c:'#6B3E2E',gain:'Raciocínio jurídico, leitura crítica de leis e argumentação.',
+  notes:['Artigo ou norma e o seu número','Conceito jurídico definido','Caso ou exemplo de aplicação','Dúvida para investigar'],
+  q:['Que regra ou direito é importante todos em casa conhecerem?']},
+ habitos:{n:'Desenvolvimento pessoal',c:'#C27A1E',gain:'Hábitos melhores, mais foco e disciplina no dia a dia.',
+  notes:['O hábito ou técnica','O passo mais pequeno para começar','Obstáculo previsível e como contornar','Como vou medir se funcionou'],
+  q:['Que pequeno hábito vamos experimentar todos durante uma semana?']},
+ biografia:{n:'Biografia e história',c:'#8A5A2E',gain:'Perspectiva, coragem e lições de vida a partir de pessoas reais.',
+  notes:['Momento decisivo da vida da pessoa','Qualidade de carácter que se destaca','Contexto histórico','O que eu faria no lugar dela'],
+  q:['Que decisão desta pessoa admiras e porquê?']},
+ lusofona:{n:'Literatura angolana e lusófona',c:'#B5536B',gain:'Identidade, memória, riqueza da língua e compreensão do nosso povo.',
+  notes:['Personagens e o que as move','Lugares e época','Palavras ou expressões de Angola a guardar','Passagem preferida, com página','O tema escondido por trás da história'],
+  q:['Que personagem te lembrou alguém da nossa família ou do bairro?']},
+ ficcao:{n:'Romance e clássicos',c:'#7A3E6E',gain:'Imaginação, empatia e vocabulário mais rico.',
+  notes:['Personagens principais','O conflito da história','Frase marcante','O que mudou na personagem do início ao fim'],
+  q:['Se fosses uma personagem deste livro, quem serias?']},
+ poesia:{n:'Poesia',c:'#A0442E',gain:'Sensibilidade, ritmo da língua e capacidade de dizer muito em pouco.',
+  notes:['O poema preferido e porquê','Imagem ou metáfora forte','Palavras novas','Um verso para decorar'],
+  q:['Lê em voz alta o verso de que mais gostaste.']},
+ ciencia:{n:'Ciência e saúde',c:'#2E7D7A',gain:'Decisões de saúde informadas e curiosidade sobre o mundo.',
+  notes:['Facto ou descoberta','Como foi provado','O que muda no meu dia a dia','Pergunta que ficou sem resposta'],
+  q:['Que facto surpreendente aprendeste?']},
+ juvenil:{n:'Infantil e juvenil',c:'#3F6FB5',gain:'Gosto pela leitura, imaginação, palavras novas e valores.',
+  notes:['De que tratou o capítulo, em 2 frases','Personagem preferida','Palavra nova e o que significa','Desenha a cena de que mais gostaste'],
+  q:['Conta o capítulo de hoje como se fosses tu a personagem.']},
+ estudo:{n:'Estudo e línguas',c:'#4A6A3E',gain:'Domínio de uma área, memória de longo prazo e disciplina de estudo.',
+  notes:['Termo ou regra nova','Exemplo resolvido','Exercício a repetir','Revisão marcada para daqui a 3 dias'],
+  q:['Explica a alguém da família, em 1 minuto, o que estudaste.']}
+};
+const NTYPES={citacao:['Citação','#1E2A44','#E3E8F3'],ideia:['Ideia','#2E7D7A','#DDEFEC'],pergunta:['Pergunta','#B5536B','#F5DEE4'],aplicacao:['Aplicação','#7a5208','#F8EBCF'],palavra:['Palavra nova','#3F6FB5','#E0E9F6']};
+const KINDS={adulto:['Adulto',30,12],jovem:['Adolescente (12 a 17)',25,10],crianca:['Criança (6 a 11)',15,8]};
+const COLORS=['#1E2A44','#B5536B','#2E7D7A','#D99A2B','#5B4B8A','#3F6FB5','#8A5A2E'];
+// sugestões: [título, autor, género, para quem (adulto/jovem/crianca), o que se ganha]
+const SUGG=[
+ ['Cristianismo Puro e Simples','C. S. Lewis','teologia','adulto','Argumentos claros e acessíveis para a fé cristã; óptimo para explicar a fé a quem duvida.'],
+ ['A Cruz de Cristo','John Stott','teologia','adulto','Compreensão profunda da obra de Cristo; base sólida para pregação.'],
+ ['Lições aos Meus Alunos','Charles H. Spurgeon','teologia','adulto','Conselhos práticos e intemporais para quem prega e ensina.'],
+ ['Discipulado','Dietrich Bonhoeffer','teologia','adulto','Desafia a viver a fé com custo real, não só de palavras.'],
+ ['Manhã e Noite','Charles H. Spurgeon','devocional','adulto','Uma leitura curta para cada manhã e cada noite do ano: ideal para criar o hábito.'],
+ ['O Peregrino','John Bunyan','devocional','jovem','Alegoria clássica da caminhada cristã; boa para ler em família.'],
+ ['Em Seus Passos o que Faria Jesus?','Charles M. Sheldon','devocional','adulto','Romance que leva a perguntar, em cada decisão, o que Jesus faria.'],
+ ['As 21 Leis Irrefutáveis da Liderança','John C. Maxwell','lideranca','adulto','Princípios práticos para liderar equipas no serviço, na igreja e em casa.'],
+ ['A Psicologia do Dinheiro','Morgan Housel','financas','adulto','Mostra que o comportamento pesa mais do que a matemática nas finanças pessoais.'],
+ ['O Homem Mais Rico da Babilónia','George S. Clason','financas','jovem','Regras simples de poupança contadas em parábolas; bom para ensinar às filhas.'],
+ ['Hábitos Atómicos','James Clear','habitos','adulto','Método prático para criar bons hábitos com passos muito pequenos.'],
+ ['Os 7 Hábitos das Pessoas Altamente Eficazes','Stephen R. Covey','habitos','adulto','Prioridades, carácter e relações; um clássico da eficácia pessoal.'],
+ ['Longo Caminho para a Liberdade','Nelson Mandela','biografia','adulto','Perseverança, perdão e liderança numa das grandes vidas de África.'],
+ ['Eu Sou Malala','Malala Yousafzai','biografia','jovem','Coragem e valor da educação; inspira raparigas a estudar e a falar.'],
+ ['Mayombe','Pepetela','lusofona','adulto','Clássico angolano sobre a luta, o poder e o carácter humano.'],
+ ['Teoria Geral do Esquecimento','José Eduardo Agualusa','lusofona','adulto','Luanda vista de uma varanda fechada durante décadas; escrita belíssima.'],
+ ['Luuanda','José Luandino Vieira','lusofona','adulto','Os musseques de Luanda e a força da língua angolana.'],
+ ['Bom Dia Camaradas','Ondjaki','lusofona','jovem','Infância em Luanda contada com humor e ternura; ótimo para pais e filhas.'],
+ ['Os da Minha Rua','Ondjaki','lusofona','jovem','Contos curtos de infância luandense; fáceis de ler e cheios de memória.'],
+ ['AvóDezanove e o Segredo do Soviético','Ondjaki','lusofona','jovem','Aventura divertida numa Luanda dos anos 80.'],
+ ['Sagrada Esperança','Agostinho Neto','poesia','adulto','Poesia fundadora de Angola; liga história, identidade e esperança.'],
+ ['O Principezinho','Antoine de Saint-Exupéry','ficcao','crianca','Amizade, responsabilidade e o essencial que é invisível aos olhos. Bom para todas as idades.'],
+ ['As Crónicas de Nárnia','C. S. Lewis','juvenil','crianca','Aventura, coragem e símbolos cristãos; perfeito para ler em voz alta à noite.'],
+ ['Matilda','Roald Dahl','juvenil','crianca','Uma menina que ama livros; desperta o gosto pela leitura e pela justiça.'],
+ ['O Diário de Anne Frank','Anne Frank','biografia','jovem','História real que ensina empatia e coragem em tempos difíceis.'],
+ ['A Quinta dos Animais','George Orwell','ficcao','jovem','Fábula curta sobre poder e liberdade; boa para conversar em família.'],
+ ['Porque Dormimos','Matthew Walker','ciencia','adulto','Explica porque o sono muda a saúde, a memória e o humor.']
+];
+const NOTEBOOK=`<h3>Um sistema simples que funciona</h3><div class="box"><b>Opção A, caderno único com índice:</b> reserve as 2 primeiras páginas para o índice. Numere todas as páginas. Cada livro começa numa página nova com título, autor, data de início e o motivo por que o está a ler.<br><br><b>Opção B, um caderno por área:</b> um para Bíblia e Teologia (por exemplo, azul), um para Trabalho e Finanças e um para Literatura. Útil para quem prega ou estuda.</div>
+<h3>Códigos na margem</h3><div class="box"><b>C</b> citação · <b>I</b> ideia · <b>P</b> pergunta · <b>A</b> aplicação · <b>V</b> palavra nova (vocabulário)<br>Escreva sempre a página entre parênteses, por exemplo (p. 45) ou (Kindle 32%).</div>
+<h3>Método Cornell para estudo</h3><div class="box">Divida a folha: uma coluna estreita à esquerda para palavras-chave e perguntas, a área grande à direita para as notas, e 5 linhas em baixo para o resumo da página. Excelente para Teologia, Direito e Grego.</div>
+<h3>Ficha final de cada livro</h3><div class="box">1. O livro em 5 linhas.<br>2. As 3 ideias que vou guardar.<br>3. Uma decisão que vou pôr em prática.<br>4. A melhor citação.<br>5. Nota de 1 a 5 e para quem recomendo.</div>
+<h3>Livros digitais</h3><div class="box"><b>Logos:</b> use destaques com cores iguais aos códigos (amarelo citação, verde ideia, rosa pergunta) e exporte as notas no fim.<br><b>Kindle:</b> destaque e anote; as notas ficam no ficheiro "My Clippings". Passe as melhores para o caderno ao fim de cada capítulo.<br><b>PDF:</b> use a ferramenta de anotação do leitor de PDF e escreva no caderno a página.</div>
+<h3>Para as crianças</h3><div class="box">Um "diário de leitura" com uma página por capítulo: data, desenho da cena preferida, uma palavra nova e uma frase sobre o que aconteceu.</div>
+<h3>Rever é o segredo</h3><div class="box">Releia as notas 1 dia, 1 semana e 1 mês depois. É isto que transforma leitura em memória.</div>`;
+const CH_TPL={
+ dias7:{n:'7 dias seguidos a ler',ic:'🔥',d:'Cada pessoa lê pelo menos 10 minutos por dia, 7 dias seguidos.',per:1,days:7},
+ horas_fam:{n:'Horas em família',ic:'⏳',d:'A família soma horas de leitura neste período.',per:0,days:30,target:20,unit:'h'},
+ livro_mes:{n:'Um livro este mês',ic:'📚',d:'Cada pessoa termina pelo menos um livro.',per:1,days:30},
+ generos:{n:'Explorador de géneros',ic:'🧭',d:'Cada pessoa lê livros de 3 géneros diferentes.',per:1,days:60,target:3},
+ notas:{n:'Leitor que anota',ic:'✍️',d:'Cada pessoa faz 15 anotações.',per:1,days:30,target:15},
+ ecra:{n:'Troca de ecrã',ic:'📵',d:'Ler pelo menos 1 minuto por cada 5 minutos de telemóvel, todos os dias.',per:1,days:7},
+ paginas:{n:'Mil páginas em família',ic:'🏔️',d:'A família soma 1000 páginas.',per:0,days:30,target:1000,unit:'pág.'}
+};
+const BADGES=[
+ ['primeira','🌱','Primeira leitura',s=>s.sessions>=1],['sete','🔥','7 dias seguidos',s=>s.best>=7],['trinta','🏆','30 dias seguidos',s=>s.best>=30],
+ ['livro1','📗','Primeiro livro lido',s=>s.done>=1],['livro5','📚','5 livros lidos',s=>s.done>=5],['generos','🧭','4 géneros',s=>s.genres>=4],
+ ['anotador','✍️','25 anotações',s=>s.notes>=25],['maratona','🏃','Sessão de 60 min',s=>s.longest>=60],['madrugador','🌅','Leu antes das 7h',s=>s.early],
+ ['coruja','🦉','Leu depois das 22h',s=>s.late],['horas10','⏳','10 horas lidas',s=>s.minutes>=600],['paginas','🏔️','1000 páginas',s=>s.pages>=1000]
+];
+
+/* ============ ESTADO E UTILITÁRIOS ============ */
+const clone=o=>JSON.parse(JSON.stringify(o));
+const S={members:[],active:null,books:[],sessions:[],notes:[],challenges:[],screen:{},timers:{},settings:{}};
+const UI={tab:'hoje',ready:false,shelfWho:'all',shelfStatus:'lendo',progWho:null,progRange:7};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parseYmd=s=>{const[a,b,c]=s.split('-').map(Number);return new Date(a,b-1,c)};
+const today=()=>ymd(new Date());
+const nowHM=()=>{const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())};
+const toMin=t=>{const[h,m]=(t||'0:0').split(':').map(Number);return h*60+m};
+const fmtN=(n,d=0)=>Number(n).toLocaleString('pt-PT',{maximumFractionDigits:d});
+const uid=()=>Math.random().toString(36).slice(2,10);
+const fmtDur=m=>{m=Math.round(m);return m<60?m+' min':Math.floor(m/60)+' h'+(m%60?' '+pad(m%60):'')};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const DOW=['dom','seg','ter','qua','qui','sex','sáb'];
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+const mem=id=>S.members.find(m=>m.id===id);
+const active=()=>mem(S.active)||S.members[0];
+const first=M=>esc((M.name||'').split(' ')[0]);
+const initials=n=>(n||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+const avatar=(M,c='')=>`<span class="av ${c}" style="background:${M.color}">${esc(initials(M.name))}</span>`;
+const book=id=>S.books.find(b=>b.id===id);
+function coverHTML(B,lg){const G=GENRES[B.genre]||GENRES.ficcao;return `<div class="cover ${lg?'lg':''}" style="background:linear-gradient(160deg,${G.c},${G.c}cc)">${esc(B.title.slice(0,38))}</div>`}
+function ring(p,size,color,label,sub){const r=size/2-6,C=2*Math.PI*r;p=Math.max(0,Math.min(1,p));return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(127,127,127,.18)" stroke-width="8"/><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-p)}" transform="rotate(-90 ${size/2} ${size/2})"/><text x="50%" y="${sub?'47%':'54%'}" text-anchor="middle" font-family="Fraunces" font-weight="700" font-size="${size/4.6}" fill="currentColor">${label}</text>${sub?`<text x="50%" y="66%" text-anchor="middle" font-size="${size/9}" fill="currentColor" opacity=".7">${sub}</text>`:''}</svg>`}
+
+/* ============ CÁLCULOS ============ */
+const sessOf=mid=>S.sessions.filter(s=>s.mid===mid);
+function minutesOn(mid,date){return S.sessions.filter(s=>s.mid===mid&&s.date===date).reduce((a,s)=>a+(+s.min||0),0)}
+function minutesRange(mid,from,to){return S.sessions.filter(s=>(!mid||s.mid===mid)&&s.date>=from&&s.date<=to).reduce((a,s)=>a+(+s.min||0),0)}
+function pagesOf(s){const B=book(s.bookId);if(!B||s.to==null||s.from==null)return 0;const d=Math.max(0,s.to-s.from);return B.unit==='pct'?d/100*(B.total||250):d}
+function streak(mid){const days=new Set(sessOf(mid).filter(s=>s.min>=5).map(s=>s.date));let d=new Date();if(!days.has(ymd(d)))d=addDays(d,-1);let n=0;while(days.has(ymd(d))){n++;d=addDays(d,-1)}return n}
+function bestStreak(mid){const days=[...new Set(sessOf(mid).filter(s=>s.min>=5).map(s=>s.date))].sort();let best=0,cur=0,prev=null;for(const d of days){if(prev&&ymd(addDays(parseYmd(prev),1))===d)cur++;else cur=1;best=Math.max(best,cur);prev=d}return best}
+function weekStart(d){d=new Date(d||new Date());const k=(d.getDay()+6)%7;return addDays(new Date(d.getFullYear(),d.getMonth(),d.getDate()),-k)}
+function weekPct(M){const ws=weekStart();const done=minutesRange(M.id,ymd(ws),ymd(addDays(ws,6)));const days=Math.min(7,Math.round((new Date()-ws)/864e5)+1);return{done,goal:M.goalMin*7,soFar:M.goalMin*days,pct:done/(M.goalMin*7)}}
+function stats(mid){const ss=sessOf(mid);const bs=S.books.filter(b=>b.mid===mid);
+ return{sessions:ss.length,minutes:ss.reduce((a,s)=>a+(+s.min||0),0),pages:Math.round(ss.reduce((a,s)=>a+pagesOf(s),0)),done:bs.filter(b=>b.status==='lido').length,
+  genres:new Set(bs.filter(b=>b.status!=='quero').map(b=>b.genre)).size,notes:S.notes.filter(n=>n.mid===mid).length,best:bestStreak(mid),longest:Math.max(0,...ss.map(s=>+s.min||0)),
+  early:ss.some(s=>toMin(s.start)<420),late:ss.some(s=>toMin(s.start)>=1320)}}
+function speed(mid,B){const ss=S.sessions.filter(s=>s.mid===mid&&s.to!=null&&s.from!=null&&s.min>0&&(!B||book(s.bookId)&&book(s.bookId).unit===B.unit));const p=ss.reduce((a,s)=>a+Math.max(0,s.to-s.from),0),m=ss.reduce((a,s)=>a+s.min,0);return m>=20&&p>0?p/m:null}
+function finishEstimate(B){const M=mem(B.mid);if(!M||!B.total&&B.unit==='pag')return null;const total=B.unit==='pct'?100:B.total;const left=total-(B.pos||0);if(left<=0)return null;
+ const sp=speed(B.mid,B)||(B.unit==='pct'?0.25:0.6);const from=ymd(addDays(new Date(),-13));const perDay=Math.max(M.goalMin*0.6,minutesRange(B.mid,from,today())/14);const days=Math.ceil(left/(sp*perDay));return{days,date:addDays(new Date(),days),perDay:Math.round(perDay)}}
+function bookPct(B){if(B.unit==='pct')return(B.pos||0)/100;return B.total?(B.pos||0)/B.total:0}
+function posLabel(B){return B.unit==='pct'?Math.round(B.pos||0)+'%':`p. ${B.pos||0}${B.total?' de '+B.total:''}`}
+
+/* ============ TEMPO DE ECRÃ ============ */
+const hasBridge=()=>!!(window.AndroidBridge&&AndroidBridge.screenTime);
+let SCR_CACHE=null;
+function screenData(){if(hasBridge()){if(SCR_CACHE)return SCR_CACHE;try{if(!AndroidBridge.hasUsageAccess())return null;SCR_CACHE=JSON.parse(AndroidBridge.screenTime(30));setTimeout(()=>SCR_CACHE=null,60000);return SCR_CACHE}catch(e){return null}}return null}
+function screenMin(mid,date){const M=mem(mid);if(M&&M.id===S.active&&hasBridge()){const d=screenData();if(d){const x=d.find(r=>r.date===date);if(x)return x.min}}return(S.screen[mid]&&S.screen[mid][date])??null}
+
+/* ============ INTELIGÊNCIA ============ */
+function insights(M){const out=[];const ss=sessOf(M.id);const st=streak(M.id);const wk=weekPct(M);
+ if(!ss.length){out.push(['🌱','var(--teal-l)',`Comece hoje com só ${M.goalMin} minutos. O mais difícil é a primeira sessão; depois o hábito trata do resto.`]);return out}
+ if(st>=2)out.push(['🔥','var(--amber-l)',`${st} dias seguidos a ler. ${st<7?'Faltam '+(7-st)+' para a medalha dos 7 dias.':'Continue: a de 30 dias está a '+(30-st)+' dias.'}`]);
+ else{const last=ss.map(s=>s.date).sort().pop();if(last&&last<ymd(addDays(new Date(),-1)))out.push(['⏰','var(--rose-l)',`Não lê desde ${parseYmd(last).toLocaleDateString('pt-PT',{weekday:'long',day:'numeric'})}. Uma sessão de 10 minutos hoje recomeça a sequência.`])}
+ const hrs={};ss.forEach(s=>{const h=Math.floor(toMin(s.start)/60);hrs[h]=(hrs[h]||0)+s.min});const bh=Object.entries(hrs).sort((a,b)=>b[1]-a[1])[0];
+ if(bh&&ss.length>=4)out.push(['🕘','var(--sky-l)',`Lê melhor por volta das ${pad(bh[0])}h. Marque essa hora como o seu horário fixo de leitura.`]);
+ const lw0=ymd(addDays(weekStart(),-7)),lw1=ymd(addDays(weekStart(),-1));const last=minutesRange(M.id,lw0,lw1);const sofar=wk.done;
+ if(last>0){const r=sofar/last;out.push(r>=1?['📈','var(--teal-l)',`Esta semana já leu ${fmtDur(sofar)}, mais do que toda a semana passada (${fmtDur(last)}).`]:['📊','var(--sky-l)',`Leu ${fmtDur(last)} na semana passada; esta semana vai em ${fmtDur(sofar)}.`])}
+ const cur=S.books.filter(b=>b.mid===M.id&&b.status==='lendo');for(const B of cur.slice(0,2)){const e=finishEstimate(B);if(e)out.push(['📅','var(--amber-l)',`Ao seu ritmo, termina "${esc(B.title)}" por volta de ${e.date.toLocaleDateString('pt-PT',{day:'numeric',month:'long'})} (${e.days} dias).`])}
+ const recent=S.books.filter(b=>b.mid===M.id&&b.status!=='quero').slice(-4).map(b=>b.genre);if(recent.length>=3&&new Set(recent).size===1){const g=GENRES[recent[0]].n;out.push(['🧭','var(--rose-l)',`Os últimos livros são todos de ${g}. Que tal intercalar com um romance angolano ou uma biografia?`])}
+ const y=ymd(addDays(new Date(),-1)),scr=screenMin(M.id,y),rd=minutesOn(M.id,y);if(scr!=null&&scr>60)out.push(['📵','var(--rose-l)',`Ontem: ${fmtDur(scr)} de ecrã e ${fmtDur(rd)} de leitura. Trocar só 10% do ecrã dava ${Math.round(scr*0.1)} minutos de leitura.`]);
+ return out}
+function questionOfDay(){const g=[...new Set(S.books.filter(b=>b.status==='lendo').map(b=>b.genre))];const pool=(g.length?g:Object.keys(GENRES)).flatMap(k=>GENRES[k].q);const d=new Date();return pool[(d.getDate()+d.getMonth()*31)%pool.length]}
+function nextSlot(M){const now=new Date(),dw=now.getDay()+1;let best=null;for(const s of(M.slots||[]))for(let k=0;k<7;k++){const day=((dw-1+k)%7)+1;if(!s.d.includes(day))continue;const t=toMin(s.t);if(k===0&&t<=toMin(nowHM()))continue;const score=k*1440+t;if(!best||score<best.score)best={score,k,t:s.t,day};break}return best}
+
+/* ============ PERSISTÊNCIA ============ */
+let DB=null,UIDU=null,MODE='local';const LSK='clube-leitura-v1:';
+const DOCS=['core','sessions','notes','screen'];
+function lsGet(k){try{return JSON.parse(localStorage.getItem(LSK+k))}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(LSK+k,JSON.stringify(v))}catch(e){}}
+function valOf(k){if(k==='core')return{members:S.members,active:S.active,books:S.books,challenges:S.challenges,timers:S.timers,settings:S.settings};if(k==='sessions')return{list:S.sessions};if(k==='notes')return{list:S.notes};if(k==='screen')return{map:S.screen};return{}}
+function applyDoc(k,d){if(!d)return;if(k==='core'){S.members=d.members||[];S.active=d.active;S.books=d.books||[];S.challenges=d.challenges||[];S.timers=d.timers||{};S.settings=d.settings||{}}else if(k==='sessions')S.sessions=d.list||[];else if(k==='notes')S.notes=d.list||[];else if(k==='screen')S.screen=d.map||{}}
+const timers={},chains={},dirty={};
+function save(k){lsSet(k,valOf(k));if(MODE!=='cloud')return;dirty[k]=true;clearTimeout(timers[k]);timers[k]=setTimeout(()=>{const body=clone(valOf(k));chains[k]=(chains[k]||Promise.resolve()).then(()=>DB.collection('data/users/'+UIDU).doc(k).set(body)).then(()=>{dirty[k]=false}).catch(e=>{dirty[k]=false;if(e&&e.code==='quota_exceeded')toast('Espaço de armazenamento cheio')})},700)}
+const saveAll=()=>DOCS.forEach(save);
+function loadLocal(){DOCS.forEach(k=>{const v=lsGet(k);if(v)applyDoc(k,v)})}
+function onReady(){if(UI.ready)return;UI.ready=true;if(!S.members.length)showWelcome();render()}
+async function initCloud(){if(!window.claude||typeof window.claude.use!=='function'){onReady();return}
+ const to=setTimeout(onReady,10000);
+ try{const[db,user]=await Promise.all([claude.use('db'),claude.use('user')]);if(!db||!user){clearTimeout(to);onReady();return}
+  const id=await user.id();if(!id){clearTimeout(to);onReady();return}DB=db;UIDU=id;let firstSnap=true;
+  DB.collection('data/users/'+UIDU).onSnapshot(snap=>{if(snap.metadata.fromCache&&firstSnap)return;
+   if(firstSnap){firstSnap=false;clearTimeout(to);MODE='cloud';if(snap.empty)saveAll();else{snap.docs.forEach(d=>applyDoc(d.id,d.data()));DOCS.forEach(k=>lsSet(k,valOf(k)))}
+    if(S.members.length){const w=$('.welcome');if(w)w.remove()}if(UI.ready)safeRender();else onReady();return}
+   let ch=false;snap.docChanges().forEach(c=>{if(c.type==='removed'||c.doc.metadata.hasPendingWrites||dirty[c.doc.id])return;applyDoc(c.doc.id,c.doc.data());lsSet(c.doc.id,c.doc.data());ch=true});if(ch)safeRender()},()=>{clearTimeout(to);MODE='local';onReady()})
+ }catch(e){clearTimeout(to);onReady()}}
+let pendingRender=false;
+function safeRender(){const a=document.activeElement;if(a&&/INPUT|SELECT|TEXTAREA/.test(a.tagName)){pendingRender=true;return}render()}
+document.addEventListener('focusout',()=>setTimeout(()=>{if(pendingRender){pendingRender=false;safeRender()}},50));
+
+/* ============ PESSOAS ============ */
+function newMember(f){const kind=f.kind||'adulto';return{id:'m'+uid(),name:f.name,color:COLORS[S.members.length%COLORS.length],kind,age:f.age||'',goalMin:+f.goalMin||KINDS[kind][1],goalBooks:+f.goalBooks||KINDS[kind][2],slots:f.slots||[{t:kind==='crianca'?'20:00':'21:30',d:[1,2,3,4,5,6,7]}]}}
+function memberForm(M){M=M||{};const k=M.kind||'adulto';return `<div class="fgrid">
+ <label class="field full">Nome<input id="fName" value="${esc(M.name||'')}" placeholder="ex.: Garcia"></label>
+ <label class="field">Idade<input id="fAge" type="number" inputmode="numeric" value="${esc(M.age||'')}"></label>
+ <label class="field">Perfil<select id="fKind">${Object.entries(KINDS).map(([v,x])=>`<option value="${v}" ${k===v?'selected':''}>${x[0]}</option>`).join('')}</select></label>
+ <label class="field">Meta diária (min)<input id="fGoal" type="number" inputmode="numeric" value="${M.goalMin||KINDS[k][1]}"></label>
+ <label class="field">Livros por ano<input id="fBooks" type="number" inputmode="numeric" value="${M.goalBooks||KINDS[k][2]}"></label>
+ <label class="field full">Hora habitual de leitura<input id="fSlot" type="time" value="${(M.slots&&M.slots[0]&&M.slots[0].t)||'21:30'}"></label></div>`}
+function readForm(){const g=id=>document.getElementById(id).value;return{name:g('fName').trim(),age:g('fAge'),kind:g('fKind'),goalMin:+g('fGoal')||15,goalBooks:+g('fBooks')||6,slot:g('fSlot')||'21:30'}}
+function showWelcome(){const w=document.createElement('div');w.className='welcome';
+ w.innerHTML=`<div class="inner"><div style="font-size:40px">📚</div><h1 style="font-size:30px;color:var(--navy);margin:6px 0">Clube de Leitura da Família</h1><p class="muted" style="margin:0 0 18px">Metas, desafios, anotações e sugestões para cada pessoa da casa. Comece por si; depois junte a família.</p>
+ <div class="card">${memberForm({})}</div><button class="btn lg" style="width:100%" data-w="go">Começar</button>
+ <label class="btn ghost" style="display:block;text-align:center;margin-top:10px">Recuperar uma cópia de segurança<input type="file" accept=".json,application/json" data-act="restore" hidden></label></div>`;
+ document.body.appendChild(w);w.addEventListener('click',e=>{if(!e.target.closest('[data-w=go]'))return;const f=readForm();if(!f.name){toast('Escreva o nome');return}
+  const M=newMember(f);M.slots=[{t:f.slot,d:[1,2,3,4,5,6,7]}];S.members=[M];S.active=M.id;
+  S.challenges=[{id:uid(),tpl:'dias7',start:today()}];saveAll();w.remove();render();toast('Bem-vindo ao clube, '+f.name.split(' ')[0]+'!')})}
+function openPeople(edit){const md=document.createElement('div');md.className='modal';
+ const draw=v=>{let h=`<div class="row between"><h2 style="font-size:19px">${v==='list'?'Membros do clube':v==='new'?'Novo membro':'Editar membro'}</h2><button class="x" data-p="close">×</button></div><div class="scroll">`;
+  if(v==='list'){h+=S.members.map(M=>`<div class="rp"><div class="row">${avatar(M,'lg')}<div><b>${esc(M.name)}</b> ${M.id===S.active?'<span class="badge b-teal">a usar</span>':''}<div class="small muted">${KINDS[M.kind][0]} · ${M.goalMin} min/dia · ${M.goalBooks} livros/ano</div></div></div><div class="row" style="gap:4px">${M.id!==S.active?`<button class="btn sm soft" data-p="use" data-id="${M.id}">Usar</button>`:''}<button class="btn sm ghost" data-p="edit" data-id="${M.id}">Editar</button></div></div>`).join('')+`<p class="note">Cada pessoa pode usar a app no próprio telemóvel e partilhar o progresso com a família no separador Mais.</p></div><button class="btn" data-p="new">+ Juntar membro</button>`}
+  else{h+=memberForm(v==='new'?{}:mem(v));if(v!=='new'&&S.members.length>1)h+=`<div style="margin-top:12px"><button class="link" style="color:var(--rose)" data-p="del" data-id="${v}">Remover este membro</button></div>`;h+=`</div><div class="row" style="gap:8px"><button class="btn" style="flex:1" data-p="save" data-id="${v}">Guardar</button><button class="btn ghost" style="flex:1" data-p="back">Voltar</button></div>`}
+  md.innerHTML=`<div class="sheetbox">${h}</div>`};
+ draw(edit||'list');document.body.appendChild(md);
+ md.addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(!b){if(e.target===md)md.remove();return}const a=b.dataset.p,id=b.dataset.id;
+  if(a==='close'){md.remove();render()}else if(a==='use'){S.active=id;save('core');draw('list');render()}else if(a==='edit')draw(id);else if(a==='new')draw('new');else if(a==='back')draw('list');
+  else if(a==='del'){if(b.dataset.ok){S.members=S.members.filter(x=>x.id!==id);if(S.active===id)S.active=S.members[0].id;save('core');draw('list');render()}else{b.dataset.ok=1;b.textContent='Toque de novo para confirmar'}}
+  else if(a==='save'){const f=readForm();if(!f.name){toast('Escreva o nome');return}if(id==='new'){const M=newMember(f);M.slots=[{t:f.slot,d:[1,2,3,4,5,6,7]}];S.members.push(M)}else{const M=mem(id);Object.assign(M,{name:f.name,age:f.age,kind:f.kind,goalMin:f.goalMin,goalBooks:f.goalBooks});M.slots=M.slots&&M.slots.length?M.slots:[{t:f.slot,d:[1,2,3,4,5,6,7]}];M.slots[0].t=f.slot}save('core');draw('list');render()}})}
+
+/* ============ RENDER ============ */
+function render(){if(!UI.ready)return;const A=active();
+ document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===UI.tab));
+ $('#personBtn').innerHTML=A?`${avatar(A)}<span class="nmx">${first(A)}</span><span style="opacity:.6">▾</span>`:'Membros';
+ if(!A){$('#main').innerHTML='';return}
+ const T={hoje:['Clube de Leitura',new Date().toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long'})],estante:['Estante','Livros físicos, Logos, PDF e Kindle'],desafios:['Desafios','Metas, ranking e medalhas'],progresso:['Progresso','Leitura e tempo de ecrã'],mais:['Mais','Sugestões, cadernos, horários e partilha']}[UI.tab];
+ $('#title').textContent=T[0];$('#subtitle').textContent=T[1];
+ $('#main').innerHTML={hoje:vHoje,estante:vEstante,desafios:vDesafios,progresso:vProgresso,mais:vMais}[UI.tab]()}
+const whoChips=(cur,act,all)=>`<div class="chips">${all?`<button class="chip ${cur==='all'?'on':''}" data-act="${act}" data-v="all">👨‍👩‍👧 Todos</button>`:''}${S.members.map(M=>`<button class="chip ${cur===M.id?'on':''}" data-act="${act}" data-v="${M.id}">${avatar(M,'sm')}${first(M)}</button>`).join('')}</div>`;
+
+/* ---------- HOJE ---------- */
+function vHoje(){const A=active(),T=S.timers[A.id];let h='';
+ // anéis da família
+ h+=`<div class="card dark"><div class="row between"><div><div class="small muted">Meta de hoje</div><h2 style="font-size:20px">A família a ler</h2></div><span class="badge" style="background:rgba(255,255,255,.14)">${fmtDur(S.members.reduce((a,M)=>a+minutesOn(M.id,today()),0))} hoje</span></div>
+  <div class="rings" style="margin-top:10px">${S.members.map(M=>{const m=minutesOn(M.id,today());return `<div class="ringbox">${ring(m/M.goalMin,72,M.color==='#1E2A44'?'#D99A2B':M.color,Math.round(m),'/'+M.goalMin+' min')}<span>${first(M)} ${streak(M.id)>=2?'🔥'+streak(M.id):''}</span></div>`}).join('')}</div></div>`;
+ // cronómetro
+ if(T){const B=book(T.bookId),min=Math.floor((Date.now()-T.start)/60000);
+  h+=`<div class="card" style="text-align:center;border-color:var(--teal)"><div class="small muted">A ler agora · ${B?esc(B.title):''}</div><div class="timer" id="tmr">${pad(Math.floor(min/60))}:${pad(min%60)}</div><div class="small muted">desde as ${new Date(T.start).toTimeString().slice(0,5)}</div>
+   <div class="row" style="justify-content:center;gap:8px;margin-top:10px"><button class="btn teal lg" data-act="stop">Terminar sessão</button><button class="btn ghost sm" data-act="cancel-timer">Cancelar</button></div>
+   ${B?`<div class="box" style="text-align:left;margin-top:12px"><b>Enquanto lê, anote:</b><br>${(GENRES[B.genre]||GENRES.ficcao).notes.map(x=>'• '+esc(x)).join('<br>')}</div>`:''}</div>`}
+ else{const cur=S.books.filter(b=>b.mid===A.id&&b.status==='lendo');
+  h+=`<div class="card"><div class="row between"><h3 style="font-size:18px">Ler agora</h3><button class="link" data-act="log-manual">Registar à mão</button></div>`;
+  if(!cur.length)h+=`<div class="empty">Ainda não tem nenhum livro em leitura.<br><button class="btn sm" style="margin-top:8px" data-act="book-new">+ Juntar livro</button></div>`;
+  for(const B of cur){const e=finishEstimate(B);h+=`<div class="book">${coverHTML(B)}<div style="flex:1;min-width:0"><b>${esc(B.title)}</b><div class="fmt">${FORMATS[B.format][0]} ${FORMATS[B.format][1]} · ${posLabel(B)}</div><div class="bar" style="margin:6px 0"><i style="width:${bookPct(B)*100}%"></i></div>${e?`<div class="small muted">Termina por volta de ${e.date.toLocaleDateString('pt-PT',{day:'numeric',month:'short'})}</div>`:''}</div><button class="btn sm teal" data-act="start" data-id="${B.id}">▶ Ler</button></div>`}
+  h+=`</div>`}
+ // próximo horário
+ const ns=nextSlot(A);if(ns&&!T){const when=ns.k===0?'hoje':ns.k===1?'amanhã':DOW[ns.day-1];h+=`<div class="card row between"><div><div class="small muted">Próximo horário de leitura</div><b style="font-family:Fraunces;font-size:17px">${when} às ${ns.t}</b></div><button class="btn sm soft" data-act="go" data-v="mais">Horários</button></div>`}
+ // insights
+ const ins=insights(A);if(ins.length)h+=`<div class="card"><h3 style="font-size:17px;margin-bottom:4px">Para ${first(A)}</h3>${ins.map(([ic,bg,t])=>`<div class="insight"><span class="ic" style="background:${bg}">${ic}</span><div class="small" style="font-size:13.5px">${t}</div></div>`).join('')}</div>`;
+ // desafio activo
+ const ch=S.challenges[0];if(ch&&CH_TPL[ch.tpl]){const P=chProgress(ch);h+=`<button class="card" style="width:100%;text-align:left" data-act="go" data-v="desafios"><div class="row between"><b>${CH_TPL[ch.tpl].ic} ${CH_TPL[ch.tpl].n}</b><span class="small muted">${P.left} dias</span></div><div class="bar" style="margin-top:8px"><i style="width:${P.pct*100}%;background:var(--amber)"></i></div><div class="small muted" style="margin-top:4px">${P.label}</div></button>`}
+ // pergunta do dia
+ h+=`<div class="card qcard"><div class="small" style="color:#7a5208;font-weight:600">💬 Pergunta para a conversa em família</div><div style="font-family:Fraunces;font-size:18px;margin-top:4px">${esc(questionOfDay())}</div></div>`;
+ return h}
+
+/* ---------- ESTANTE ---------- */
+function vEstante(){const who=UI.shelfWho,st=UI.shelfStatus;let h=whoChips(who,'shelf-who',true);
+ h+=`<div class="seg" style="display:flex">${[['lendo','A ler'],['quero','Quero ler'],['lido','Lidos'],['pausa','Em pausa']].map(([k,n])=>`<button style="flex:1" class="${st===k?'on':''}" data-act="shelf-st" data-v="${k}">${n}</button>`).join('')}</div>`;
+ const list=S.books.filter(b=>(who==='all'||b.mid===who)&&b.status===st);
+ h+=`<button class="btn" style="width:100%;margin-bottom:12px" data-act="book-new">+ Juntar livro à estante</button>`;
+ h+=`<div class="card">${list.length?list.map(B=>{const M=mem(B.mid);return `<button class="book" style="width:100%;text-align:left" data-act="book" data-id="${B.id}">${coverHTML(B)}<div style="flex:1;min-width:0"><b>${esc(B.title)}</b><div class="small muted">${esc(B.author||'')}</div><div class="fmt">${FORMATS[B.format][0]} ${FORMATS[B.format][1]} · ${esc(GENRES[B.genre].n)}</div>${B.status==='lendo'?`<div class="bar" style="margin:6px 0 2px"><i style="width:${bookPct(B)*100}%"></i></div><div class="small muted">${posLabel(B)}</div>`:''}${B.status==='lido'&&B.rating?`<div class="small">${'★'.repeat(B.rating)}${'☆'.repeat(5-B.rating)}</div>`:''}</div>${M&&who==='all'?avatar(M,'sm'):''}</button>`}).join(''):`<div class="empty">Nada aqui ainda.${st==='quero'?'<br>Veja as sugestões no separador Mais.':''}</div>`}</div>`;
+ // géneros
+ const gcount={};S.books.filter(b=>who==='all'||b.mid===who).forEach(b=>gcount[b.genre]=(gcount[b.genre]||0)+1);
+ if(Object.keys(gcount).length)h+=`<div class="card"><h3 style="font-size:16px;margin-bottom:6px">Por género</h3>${Object.entries(gcount).sort((a,b)=>b[1]-a[1]).map(([g,n])=>`<div class="rp"><span class="row"><i style="width:10px;height:10px;border-radius:3px;background:${GENRES[g].c};display:inline-block"></i>${esc(GENRES[g].n)}</span><b>${n}</b></div>`).join('')}</div>`;
+ return h}
+function bookForm(B){B=B||{format:'fisico',genre:'teologia',status:'lendo',mid:S.active};return `<div class="fgrid">
+ <label class="field full">Título<input id="bTitle" value="${esc(B.title||'')}"></label>
+ <label class="field full">Autor<input id="bAuthor" value="${esc(B.author||'')}"></label>
+ <label class="field">Formato<select id="bFormat">${Object.entries(FORMATS).map(([k,f])=>`<option value="${k}" ${B.format===k?'selected':''}>${f[0]} ${f[1]}</option>`).join('')}</select></label>
+ <label class="field">Género<select id="bGenre">${Object.entries(GENRES).map(([k,g])=>`<option value="${k}" ${B.genre===k?'selected':''}>${g.n}</option>`).join('')}</select></label>
+ <label class="field">Total de páginas<input id="bTotal" type="number" inputmode="numeric" value="${B.total||''}" placeholder="Kindle: opcional"></label>
+ <label class="field">Quem lê<select id="bMid">${S.members.map(M=>`<option value="${M.id}" ${B.mid===M.id?'selected':''}>${esc(M.name)}</option>`).join('')}</select></label>
+ <label class="field">Estado<select id="bStatus">${[['lendo','A ler'],['quero','Quero ler'],['lido','Lido'],['pausa','Em pausa']].map(([k,n])=>`<option value="${k}" ${B.status===k?'selected':''}>${n}</option>`).join('')}</select></label>
+ <label class="field">Onde vai (${B.format==='kindle'?'%':'página'})<input id="bPos" type="number" inputmode="decimal" value="${B.pos||''}"></label>
+ <label class="field full">Porque quero ler (objectivo pessoal)<input id="bWhy" value="${esc(B.why||'')}" placeholder="ex.: preparar a série de pregações sobre família"></label></div>`}
+function readBook(){const g=id=>document.getElementById(id).value;const f=g('bFormat');return{title:g('bTitle').trim(),author:g('bAuthor').trim(),format:f,unit:FORMATS[f][2],genre:g('bGenre'),total:+g('bTotal')||0,mid:g('bMid'),status:g('bStatus'),pos:+g('bPos')||0,why:g('bWhy').trim()}}
+function openBookEdit(id,preset){const B=id?book(id):preset;const md=document.createElement('div');md.className='modal';
+ md.innerHTML=`<div class="sheetbox"><div class="row between"><h2 style="font-size:19px">${id?'Editar livro':'Juntar livro'}</h2><button class="x" data-b="close">×</button></div><div class="scroll">${bookForm(B)}<p class="note">Kindle: o progresso conta em percentagem. Logos e PDF: em páginas.</p></div><div class="row" style="gap:8px"><button class="btn" style="flex:1" data-b="save">Guardar</button>${id?'<button class="btn ghost" data-b="del">Apagar</button>':''}</div></div>`;
+ document.body.appendChild(md);
+ md.addEventListener('click',e=>{const b=e.target.closest('[data-b]');if(!b){if(e.target===md)md.remove();return}const a=b.dataset.b;
+  if(a==='close')md.remove();
+  else if(a==='del'){if(b.dataset.ok){S.books=S.books.filter(x=>x.id!==id);save('core');md.remove();document.querySelectorAll('.modal').forEach(x=>x.remove());render()}else{b.dataset.ok=1;b.textContent='Confirmar'}}
+  else if(a==='save'){const f=readBook();if(!f.title){toast('Escreva o título');return}
+   if(id){const X=book(id);if(f.status==='lido'&&X.status!=='lido')f.finished=today();Object.assign(X,f)}else{f.id=uid();f.added=today();if(f.status==='lendo')f.started=today();S.books.push(f)}
+   save('core');md.remove();document.querySelectorAll('.modal').forEach(x=>x.remove());render();toast('Estante actualizada')}})}
+function openBook(id){const B=book(id),M=mem(B.mid),G=GENRES[B.genre];const ns=S.notes.filter(n=>n.bookId===id).sort((a,b)=>(a.page||0)-(b.page||0));
+ const ss=S.sessions.filter(s=>s.bookId===id);const mins=ss.reduce((a,s)=>a+s.min,0);const e=finishEstimate(B);
+ const md=document.createElement('div');md.className='modal';
+ md.innerHTML=`<div class="sheetbox"><div class="row between"><span></span><button class="x" data-k="close">×</button></div><div class="scroll rec">
+ <div class="row" style="gap:14px;align-items:flex-start">${coverHTML(B,1)}<div><h2 style="font-size:20px">${esc(B.title)}</h2><div class="muted">${esc(B.author||'')}</div><div class="fmt" style="margin-top:4px">${FORMATS[B.format][0]} ${FORMATS[B.format][1]} · ${esc(G.n)}</div><div class="small" style="margin-top:4px">${M?avatar(M,'sm')+' '+first(M):''}</div></div></div>
+ ${B.why?`<div class="tip" style="margin-top:12px">🎯 ${esc(B.why)}</div>`:''}
+ <div class="grid3" style="margin-top:12px"><div class="stat"><b>${posLabel(B)}</b><span>progresso</span></div><div class="stat"><b>${fmtDur(mins)}</b><span>${ss.length} sessões</span></div><div class="stat"><b>${ns.length}</b><span>anotações</span></div></div>
+ ${B.status==='lendo'?`<div class="bar" style="margin-top:10px"><i style="width:${bookPct(B)*100}%"></i></div>${e?`<p class="small muted">Ao ritmo de ${e.perDay} min por dia, termina por volta de <b>${e.date.toLocaleDateString('pt-PT',{day:'numeric',month:'long'})}</b>.</p>`:''}`:''}
+ <h3>O que se ganha</h3><div class="box">${esc(G.gain)}</div>
+ <h3>O que anotar neste livro</h3><div class="box">${G.notes.map(x=>'• '+esc(x)).join('<br>')}</div>
+ <h3>Anotações <button class="btn sm soft" style="margin-left:6px" data-k="note">+ Nova</button></h3>
+ ${ns.length?ns.map(n=>`<div class="rp" style="align-items:flex-start"><div><span class="ntype" style="background:${NTYPES[n.type][2]};color:${NTYPES[n.type][1]}">${NTYPES[n.type][0]}</span><span class="small muted">${n.page?(B.unit==='pct'?n.page+'%':'p. '+n.page):''}</span><div style="margin-top:3px">${esc(n.text)}</div></div><button class="x" data-k="ndel" data-id="${n.id}">×</button></div>`).join(''):'<div class="small muted">Ainda sem anotações.</div>'}
+ ${B.status==='lido'?`<h3>A minha avaliação</h3><div class="row" style="gap:4px">${[1,2,3,4,5].map(i=>`<button style="font-size:26px;color:var(--amber)" data-k="rate" data-v="${i}">${i<=(B.rating||0)?'★':'☆'}</button>`).join('')}</div>`:''}
+ </div><div class="row wrap" style="gap:6px">${B.status!=='lido'?`<button class="btn teal" data-k="start">▶ Ler agora</button><button class="btn soft" data-k="finish">✓ Terminei</button>`:`<button class="btn amber" data-k="cert">🏅 Certificado</button>`}<button class="btn ghost" data-k="sheet">Ficha de leitura</button><button class="btn ghost" data-k="edit">Editar</button></div></div>`;
+ document.body.appendChild(md);
+ md.addEventListener('click',ev=>{const b=ev.target.closest('[data-k]');if(!b){if(ev.target===md)md.remove();return}const a=b.dataset.k;
+  if(a==='close')md.remove();else if(a==='edit')openBookEdit(id);else if(a==='note')openNote(id);
+  else if(a==='ndel'){S.notes=S.notes.filter(n=>n.id!==b.dataset.id);save('notes');md.remove();openBook(id)}
+  else if(a==='rate'){B.rating=+b.dataset.v;save('core');md.remove();openBook(id)}
+  else if(a==='start'){md.remove();startTimer(id)}
+  else if(a==='finish'){B.status='lido';B.finished=today();B.pos=B.unit==='pct'?100:(B.total||B.pos);save('core');md.remove();render();toast('Parabéns! Livro terminado 🎉');openBook(id)}
+  else if(a==='cert')doExport('cert',id);else if(a==='sheet')doExport('ficha',id)})}
+function openNote(bookId){const B=book(bookId),G=GENRES[B.genre];const md=document.createElement('div');md.className='modal';
+ md.innerHTML=`<div class="sheetbox"><div class="row between"><h2 style="font-size:19px">Nova anotação</h2><button class="x" data-n="close">×</button></div>
+ <div class="chips">${Object.entries(NTYPES).map(([k,t],i)=>`<button class="chip ${i===0?'on':''}" data-n="type" data-v="${k}">${t[0]}</button>`).join('')}</div>
+ <div class="fgrid"><label class="field">${B.unit==='pct'?'Percentagem':'Página'}<input id="nPage" type="number" inputmode="numeric" value="${B.pos||''}"></label><div></div><label class="field full">Texto<textarea id="nText" rows="4" placeholder="${esc(G.notes[0])}"></textarea></label></div>
+ <div class="small muted">Sugestão: ${G.notes.map(esc).join(' · ')}</div><button class="btn" data-n="save">Guardar anotação</button></div>`;
+ document.body.appendChild(md);let type='citacao';
+ md.addEventListener('click',e=>{const b=e.target.closest('[data-n]');if(!b){if(e.target===md)md.remove();return}const a=b.dataset.n;
+  if(a==='close')md.remove();else if(a==='type'){type=b.dataset.v;md.querySelectorAll('[data-n=type]').forEach(x=>x.classList.toggle('on',x===b))}
+  else if(a==='save'){const t=$('#nText').value.trim();if(!t){toast('Escreva a anotação');return}S.notes.push({id:uid(),mid:B.mid,bookId,type,page:+$('#nPage').value||0,text:t,date:today()});save('notes');md.remove();document.querySelectorAll('.modal').forEach(x=>x.remove());openBook(bookId);toast('Anotação guardada')}})}
+
+/* ---------- SESSÕES ---------- */
+function startTimer(bookId){const A=active();const B=book(bookId);S.timers[B?B.mid:A.id]={bookId,start:Date.now()};if(B&&B.status!=='lendo'){B.status='lendo';B.started=B.started||today()}save('core');UI.tab='hoje';render();toast('Boa leitura!')}
+function stopDialog(mid,min,startHM,dateStr,bookId){const B=book(bookId);const md=document.createElement('div');md.className='modal';
+ md.innerHTML=`<div class="sheetbox"><h2 style="font-size:19px">Sessão de leitura</h2><div class="fgrid">
+ <label class="field full">Livro<select id="sBook">${S.books.filter(b=>b.mid===mid&&b.status!=='quero').map(b=>`<option value="${b.id}" ${b.id===bookId?'selected':''}>${esc(b.title)}</option>`).join('')}</select></label>
+ <label class="field">Minutos<input id="sMin" type="number" inputmode="numeric" value="${min}"></label><label class="field">Começou às<input id="sStart" type="time" value="${startHM}"></label>
+ <label class="field">Data<input id="sDate" type="date" value="${dateStr}"></label><label class="field">Parei ${B&&B.unit==='pct'?'nos (%)':'na página'}<input id="sTo" type="number" inputmode="decimal" value="${B?B.pos||'':''}"></label>
+ <label class="field full">Uma ideia rápida desta sessão (opcional)<input id="sNote" placeholder="o que vale a pena guardar?"></label></div>
+ <div class="row" style="gap:8px"><button class="btn" style="flex:1" data-s="save">Guardar</button><button class="btn ghost" data-s="close">Cancelar</button></div></div>`;
+ document.body.appendChild(md);
+ md.addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(!b)return;if(b.dataset.s==='close'){md.remove();return}
+  const bid=$('#sBook').value,X=book(bid);let to=parseFloat($('#sTo').value);if(X&&X.unit==='pct'&&to>100)to=100;const m=+$('#sMin').value||0;if(m<=0){toast('Indique os minutos');return}
+  const from=X?X.pos||0:0;S.sessions.push({id:uid(),mid,bookId:bid,date:$('#sDate').value||today(),start:$('#sStart').value||nowHM(),min:m,from,to:isNaN(to)?from:to});
+  if(X&&!isNaN(to)){X.pos=to;const tot=X.unit==='pct'?100:X.total;if(tot&&to>=tot){X.status='lido';X.finished=today()}}
+  const nt=$('#sNote').value.trim();if(nt&&X){S.notes.push({id:uid(),mid,bookId:bid,type:'ideia',page:isNaN(to)?0:to,text:nt,date:today()});save('notes')}
+  delete S.timers[mid];save('sessions');save('core');md.remove();render();const nb=newBadges(mid);toast(nb?'Nova medalha: '+nb:'Sessão de '+fmtDur(m)+' registada')})}
+let BADGE_SEEN={};function newBadges(mid){const st=stats(mid);const got=BADGES.filter(b=>b[3](st)).map(b=>b[0]);const prev=BADGE_SEEN[mid];BADGE_SEEN[mid]=got;if(!prev)return'';const n=got.find(g=>!prev.includes(g));return n?BADGES.find(b=>b[0]===n)[2]:''}
+
+/* ---------- DESAFIOS ---------- */
+function chProgress(ch){const T=CH_TPL[ch.tpl];const st=ch.start,end=ymd(addDays(parseYmd(st),T.days-1));const left=Math.max(0,Math.round((parseYmd(end)-parseYmd(today()))/864e5)+1);
+ const per=S.members.map(M=>{let v=0,t=1;const ss=S.sessions.filter(s=>s.mid===M.id&&s.date>=st&&s.date<=end);
+  if(ch.tpl==='dias7'){const days=new Set(ss.filter(s=>s.min>=10).map(s=>s.date));let n=0;for(let i=0;i<7;i++){if(days.has(ymd(addDays(parseYmd(st),i))))n++}v=n;t=7}
+  else if(ch.tpl==='livro_mes'){v=S.books.filter(b=>b.mid===M.id&&b.finished&&b.finished>=st&&b.finished<=end).length;t=1}
+  else if(ch.tpl==='generos'){v=new Set(ss.map(s=>book(s.bookId)&&book(s.bookId).genre).filter(Boolean)).size;t=T.target}
+  else if(ch.tpl==='notas'){v=S.notes.filter(n=>n.mid===M.id&&n.date>=st&&n.date<=end).length;t=T.target}
+  else if(ch.tpl==='ecra'){let ok=0;for(let i=0;i<7;i++){const d=ymd(addDays(parseYmd(st),i));const sc=screenMin(M.id,d),rd=minutesOn(M.id,d);if(sc!=null&&rd>=sc/5&&rd>0)ok++}v=ok;t=7}
+  else{v=T.unit==='h'?ss.reduce((a,s)=>a+s.min,0)/60:ss.reduce((a,s)=>a+pagesOf(s),0);t=T.target}
+  return{M,v,t,p:Math.min(1,v/t)}});
+ if(T.per){const avg=per.reduce((a,x)=>a+x.p,0)/(per.length||1);return{per,pct:avg,left,label:per.map(x=>`${first(x.M)} ${fmtN(x.v,1)}/${x.t}`).join(' · '),end}}
+ const tot=per.reduce((a,x)=>a+x.v,0);return{per,pct:Math.min(1,tot/T.target),left,label:`${fmtN(tot,1)} de ${T.target} ${T.unit}`,end}}
+function vDesafios(){let h='';
+ // ranking semanal justo
+ const rk=S.members.map(M=>({M,w:weekPct(M),st:streak(M.id)})).sort((a,b)=>b.w.pct-a.w.pct);
+ h+=`<div class="card dark"><div class="row between"><h2 style="font-size:19px">Ranking da semana</h2><span class="small muted">% da meta de cada um</span></div>
+  ${rk.map((x,i)=>`<div class="lb" style="border-color:rgba(255,255,255,.12)"><span class="pos">${i+1}</span>${avatar(x.M)}<div style="flex:1"><div class="row between"><b>${first(x.M)}</b><span class="small">${Math.round(x.w.pct*100)}%</span></div><div class="bar" style="margin-top:4px"><i style="width:${Math.min(100,x.w.pct*100)}%;background:${i===0?'var(--amber)':'#7FB5B2'}"></i></div><div class="small muted" style="margin-top:2px">${fmtDur(x.w.done)} de ${fmtDur(x.w.goal)}${x.st?' · 🔥 '+x.st+' dias':''}</div></div></div>`).join('')}
+  <p class="note" style="color:rgba(255,255,255,.65);margin:8px 0 0">O ranking compara cada pessoa com a sua própria meta: assim pais e filhas competem de forma justa.</p></div>`;
+ // desafios activos
+ h+=`<h3 style="font-size:18px;margin:16px 2px 8px">Desafios activos</h3>`;
+ if(!S.challenges.length)h+=`<div class="card empty">Nenhum desafio activo. Escolha um em baixo.</div>`;
+ for(const ch of S.challenges){const T=CH_TPL[ch.tpl];if(!T)continue;const P=chProgress(ch);
+  h+=`<div class="card"><div class="row between"><b style="font-size:16px">${T.ic} ${T.n}</b><span class="badge ${P.pct>=1?'b-teal':'b-amber'}">${P.pct>=1?'Concluído!':P.left+' dias'}</span></div><div class="small muted" style="margin:4px 0 8px">${T.d}</div>
+   ${T.per?P.per.map(x=>`<div class="row" style="margin:6px 0">${avatar(x.M,'sm')}<div style="flex:1"><div class="bar"><i style="width:${x.p*100}%;background:${x.M.color}"></i></div></div><span class="small" style="min-width:52px;text-align:right">${fmtN(x.v,1)}/${x.t}</span></div>`).join(''):`<div class="bar"><i style="width:${P.pct*100}%;background:var(--amber)"></i></div><div class="small" style="margin-top:4px">${P.label}</div>`}
+   <div class="row between" style="margin-top:8px"><span class="small muted">até ${parseYmd(P.end).toLocaleDateString('pt-PT',{day:'numeric',month:'short'})}</span><button class="link" style="color:var(--rose)" data-act="ch-del" data-id="${ch.id}">Remover</button></div></div>`}
+ h+=`<div class="card"><h3 style="font-size:16px;margin-bottom:6px">Lançar um desafio à família</h3>${Object.entries(CH_TPL).map(([k,T])=>`<div class="rp"><div><b>${T.ic} ${T.n}</b><div class="small muted">${T.d} (${T.days} dias)</div></div><button class="btn sm soft" data-act="ch-add" data-v="${k}">Lançar</button></div>`).join('')}</div>`;
+ // medalhas
+ const A=active(),st=stats(A.id);h+=`<div class="card"><div class="row between"><h3 style="font-size:16px">Medalhas de ${first(A)}</h3><span class="small muted">${BADGES.filter(b=>b[3](st)).length}/${BADGES.length}</span></div><div class="medals" style="margin-top:8px">${BADGES.map(b=>`<div class="medal ${b[3](st)?'':'off'}"><span class="m">${b[1]}</span>${b[2]}</div>`).join('')}</div></div>`;
+ return h}
+
+/* ---------- PROGRESSO ---------- */
+function vProgresso(){const pw=UI.progWho||S.active,M=mem(pw)||active(),R=UI.progRange;let h=whoChips(M.id,'prog-who',false);
+ const st=stats(M.id),wk=weekPct(M),yr=String(new Date().getFullYear());const doneY=S.books.filter(b=>b.mid===M.id&&b.finished&&b.finished.startsWith(yr)).length;
+ h+=`<div class="card dark"><div class="row" style="gap:14px">${ring(doneY/M.goalBooks,96,'#D99A2B',doneY+'/'+M.goalBooks,'livros '+yr)}<div><h2 style="font-size:20px">${esc(M.name)}</h2><div class="small muted">Meta: ${M.goalMin} min por dia · ${M.goalBooks} livros por ano</div><div class="small" style="margin-top:6px">Esta semana: <b>${fmtDur(wk.done)}</b> (${Math.round(wk.pct*100)}% da meta)</div></div></div>
+  <div class="grid3" style="margin-top:12px"><div class="stat"><b>${fmtDur(st.minutes)}</b><span>no total</span></div><div class="stat"><b>${fmtN(st.pages)}</b><span>páginas</span></div><div class="stat"><b>${streak(M.id)}</b><span>dias seguidos</span></div></div></div>`;
+ // gráfico leitura vs ecrã
+ const days=[];for(let i=R-1;i>=0;i--){const d=ymd(addDays(new Date(),-i));days.push({d,r:minutesOn(M.id,d),s:screenMin(M.id,d)})}
+ const mx=Math.max(M.goalMin,...days.map(x=>Math.max(x.r,(x.s||0)/5)));const hasScr=days.some(x=>x.s!=null);
+ h+=`<div class="card"><div class="row between"><h3 style="font-size:16px">Minutos de leitura</h3><div class="seg" style="margin:0">${[[7,'7 dias'],[30,'30 dias']].map(([v,n])=>`<button class="${R===v?'on':''}" data-act="prog-range" data-v="${v}">${n}</button>`).join('')}</div></div>
+  <div class="weekbars" style="gap:${R>7?2:6}px">${days.map(x=>`<div class="col">${R===7?`<span style="color:var(--ink);font-weight:600">${x.r}</span>`:''}<div style="display:flex;gap:2px;align-items:flex-end;width:100%;justify-content:center;height:100%"><i style="height:${Math.max(2,x.r/mx*95)}px"></i>${hasScr?`<i class="scr" style="height:${Math.max(0,(x.s||0)/5/mx*95)}px"></i>`:''}</div>${R===7?`<span>${DOW[parseYmd(x.d).getDay()]}</span>`:''}</div>`).join('')}</div>
+  <p class="note" style="margin:6px 0 0">${hasScr?'Verde: leitura. Rosa: tempo de ecrã dividido por 5 (a meta do desafio "Troca de ecrã" é a verde chegar à rosa).':'Meta diária: '+M.goalMin+' min.'}</p></div>`;
+ // tempo de ecrã
+ h+=vScreen(M);
+ // géneros
+ const gm={};S.sessions.filter(s=>s.mid===M.id).forEach(s=>{const B=book(s.bookId);if(B)gm[B.genre]=(gm[B.genre]||0)+s.min});const tot=Object.values(gm).reduce((a,b)=>a+b,0);
+ if(tot){let acc=0;const segs=Object.entries(gm).sort((a,b)=>b[1]-a[1]).map(([g,v])=>{const a0=acc/tot*360;acc+=v;return`${GENRES[g].c} ${a0}deg ${acc/tot*360}deg`});
+  h+=`<div class="card"><h3 style="font-size:16px;margin-bottom:8px">Equilíbrio de géneros</h3><div class="row" style="gap:16px;align-items:center"><div style="width:110px;height:110px;border-radius:50%;background:conic-gradient(${segs.join(',')});flex:0 0 auto;-webkit-mask:radial-gradient(circle,transparent 32px,#000 33px);mask:radial-gradient(circle,transparent 32px,#000 33px)"></div><div style="flex:1">${Object.entries(gm).sort((a,b)=>b[1]-a[1]).map(([g,v])=>`<div class="row between small" style="padding:2px 0"><span class="row"><i style="width:9px;height:9px;border-radius:3px;background:${GENRES[g].c};display:inline-block"></i>${esc(GENRES[g].n)}</span><b>${Math.round(v/tot*100)}%</b></div>`).join('')}</div></div></div>`}
+ // ganhos
+ const gained=Object.keys(gm);if(gained.length)h+=`<div class="card"><h3 style="font-size:16px;margin-bottom:6px">O que ${first(M)} está a ganhar</h3>${gained.map(g=>`<div class="insight"><span class="ic" style="background:${GENRES[g].c}22">📘</span><div class="small" style="font-size:13.5px"><b>${esc(GENRES[g].n)}:</b> ${esc(GENRES[g].gain)}</div></div>`).join('')}</div>`;
+ // sessões recentes
+ const recent=S.sessions.filter(s=>s.mid===M.id).sort((a,b)=>(b.date+b.start).localeCompare(a.date+a.start)).slice(0,8);
+ h+=`<div class="card"><h3 style="font-size:16px;margin-bottom:4px">Últimas sessões</h3>${recent.length?recent.map(s=>{const B=book(s.bookId);return`<div class="rp"><div><b class="small" style="font-size:13.5px">${B?esc(B.title):'Livro'}</b><div class="small muted">${parseYmd(s.date).toLocaleDateString('pt-PT',{weekday:'short',day:'numeric',month:'short'})}, ${s.start}${s.to!=null&&B?' · até '+(B.unit==='pct'?Math.round(s.to)+'%':'p. '+s.to):''}</div></div><div class="row"><b>${fmtDur(s.min)}</b><button class="x" data-act="sess-del" data-id="${s.id}">×</button></div></div>`}).join(''):'<div class="empty">Sem sessões ainda.</div>'}</div>`;
+ return h}
+function vScreen(M){const isMe=M.id===S.active;let h=`<div class="card"><h3 style="font-size:16px">📵 Tempo de ecrã</h3>`;
+ if(isMe&&hasBridge()){let ok=false;try{ok=AndroidBridge.hasUsageAccess()}catch(e){}
+  if(!ok)return h+`<p class="small" style="margin:6px 0 10px">A app pode medir quanto tempo passa no telemóvel e comparar com a leitura. Só precisa de autorizar uma vez.</p><button class="btn" data-act="usage-perm">Autorizar acesso ao uso</button><p class="note">Na lista que abrir, escolha "Clube de Leitura" e active "Permitir acesso".</p></div>`;
+  const d=screenData()||[];const td=d.find(x=>x.date===today()),yd=d.find(x=>x.date===ymd(addDays(new Date(),-1)));const avg7=d.slice(-7).reduce((a,x)=>a+x.min,0)/Math.max(1,Math.min(7,d.length));
+  h+=`<div class="grid3" style="margin-top:8px"><div class="stat"><b>${td?fmtDur(td.min):'–'}</b><span>hoje</span></div><div class="stat"><b>${yd?fmtDur(yd.min):'–'}</b><span>ontem</span></div><div class="stat"><b>${fmtDur(avg7)}</b><span>média 7 dias</span></div></div>`;
+  const apps=(td&&td.apps)||[];if(apps.length)h+=`<div style="margin-top:10px"><div class="small muted">Onde foi o tempo hoje</div>${apps.slice(0,5).map(a=>`<div class="rp"><span>${esc(a.n)}</span><b>${fmtDur(a.min)}</b></div>`).join('')}</div>`;
+  const rd=minutesOn(M.id,today());if(td)h+=`<div class="tip" style="margin:10px 0 0">Hoje: ${fmtDur(rd)} de leitura para ${fmtDur(td.min)} de ecrã (1 para ${rd?Math.round(td.min/rd):'∞'}).</div>`;return h+`</div>`}
+ const v=(S.screen[M.id]||{})[today()];
+ h+=`<p class="small muted" style="margin:6px 0 10px">${hasBridge()?'O tempo de ecrã automático só funciona para a pessoa que está a usar este telemóvel.':'Na app Android o tempo de ecrã é lido automaticamente. Aqui pode escrevê-lo: veja em Definições › Bem-estar digital do telemóvel.'}</p>
+  <div class="fgrid"><label class="field">Ecrã hoje (min)<input type="number" inputmode="numeric" value="${v??''}" data-act="scr-in" data-mid="${M.id}" data-d="${today()}"></label><label class="field">Ontem (min)<input type="number" inputmode="numeric" value="${(S.screen[M.id]||{})[ymd(addDays(new Date(),-1))]??''}" data-act="scr-in" data-mid="${M.id}" data-d="${ymd(addDays(new Date(),-1))}"></label></div></div>`;return h}
+
+/* ---------- MAIS ---------- */
+function vMais(){const A=active();let h='';
+ h+=`<div class="card"><h3 style="font-size:17px;margin-bottom:6px">💡 Sugestões para ${first(A)}</h3><div class="chips">${[['para','Para mim'],['todos','Todas']].map(([k,n])=>`<button class="chip ${(UI.sg||'para')===k?'on':''}" data-act="sg" data-v="${k}">${n}</button>`).join('')}</div>`;
+ const kind=A.kind;const list=SUGG.filter(s=>(UI.sg||'para')==='todos'||s[3]===kind||(kind==='adulto'&&s[3]==='jovem'&&['lusofona','devocional','financas'].includes(s[2]))).filter(s=>!S.books.some(b=>b.mid===A.id&&b.title.toLowerCase()===s[0].toLowerCase()));
+ h+=list.slice(0,12).map(s=>`<div class="book">${coverHTML({title:s[0],genre:s[2]})}<div style="flex:1;min-width:0"><b>${esc(s[0])}</b><div class="small muted">${esc(s[1])} · ${esc(GENRES[s[2]].n)}</div><div class="small" style="margin-top:3px">✨ ${esc(s[4])}</div></div><button class="btn sm soft" data-act="sg-add" data-t="${esc(s[0])}">+ Quero ler</button></div>`).join('')||'<div class="empty">Já tem todas as sugestões na estante.</div>';
+ h+=`</div>`;
+ h+=`<button class="card row between" style="width:100%;text-align:left" data-act="notebook"><div><b>📓 Como organizar os cadernos de anotações</b><div class="small muted">Códigos, método Cornell, ficha final e livros digitais</div></div><span class="muted">›</span></button>`;
+ // horários
+ h+=`<div class="card"><h3 style="font-size:17px">⏰ Horários de leitura</h3><p class="small muted" style="margin:4px 0 8px">${hasBridge()&&AndroidBridge.setAlarm?'Cria um alarme diário no relógio do telemóvel.':'Na app Android, cria alarmes no relógio do telemóvel.'}</p>
+  ${S.members.map(M=>(M.slots||[]).map((s,i)=>`<div class="rp"><span class="row">${avatar(M,'sm')} <b>${first(M)}</b></span><span class="row"><input type="time" value="${s.t}" data-act="slot-t" data-mid="${M.id}" data-i="${i}" style="border:1px solid var(--line);border-radius:8px;padding:4px 6px;background:#fff">${hasBridge()&&AndroidBridge.setAlarm?`<button class="btn sm soft" data-act="slot-alarm" data-mid="${M.id}" data-i="${i}">Alarme</button>`:''}</span></div>`).join('')).join('')}
+  <p class="note" style="margin:8px 0 0">Dica: ler sempre à mesma hora e no mesmo lugar torna o hábito automático. Deixe o telemóvel noutra divisão durante a leitura.</p></div>`;
+ // encontro do clube
+ h+=`<div class="card qcard"><h3 style="font-size:17px">👨‍👩‍👧 Encontro semanal do clube</h3><p class="small" style="margin:6px 0">Sugestão: domingo à tarde, 30 minutos. Cada pessoa conta em 3 minutos o que leu, lê uma frase de que gostou e responde a uma pergunta.</p><div class="box" style="background:#fff">${[...new Set(S.books.filter(b=>b.status==='lendo').map(b=>b.genre))].flatMap(g=>GENRES[g].q).slice(0,4).map(q=>'• '+esc(q)).join('<br>')||'• Que livro recomendarias a alguém da família e porquê?'}</div></div>`;
+ // partilhar
+ h+=`<div class="card"><h3 style="font-size:17px;margin-bottom:6px">📤 Partilhar e exportar</h3>
+  <div class="rp"><div><b>Relatório do clube</b><div class="small muted">Ranking, minutos, livros e medalhas</div></div><button class="btn sm" data-act="export" data-k="report">Gerar</button></div>
+  <div class="rp"><div><b>Enviar o meu progresso à família</b><div class="small muted">Ficheiro para quem usa a app noutro telemóvel</div></div><button class="btn sm soft" data-act="sync-out">Enviar</button></div>
+  <div class="rp"><div><b>Juntar progresso recebido</b><div class="small muted">Abra o ficheiro que a família lhe enviou</div></div><label class="btn sm soft">Juntar<input type="file" accept=".json,application/json" data-act="sync-in" hidden></label></div>
+  <div class="rp"><div><b>Cópia de segurança</b><div class="small muted">Todos os dados num ficheiro</div></div><div class="row" style="gap:4px"><button class="btn sm ghost" data-act="backup">Guardar</button><label class="btn sm ghost">Recuperar<input type="file" accept=".json,application/json" data-act="restore" hidden></label></div></div></div>`;
+ return h}
+
+/* ============ EXPORTAÇÃO E PARTILHA ============ */
+function sheetFoot(){return `<div class="foot">Clube de Leitura da Família · ${new Date().toLocaleDateString('pt-PT',{day:'numeric',month:'long',year:'numeric'})}</div>`}
+function exReport(){let h=`<h1>Relatório do Clube de Leitura</h1><div class="sh-sub">Semana de ${weekStart().toLocaleDateString('pt-PT',{day:'numeric',month:'long'})}</div>`;
+ h+='<table><tr><th>Membro</th><th>Esta semana</th><th>% da meta</th><th>Dias seguidos</th><th>Livros lidos</th><th>Páginas</th><th>Anotações</th><th>Medalhas</th></tr>';
+ S.members.map(M=>({M,w:weekPct(M),st:stats(M.id)})).sort((a,b)=>b.w.pct-a.w.pct).forEach((x,i)=>{h+=`<tr><td><b>${i===0?'🏆 ':''}${esc(x.M.name)}</b></td><td>${fmtDur(x.w.done)}</td><td>${Math.round(x.w.pct*100)}%</td><td>${streak(x.M.id)}</td><td>${x.st.done}</td><td>${fmtN(x.st.pages)}</td><td>${x.st.notes}</td><td>${BADGES.filter(b=>b[3](x.st)).map(b=>b[1]).join(' ')}</td></tr>`});h+='</table>';
+ h+='<div class="sh-cat">A ler agora</div><table>'+S.books.filter(b=>b.status==='lendo').map(B=>`<tr><td><b>${esc(B.title)}</b><br><span style="color:#6C7080">${esc(B.author||'')}</span></td><td>${esc(mem(B.mid)?mem(B.mid).name:'')}</td><td>${FORMATS[B.format][1]}</td><td>${posLabel(B)}</td></tr>`).join('')+'</table>';
+ if(S.challenges.length)h+='<div class="sh-cat">Desafios</div><table>'+S.challenges.filter(c=>CH_TPL[c.tpl]).map(c=>{const P=chProgress(c);return`<tr><td>${CH_TPL[c.tpl].ic} <b>${CH_TPL[c.tpl].n}</b></td><td>${P.label}</td><td>${Math.round(P.pct*100)}%</td></tr>`}).join('')+'</table>';
+ return h+sheetFoot()}
+function exFicha(id){const B=book(id),G=GENRES[B.genre],M=mem(B.mid);const ns=S.notes.filter(n=>n.bookId===id);
+ let h=`<h1>${esc(B.title)}</h1><div class="sh-sub">${esc(B.author||'')} · ${esc(G.n)} · lido por ${esc(M?M.name:'')} · ${FORMATS[B.format][1]}</div>`;
+ if(B.why)h+=`<p><b>Objectivo:</b> ${esc(B.why)}</p>`;
+ for(const[k,t]of Object.entries(NTYPES)){const l=ns.filter(n=>n.type===k);if(!l.length)continue;h+=`<div class="sh-cat">${t[0]}s</div><table>${l.map(n=>`<tr><td style="width:70px;color:#6C7080">${n.page?(B.unit==='pct'?n.page+'%':'p. '+n.page):''}</td><td>${esc(n.text)}</td></tr>`).join('')}</table>`}
+ h+=`<div class="sh-cat">Ficha final</div><table><tr><td style="width:40%">O livro em 5 linhas</td><td style="height:60px"></td></tr><tr><td>3 ideias que vou guardar</td><td style="height:50px"></td></tr><tr><td>Uma decisão para pôr em prática</td><td style="height:30px"></td></tr><tr><td>Nota</td><td>${B.rating?'★'.repeat(B.rating):'☆☆☆☆☆'}</td></tr></table>`;
+ return h+sheetFoot()}
+function exCert(id){const B=book(id),M=mem(B.mid);return `<div class="in"><div style="font-size:44px">🏅</div><div style="font-size:13px;letter-spacing:.2em;color:#D99A2B;font-weight:700;margin-top:6px">CERTIFICADO DE LEITURA</div><div style="font-family:Fraunces;font-size:20px;margin-top:18px;color:#6C7080">O Clube de Leitura da Família certifica que</div><div style="font-family:Fraunces;font-size:40px;font-weight:700;color:#1E2A44;margin:8px 0">${esc(M?M.name:'')}</div><div style="font-size:16px;color:#6C7080">leu do princípio ao fim</div><div style="font-family:Fraunces;font-size:26px;font-style:italic;color:#1E2A44;margin:8px 0">${esc(B.title)}</div><div style="font-size:14px;color:#6C7080">${esc(B.author||'')}</div><div style="margin-top:22px;font-size:13px;color:#6C7080">${(B.finished?parseYmd(B.finished):new Date()).toLocaleDateString('pt-PT',{day:'numeric',month:'long',year:'numeric'})}</div></div>`}
+let CUR=null;
+async function doExport(k,id){if(typeof html2canvas==='undefined'){toast('A ferramenta de exportação ainda não carregou');return}
+ const root=$('#exportRoot');root.innerHTML=k==='cert'?`<div class="cert">${exCert(id)}</div>`:`<div class="sheet">${k==='report'?exReport():exFicha(id)}</div>`;
+ const md=document.createElement('div');md.className='modal';md.style.zIndex=60;md.innerHTML=`<div class="sheetbox"><div class="row between"><h2 style="font-size:19px">Pré-visualização</h2><button class="x" data-e="close">×</button></div><div class="preview"><div class="empty">A preparar…</div></div><div class="row" style="gap:8px"><button class="btn rose" style="flex:1" data-e="pdf" disabled>Guardar PDF</button><button class="btn" style="flex:1" data-e="png" disabled>Guardar imagem</button></div></div>`;
+ document.body.appendChild(md);md.addEventListener('click',e=>{const b=e.target.closest('[data-e]');if(!b)return;if(b.dataset.e==='close'){md.remove();CUR=null}else if(b.dataset.e==='pdf')savePdf();else savePng()});
+ try{await document.fonts.ready}catch(e){}
+ try{const canvas=await html2canvas(root.firstElementChild,{scale:2,backgroundColor:'#FFFDF9',logging:false});CUR={canvas,name:({report:'relatorio-clube',ficha:'ficha-de-leitura',cert:'certificado'})[k]+'-'+today(),land:k==='cert'};
+  md.querySelector('.preview').innerHTML=`<img src="${canvas.toDataURL('image/png')}">`;md.querySelectorAll('[data-e=pdf],[data-e=png]').forEach(b=>b.disabled=false)}catch(e){md.querySelector('.preview').innerHTML='<div class="empty">Não foi possível gerar.</div>'}}
+let DL;async function getDownloads(){if(DL!==undefined)return DL;try{DL=window.claude&&claude.use?await claude.use('downloads'):null}catch(e){DL=null}return DL}
+function blobB64(b){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(b)})}
+async function saveFile(name,blob){if(window.AndroidBridge&&AndroidBridge.save){try{const ext=name.split('.').pop();AndroidBridge.save(name,await blobB64(blob),{pdf:'application/pdf',png:'image/png',json:'application/json'}[ext]||'application/octet-stream')}catch(e){toast('Não foi possível guardar')}return}
+ const dl=await getDownloads();if(dl){try{await dl.save({filename:name,data:blob});toast('Ficheiro pronto');return}catch(e){if(e&&(e.code==='declined'||e.code==='rate_limited'))return}}
+ const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
+async function savePng(){if(CUR)saveFile(CUR.name+'.png',await new Promise(r=>CUR.canvas.toBlob(r,'image/png')))}
+async function savePdf(){if(!CUR)return;const{jsPDF}=window.jspdf||{};if(!jsPDF){toast('A ferramenta de PDF ainda não carregou');return}const c=CUR.canvas;
+ if(CUR.land){const pdf=new jsPDF({unit:'mm',format:'a4',orientation:'landscape'});pdf.addImage(c.toDataURL('image/jpeg',.95),'JPEG',0,0,297,297*c.height/c.width);saveFile(CUR.name+'.pdf',pdf.output('blob'));return}
+ const pdf=new jsPDF({unit:'mm',format:'a4'});const W=210,H=297,ph=Math.floor(c.width*H/W);let y=0,f=true;
+ while(y<c.height){const h=Math.min(ph,c.height-y);const pc=document.createElement('canvas');pc.width=c.width;pc.height=h;const x=pc.getContext('2d');x.fillStyle='#FFFDF9';x.fillRect(0,0,pc.width,h);x.drawImage(c,0,y,c.width,h,0,0,c.width,h);if(!f)pdf.addPage();pdf.addImage(pc.toDataURL('image/jpeg',.92),'JPEG',0,0,W,h*W/c.width);f=false;y+=h}
+ saveFile(CUR.name+'.pdf',pdf.output('blob'))}
+function backup(){return{app:'clube-leitura',v:1,date:new Date().toISOString(),members:S.members,active:S.active,books:S.books,sessions:S.sessions,notes:S.notes,challenges:S.challenges,screen:S.screen,settings:S.settings}}
+function mergeById(a,b){const m=new Map(a.map(x=>[x.id,x]));for(const x of b||[])m.set(x.id,Object.assign(m.get(x.id)||{},x));return[...m.values()]}
+function readJSON(file,cb){const r=new FileReader();r.onload=()=>{try{cb(JSON.parse(r.result))}catch(e){toast('Ficheiro inválido')}};r.readAsText(file)}
+function restore(d){if(d.app!=='clube-leitura'){toast('Este ficheiro não é do Clube de Leitura');return}
+ if(d.kind==='sync'){S.members=mergeById(S.members,d.members);S.books=mergeById(S.books,d.books);S.sessions=mergeById(S.sessions,d.sessions);S.notes=mergeById(S.notes,d.notes);if(d.screen)for(const k in d.screen)S.screen[k]=Object.assign(S.screen[k]||{},d.screen[k]);if(!S.active)S.active=S.members[0].id;saveAll();render();toast('Progresso de '+(d.members[0]?d.members[0].name.split(' ')[0]:'família')+' juntado');return}
+ Object.assign(S,{members:d.members||[],active:d.active,books:d.books||[],sessions:d.sessions||[],notes:d.notes||[],challenges:d.challenges||[],screen:d.screen||{},settings:d.settings||{}});saveAll();const w=$('.welcome');if(w)w.remove();UI.ready=true;render();toast('Dados recuperados')}
+function syncOut(){const A=active();const scr={};const d=screenData();if(d){scr[A.id]={};d.forEach(x=>scr[A.id][x.date]=x.min)}else if(S.screen[A.id])scr[A.id]=S.screen[A.id];
+ const data={app:'clube-leitura',kind:'sync',v:1,from:A.name,date:new Date().toISOString(),members:[A],books:S.books.filter(b=>b.mid===A.id),sessions:S.sessions.filter(s=>s.mid===A.id),notes:S.notes.filter(n=>n.mid===A.id),screen:scr};
+ saveFile('progresso-'+(A.name.split(' ')[0]||'leitor').toLowerCase()+'-'+today()+'.json',new Blob([JSON.stringify(data)],{type:'application/json'}))}
+
+/* ============ ACÇÕES ============ */
+function setAlarm(h,m,l,days){if(window.AndroidBridge&&AndroidBridge.setAlarm){try{AndroidBridge.setAlarm(+h,+m,String(l),String(days||''));return true}catch(e){}}toast('Disponível na app Android');return false}
+function openInfo(t,html){const md=document.createElement('div');md.className='modal';md.innerHTML=`<div class="sheetbox"><div class="row between"><h2 style="font-size:19px">${t}</h2><button class="x" data-f="close">×</button></div><div class="scroll rec">${html}</div></div>`;document.body.appendChild(md);md.addEventListener('click',e=>{if(e.target===md||e.target.closest('[data-f=close]'))md.remove()})}
+document.addEventListener('click',e=>{
+ const tb=e.target.closest('#tabs button');if(tb){UI.tab=tb.dataset.tab;render();window.scrollTo(0,0);return}
+ const b=e.target.closest('[data-act]');if(!b||b.tagName==='INPUT'||b.tagName==='SELECT')return;const a=b.dataset.act,A=active();
+ switch(a){
+  case 'people':openPeople();break;
+  case 'go':UI.tab=b.dataset.v;render();window.scrollTo(0,0);break;
+  case 'start':startTimer(b.dataset.id);break;
+  case 'stop':{const T=S.timers[A.id];if(!T)break;const min=Math.max(1,Math.round((Date.now()-T.start)/60000));const st=new Date(T.start);stopDialog(A.id,min,pad(st.getHours())+':'+pad(st.getMinutes()),ymd(st),T.bookId);break}
+  case 'cancel-timer':delete S.timers[A.id];save('core');render();break;
+  case 'log-manual':{const B=S.books.find(x=>x.mid===A.id&&x.status==='lendo');if(!B){toast('Junte primeiro um livro');break}stopDialog(A.id,20,nowHM(),today(),B.id);break}
+  case 'book-new':openBookEdit(null);break;
+  case 'book':openBook(b.dataset.id);break;
+  case 'shelf-who':UI.shelfWho=b.dataset.v;render();break;
+  case 'shelf-st':UI.shelfStatus=b.dataset.v;render();break;
+  case 'ch-add':S.challenges.unshift({id:uid(),tpl:b.dataset.v,start:today()});save('core');render();toast('Desafio lançado à família!');break;
+  case 'ch-del':S.challenges=S.challenges.filter(c=>c.id!==b.dataset.id);save('core');render();break;
+  case 'prog-who':UI.progWho=b.dataset.v;render();break;
+  case 'prog-range':UI.progRange=+b.dataset.v;render();break;
+  case 'sess-del':{const s=S.sessions.find(x=>x.id===b.dataset.id);if(b.dataset.ok){S.sessions=S.sessions.filter(x=>x.id!==b.dataset.id);save('sessions');render()}else{b.dataset.ok=1;b.textContent='?';b.style.color='var(--rose)'}break}
+  case 'usage-perm':try{AndroidBridge.openUsageSettings()}catch(e){}break;
+  case 'sg':UI.sg=b.dataset.v;render();break;
+  case 'sg-add':{const s=SUGG.find(x=>x[0]===b.dataset.t);openBookEdit(null,{title:s[0],author:s[1],genre:s[2],format:'fisico',status:'quero',mid:A.id,why:s[4]});break}
+  case 'notebook':openInfo('Cadernos de anotações',NOTEBOOK);break;
+  case 'slot-alarm':{const M=mem(b.dataset.mid),s=M.slots[+b.dataset.i];if(setAlarm(+s.t.split(':')[0],+s.t.split(':')[1],'Hora de ler, '+M.name.split(' ')[0],s.d.join(',')))toast('Alarme criado');break}
+  case 'export':doExport(b.dataset.k);break;
+  case 'sync-out':syncOut();break;
+  case 'backup':saveFile('clube-leitura-copia-'+today()+'.json',new Blob([JSON.stringify(backup())],{type:'application/json'}));break;
+ }});
+document.addEventListener('change',e=>{const t=e.target,a=t.dataset.act;
+ if(a==='restore'||a==='sync-in'){if(t.files&&t.files[0])readJSON(t.files[0],restore);t.value=''}
+ else if(a==='scr-in'){const v=parseInt(t.value);S.screen[t.dataset.mid]=S.screen[t.dataset.mid]||{};if(v>=0)S.screen[t.dataset.mid][t.dataset.d]=v;else delete S.screen[t.dataset.mid][t.dataset.d];save('screen');render()}
+ else if(a==='slot-t'){const M=mem(t.dataset.mid);if(t.value){M.slots[+t.dataset.i].t=t.value;save('core')}}});
+setInterval(()=>{const el=$('#tmr');const A=UI.ready&&active();if(el&&A&&S.timers[A.id]){const m=Math.floor((Date.now()-S.timers[A.id].start)/60000);el.textContent=pad(Math.floor(m/60))+':'+pad(m%60)}},15000);
+(function start(){loadLocal();if(S.members.length){UI.ready=true;S.members.forEach(M=>newBadges(M.id));render()}initCloud();if(!S.members.length)setTimeout(()=>{if(!UI.ready)onReady()},11000)})();
+
+</script>
+</body>
+</html>

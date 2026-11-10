@@ -3,6 +3,7 @@ name: Construir APK e publicar
 on:
   push:
     branches: [ main ]
+    paths: [ 'web/**', 'android/**', '.github/workflows/android.yml' ]
   workflow_dispatch:
 
 permissions:
@@ -11,7 +12,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: build
+  group: build-ementa
   cancel-in-progress: true
 
 jobs:
