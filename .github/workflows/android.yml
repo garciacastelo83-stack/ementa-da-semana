@@ -1,0 +1,85 @@
+name: Construir APK e publicar
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: build
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Copiar a app web para dentro do APK
+        run: |
+          mkdir -p android/app/src/main/assets
+          cp -r web/* android/app/src/main/assets/
+
+      - name: Preparar a chave de assinatura
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > android/app/release.keystore
+          else
+            echo "Sem chave guardada: a criar uma temporaria"
+            keytool -genkeypair -v -keystore android/app/release.keystore -alias ementa -keyalg RSA -keysize 2048 -validity 10000 -storepass temporaria -keypass temporaria -dname "CN=Ementa da Semana"
+          fi
+
+      - name: Construir APK
+        working-directory: android
+        env:
+          KEYSTORE_FILE: release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'temporaria' }}
+          KEY_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'temporaria' }}
+          KEY_ALIAS: ementa
+        run: gradle assembleRelease --no-daemon
+
+      - name: Dar nome ao ficheiro
+        run: cp android/app/build/outputs/apk/release/app-release.apk "EmentaDaSemana-1.${{ github.run_number }}.apk"
+
+      - name: Publicar na pagina de Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.${{ github.run_number }}
+          name: Ementa da Semana 1.${{ github.run_number }}
+          make_latest: true
+          body: |
+            Para instalar no Android: descarregue o ficheiro .apk abaixo, abra-o e aceite "Instalar".
+            Se o telemovel pedir, autorize a instalacao de aplicacoes desta origem.
+          files: EmentaDaSemana-1.${{ github.run_number }}.apk
+
+  pages:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - uses: actions/deploy-pages@v4

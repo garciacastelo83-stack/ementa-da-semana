@@ -1,0 +1,32 @@
+{
+ "name": "Ementa da Semana",
+ "short_name": "Ementa",
+ "description": "Ementa semanal, compras, nutrientes e registo de refeições da família",
+ "start_url": "./index.html",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "portrait",
+ "background_color": "#F5F0E6",
+ "theme_color": "#2F5D50",
+ "lang": "pt",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
