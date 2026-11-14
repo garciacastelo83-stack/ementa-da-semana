@@ -22,7 +22,7 @@ header .sub{font-size:13px;opacity:.85;margin-top:2px}
 .modo button.on{background:#fff;color:var(--azul);font-weight:700}
 main{padding:14px 14px 96px;max-width:760px;margin:0 auto}
 nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--linha);display:flex;z-index:6;padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;border:0;background:none;padding:9px 2px 8px;font-size:11.5px;color:var(--suave);display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button{flex:1;border:0;background:none;padding:9px 1px 8px;font-size:10.5px;color:var(--suave);display:flex;flex-direction:column;align-items:center;gap:2px}
 nav button svg{width:22px;height:22px}
 nav button.on{color:var(--azul);font-weight:700}
 h2{font-size:15px;text-transform:uppercase;letter-spacing:.05em;color:var(--azul2);margin:22px 0 8px}
@@ -78,6 +78,13 @@ label{display:block;font-weight:700;font-size:14px;margin:10px 0 4px;color:var(-
 .mic.on{background:#b23b3b}
 .vazio{color:var(--suave);text-align:center;padding:18px}
 .fecho{font-style:italic}
+#folha{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20;display:none;align-items:flex-end;justify-content:center}
+.folha-c{background:#fff;width:100%;max-width:760px;max-height:78vh;overflow:auto;border-radius:18px 18px 0 0;padding:14px 16px 28px}
+.folha-t{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:18px}
+.vers{margin:0 0 6px;font-size:16.5px;line-height:1.5}
+.vers sup{color:var(--azul2);font-weight:700;margin-right:2px}
+.ref[data-ref]{cursor:pointer;text-decoration:underline dotted}
+.fonte{font-size:12.5px;color:var(--suave);margin-top:6px}
 details summary{cursor:pointer;font-weight:700;color:var(--azul2)}
 </style>
 </head>
@@ -93,6 +100,7 @@ details summary{cursor:pointer;font-weight:700;color:var(--azul2)}
 </header>
 <main id="app"></main>
 <nav id="nav"></nav>
+<div id="folha"></div>
 
 <script>
 /* ============ DADOS BASE ============ */
@@ -196,6 +204,191 @@ const BASE = {
   ]
 };
 
+/* ============ CONCEITOS DOS LIVROS ============ */
+const CONCEITOS = {
+  mapas: [
+    {autor:"R. C. Sproul", obra:"Posso conhecer a vontade de Deus?", linha:"Reformado", itens:[
+      {k:"Vontade decretiva", d:"O que Deus decreta soberanamente e acontece sempre. Ninguém a impede. Deus cumpre-a usando meios, incluindo as nossas escolhas reais.", t:"At 2.23; Ef 1.11"},
+      {k:"Vontade preceptiva", d:"A lei e os mandamentos. Pode ser desobedecida, e é, todos os dias. É a parte de que vamos prestar contas.", t:"Êx 20.1-17; 1Ts 4.3"},
+      {k:"Vontade de disposição", d:"O que agrada ou entristece a Deus. Ele pode permitir o mal sem ter prazer nele.", t:"2Pe 3.9; Ez 18.23"},
+      {k:"Secreta e revelada", d:"O secreto pertence ao Senhor; o revelado é para nós e para os nossos filhos. Espreitar o secreto é presunção; obedecer ao revelado é dever.", t:"Dt 29.29"}],
+     notas:["Duas palavras gregas: **boulē** (plano deliberado de Deus, At 2.23) e **thelēma** (desejo, intenção ou ordem; o sentido depende do contexto).","Analogia do juiz: um juiz pode condenar um réu por justiça e, ao mesmo tempo, entristecer-se por ele. Bom gancho para o evangelista juiz.","Perigo de um lado: reduzir tudo à vontade soberana e cair no fatalismo (\"o que será, será\"). Perigo do outro: querer espreitar o futuro e esquecer a obediência.","Lutero: devemos guiar-nos pela Palavra, não pela vontade inescrutável de Deus."]},
+    {autor:"Leslie D. Weatherhead", obra:"As três vontades de Deus", linha:"Metodista (mensagens pregadas em Londres durante os bombardeamentos da 2.ª Guerra)", itens:[
+      {k:"Vontade intencional", d:"O plano ideal de Deus, a sua bondade de Pai. Deus queria que Jesus fizesse discípulos, não que o matassem.", t:"1Tm 2.4; Jr 29.11"},
+      {k:"Vontade circunstancial", d:"O que Deus quer dentro das circunstâncias criadas pelo mal e pela liberdade humana. Naquelas circunstâncias, Jesus aceitou a cruz.", t:"Mt 26.39"},
+      {k:"Vontade última", d:"O propósito final de Deus, que se cumpre apesar do mal e até através dele. Na cruz, Deus realizou a redenção.", t:"Gn 50.20; Rm 8.28"}],
+     notas:["Uso principal: o **sofrimento**. Não chamar \"vontade de Deus\" a toda a tragédia. A morte de um filho num bombardeamento não é a vontade intencional de Deus.","Cuidado doutrinário: Weatherhead diz que a vontade intencional pode ficar \"temporariamente paralisada\" pelo homem. A linha reformada (Sproul, Hernandes) prefere dizer que o decreto nunca falha e que Deus permite sem aprovar. Ambas concordam que Deus não tem prazer no mal e que o seu propósito final vence.","Placas para discernir: comunhão com Deus, consciência, bom senso, conselho de um amigo sábio, bons livros e a Bíblia, a voz da igreja, e a \"luz interior\" com cautela (esvaziar a mente e chamar voz de Deus a tudo o que surge é temerário).","Deus mostra o caminho **na encruzilhada**, não anos antes. Erros feitos de boa fé não nos fazem perder o caminho providencial.","Duas perguntas: quero a vontade dele ou que ele aprove a minha? Terei coragem de a fazer quando a souber?"]},
+    {autor:"Hernandes Dias Lopes", obra:"A vontade de Deus e a oração", linha:"Presbiteriano", itens:[
+      {k:"Decreto e meios", d:"Deus decretou os fins e também os meios. A oração é um dos meios pelos quais Ele cumpre os seus propósitos.", t:"Ef 1.11; Tg 5.16"},
+      {k:"Daniel 9", d:"Daniel leu em Jeremias que o exílio duraria 70 anos. Em vez de cruzar os braços, orou e jejuou pelo cumprimento da promessa.", t:"Dn 9.2-3; Jr 29.10"},
+      {k:"Soberania e responsabilidade", d:"A soberania de Deus não anula a responsabilidade humana nem desculpa a preguiça espiritual.", t:"Fp 2.12-13"}],
+     notas:["A oração não muda os decretos nem convence Deus a mudar de ideia. Mas é o caminho que Deus escolheu para agir na história.","Frase para o painel: quem conhece a vontade de Deus na Palavra ora por ela, como Daniel."]},
+    {autor:"Paul Washer", obra:"A vontade de Deus para os escravos (sermão)", linha:"Batista reformado", itens:[
+      {k:"Identidade primeiro", d:"Paulo apresenta-se como doulos, escravo de Cristo. Fomos comprados por preço; a vida inteira é moldada pela vontade de quem nos comprou.", t:"Rm 1.1; 1Co 6.19-20; Rm 6.16"},
+      {k:"Chamados a ser santos", d:"Discernir a vontade de Deus começa aqui: separados para Ele. Descobrir o que Deus odeia e fugir disso; descobrir o que Ele ama e correr para lá.", t:"Rm 1.7; Rm 8.29"},
+      {k:"Vontade por papel", d:"Marido: amar e dar a vida pela esposa. Esposa: honrar e apoiar o marido. Pais: educar no Senhor. Filhos: honrar os pais. Empregado: trabalhar de coração, como para Cristo. Patrão: justiça e equidade. Membro da igreja: servir com os dons.", t:"Ef 5.22-33; Ef 6.1-9; 1Pe 4.10"}],
+     notas:["Um conhecimento vago do chamado leva a uma obediência vaga.","Para quem procura cônjuge: procure um servo ou uma serva do Altíssimo, não só alguém popular ou bonito.","Pais: Deus não nos chamou só para dar coisas aos filhos, mas para os formar em justiça."]}
+  ],
+  vocacao: {perguntas:["O que eu **posso** fazer? (capacidades)","O que eu **gosto** de fazer? (motivação)","O que eu **gostaria** de ser capaz de fazer? (aptidão a desenvolver)","O que eu **devo** fazer? (dever diante de Deus)"],
+    notas:["**Habilidades motivadas**: fazer bem e com gosto. Quem gasta a vida numa habilidade sem motivação vive frustrado.","**Chamada externa**: quando outros nos pedem um serviço (igreja, empresa, vaga). Ouvir a comunidade, mas a necessidade sozinha não é chamada.","**Consequências previsíveis**: não escolher só pelo salário ou pelo lugar.","Moisés e Jeremias disseram que não eram capazes; Deus conhecia os seus dons e deu-lhes ajuda (Arão).","Rm 12.3: avaliar-se com bom senso, sem se achar mais do que é."],
+    historia:"Sproul ficou seis meses desempregado e recebeu cinco ofertas em cinco cidades. Cinco amigos garantiram, cada um, que Deus queria uma delas. Ele brincou que não tinha o dom de estar em cinco sítios ao mesmo tempo e acabou por aceitar uma sexta proposta, que juntava os seus dons à necessidade real."},
+  equivalencias: [["Decretiva / secreta","Última","O que Deus vai cumprir de certeza"],["Preceptiva / revelada","Intencional (parte moral)","O que Deus manda e eu devo obedecer"],["De disposição","Intencional (o seu desejo)","O que agrada ou entristece a Deus"],["Providência que permite","Circunstancial","Como Deus age no meio do mal e das escolhas humanas"]],
+  glossario: [["Decreto","Plano eterno de Deus que se cumpre sempre."],["Preceito","Mandamento revelado; pode ser desobedecido."],["Providência","Governo de Deus sobre todas as coisas, usando meios."],["Vocação geral","Chamada de todos à salvação e à santidade."],["Vocação particular","O lugar concreto: profissão, estado civil, ministério."],["Chamada externa","Convite de outros para um serviço (igreja, empresa)."],["Doulos","Escravo ou servo, em grego. Paulo usa a palavra para si mesmo."],["Boulē e thelēma","Palavras gregas para vontade: plano deliberado / desejo ou ordem."],["Deus oculto e revelado","O que Deus guardou para si e o que nos deu a conhecer."],["Fatalismo","Achar que tudo está fixado e as escolhas não contam. Não é bíblico."],["Antinomianismo","Desprezar a lei de Deus em nome da graça (Sproul)."]]
+};
+const RESUMO_LIVROS = "Sproul: vontade decretiva (sempre se cumpre, por meios), preceptiva (mandamentos, pode ser desobedecida), de disposição (o que agrada a Deus, 2Pe 3.9), secreta e revelada (Dt 29.29); vocação: posso, gosto, gostaria, devo; habilidades motivadas; a necessidade sozinha não é chamada; conselho dos outros não é automaticamente vontade de Deus. Weatherhead: vontade intencional (plano ideal), circunstancial (dentro do mal e da liberdade humana), última (propósito final que vence); placas: comunhão, consciência, bom senso, amigo sábio, livros e Bíblia, igreja; Deus guia na encruzilhada. Hernandes Dias Lopes: Deus decreta fins e meios, a oração é meio (Daniel 9). Paul Washer: somos servos (doulos) de Cristo; a vontade de Deus está escrita para cada papel (Ef 5-6).";
+
+BASE.perguntas.push(
+  {a:"chamado", q:"Se Deus já decretou tudo, para que orar?", k:["decreto","meio","Daniel orou"], p:"Deus decretou os fins e também os **meios**. A **oração** é o meio que Ele escolheu para agir.", t:"Dn 9.2-3; Tg 5.16", e:"Daniel leu em Jeremias que o exílio acabaria aos 70 anos. Não cruzou os braços: jejuou e orou pelo cumprimento.", f:"Quem conhece a promessa, ora por ela.", fonte:"Hernandes Dias Lopes"},
+  {a:"chamado", q:"A morte de alguém querido foi vontade de Deus?", k:["Deus chora connosco","sem prazer no mal","propósito final"], p:"Deus **não tem prazer** no sofrimento. Permite-o num mundo caído, mas o seu **propósito final** vence, até através da dor.", t:"Jo 11.35; Ez 18.32; Rm 8.28", e:"Jesus chorou junto ao túmulo de Lázaro, mesmo sabendo que o ia ressuscitar.", f:"Não é preciso explicar a dor para confiar em quem a atravessa connosco.", pass:"pastor", fonte:"Weatherhead; Sproul", cuidado:"Pergunta delicada: responder com ternura, sem frases feitas, e oferecer acompanhamento pastoral."},
+  {a:"carreira", q:"Várias pessoas dizem que Deus lhes mostrou o que devo fazer. Em quem acredito?", k:["ouvir","pesar","não é telegrama"], p:"Ouça a comunidade, mas o conselho dos outros **não é automaticamente** a vontade de Deus. Pese tudo pela **Palavra** e pela **sabedoria**.", t:"Pv 15.22; 1Ts 5.21", e:"Sproul recebeu cinco ofertas de emprego e cinco amigos garantiram, cada um, que Deus queria uma diferente. Ele não podia estar em cinco cidades ao mesmo tempo.", f:"O conselho ilumina, mas a decisão é sua diante de Deus.", fonte:"R. C. Sproul"},
+  {a:"carreira", q:"Sou bom numa coisa, mas não gosto dela. Devo seguir por aí?", k:["posso","gosto","devo","motivação"], p:"Faça as **quatro perguntas**: o que posso, o que gosto, o que gostaria de aprender e o que devo. Uma habilidade **sem motivação** tende a gerar frustração.", t:"Rm 12.3; 1Pe 4.10", e:"Às vezes Deus pede sacrifício, mas em regra chama-nos segundo os dons e o gosto que Ele próprio pôs em nós.", f:"Junte o que sabe fazer ao que gosta de fazer, e sirva com isso.", fonte:"R. C. Sproul"},
+  {a:"chamado", q:"A igreja precisa de obreiros. Sou obrigado a ir?", k:["necessidade","dons","chamada"], p:"A **necessidade sozinha não é chamada**. Todos apoiam a missão, mas nem todos são chamados ao mesmo serviço.", t:"1Co 12.4-11; Rm 12.6-8", e:"Sproul dizia que não era evangelista, mas ajudava a evangelização ensinando e contribuindo.", f:"Todos na missão, cada um no seu dom.", fonte:"R. C. Sproul"},
+  {a:"relacionamentos", q:"Qual é a vontade de Deus para mim no casamento e na família?", k:["marido ama","esposa honra","pais educam","filhos honram"], p:"Aqui a vontade de Deus está **escrita** para cada papel: o marido dá a vida pela esposa, a esposa honra o marido, os pais educam no Senhor e os filhos honram os pais.", t:"Ef 5.22-33; Ef 6.1-4", e:"Paul Washer, quando lhe perguntam o que faz, responde primeiro: sou marido, sou pai.", f:"Antes de procurar a vontade escondida, viva a que está escrita.", fonte:"Paul Washer"},
+  {a:"carreira", q:"No trabalho sou maltratado e mal pago. Qual é a vontade de Deus para mim?", k:["como para Cristo","de coração","justiça"], p:"Trabalhe **de coração, como para Cristo**, mesmo sem reconhecimento. E o patrão também deve **justiça** e equidade.", t:"Ef 6.5-9; Cl 3.23-25", e:"Servir bem não impede procurar um emprego melhor nem reclamar direitos de forma honesta.", f:"O seu verdadeiro Patrão está no céu.", pass:"juiz", fonte:"Paul Washer"},
+  {a:"chamado", q:"Como sei se procuro a vontade de Deus ou só quero que Ele aprove a minha?", k:["sinceridade","coragem","fora do quadro"], p:"Faça duas perguntas: **quero a vontade dele ou a aprovação da minha?** E **terei coragem** de a fazer quando a souber?", t:"Mt 26.39; Sl 139.23-24", e:"Conta-se de um pastor convidado para uma igreja que pagava quatro vezes mais: ele estava a orar e a esposa já estava a encaixotar as coisas.", f:"Seja feita a tua vontade, e não a minha.", fonte:"Leslie Weatherhead"},
+  {a:"chamado", q:"Deus vai mostrar-me agora todo o meu futuro?", k:["passo a passo","encruzilhada","fé"], p:"Deus costuma mostrar o caminho **na encruzilhada**, não anos antes. Caminhamos **pela fé**.", t:"Sl 119.105; 2Co 5.7", e:"A Palavra é lâmpada para os pés: ilumina o próximo passo, não a estrada inteira.", f:"Basta a luz para o próximo passo.", fonte:"Leslie Weatherhead"}
+);
+
+/* ============ BÍBLIA ============ */
+let bibliaPromessa = null;
+function carregarBiblia(){
+  if(window.BIBLIA) return Promise.resolve(window.BIBLIA);
+  if(!bibliaPromessa) bibliaPromessa = new Promise((ok, falha) => {
+    const s = document.createElement("script"); s.src = "biblia.js";
+    s.onload = () => window.BIBLIA ? ok(window.BIBLIA) : falha(); s.onerror = () => { bibliaPromessa = null; falha(); };
+    document.head.appendChild(s);
+  });
+  return bibliaPromessa;
+}
+function livroPorAbrev(a){
+  const B = window.BIBLIA; if(!B) return -1;
+  const raw = a.replace(/\s+/g,"");
+  let i = B.findIndex(b => b[1] === raw); if(i >= 0) return i;
+  const n = norm(raw);
+  if(n === "job") return B.findIndex(b => b[1] === "Jó");
+  i = B.findIndex(b => b[1] !== "Jó" && norm(b[1]) === n); if(i >= 0) return i;
+  return B.findIndex(b => norm(b[0]).replace(/\s/g,"").startsWith(n) && n.length >= 3);
+}
+function partirRefs(t){
+  const out = []; let livro = "";
+  String(t||"").split(/;\s*/).map(s => s.trim()).filter(Boolean).forEach(p => {
+    const m = p.match(/^([1-3]?\s?[A-Za-zÀ-ÿ]+)\.?\s*(\d.*)$/);
+    if(m){ livro = m[1].replace(/\s+/g,""); out.push({txt:p, ref:livro+" "+m[2]}); }
+    else if(/^[\d.:,\-\s]+$/.test(p) && livro){ out.push({txt:p, ref:livro+" "+p}); }
+    else out.push({txt:p, ref:null});
+  });
+  return out;
+}
+function refsHTML(t){ return partirRefs(t).map(r => r.ref ? `<span class="ref" data-ref="${esc(r.ref)}">${esc(r.txt)}</span>` : `<span class="ref" style="background:#f1efe9;color:#555">${esc(r.txt)}</span>`).join(""); }
+function lerRef(ref){
+  const B = window.BIBLIA; const m = ref.match(/^([1-3]?[A-Za-zÀ-ÿ]+)\s+(.*)$/); if(!m) return null;
+  const bi = livroPorAbrev(m[1]); if(bi < 0) return null;
+  const livro = B[bi]; const resto = m[2].replace(/\s/g,"");
+  const blocos = [];
+  const sep = resto.match(/^(\d+)[.:](.+)$/);
+  if(sep){
+    const cap = +sep[1];
+    sep[2].split(",").forEach(r => {
+      const [a,b] = r.split("-").map(Number);
+      const c = livro[2][cap-1]; if(!c) return;
+      const fim = Math.min(b || a, c.length);
+      for(let v = a; v <= fim; v++) blocos.push({c:cap, v, t:c[v-1]});
+    });
+  } else {
+    const [a,b] = resto.split("-").map(Number);
+    for(let cap = a; cap <= Math.min(b || a, a + 2); cap++){
+      const c = livro[2][cap-1]; if(!c) continue;
+      c.forEach((t,i) => blocos.push({c:cap, v:i+1, t}));
+    }
+  }
+  return blocos.length ? {livro: livro[0], bi, versos: blocos} : null;
+}
+function versosHTML(r){
+  let cap = 0;
+  return r.versos.map(x => { const h = x.c !== cap ? `<div class="area" style="margin-top:8px">Capítulo ${x.c}</div>` : ""; cap = x.c; return `${h}<p class="vers"><sup>${x.v}</sup> ${esc(x.t)}</p>`; }).join("");
+}
+function abrirRef(ref){
+  const fundo = document.getElementById("folha");
+  fundo.innerHTML = `<div class="folha-c"><div class="folha-t"><b>${esc(ref)}</b><button class="btn sec peq" id="fFechar">Fechar</button></div><div id="fCorpo"><span class="spin"></span>A abrir a Bíblia...</div></div>`;
+  fundo.style.display = "flex";
+  document.getElementById("fFechar").onclick = () => fundo.style.display = "none";
+  carregarBiblia().then(() => {
+    const r = lerRef(ref);
+    document.getElementById("fCorpo").innerHTML = r ? `<div class="area">${esc(r.livro)} · Bíblia Livre</div>${versosHTML(r)}<div class="linha"><button class="btn sec peq" id="fCap">Ler o capítulo inteiro</button></div>` : "Referência não encontrada.";
+    const fc = document.getElementById("fCap");
+    if(fc) fc.onclick = () => { estado.bLivro = r.bi; estado.bCap = r.versos[0].c; estado.aba = "biblia"; salvarEstado(); fundo.style.display = "none"; render(); };
+  }).catch(() => { document.getElementById("fCorpo").textContent = "Não foi possível carregar a Bíblia."; });
+}
+document.addEventListener("click", e => {
+  const r = e.target.closest(".ref[data-ref]"); if(r){ e.preventDefault(); abrirRef(r.dataset.ref); }
+  if(e.target.id === "folha") e.target.style.display = "none";
+});
+
+function vBiblia(){
+  setTimeout(montarBiblia, 0);
+  const t = temaActual();
+  const tx = (t.textos||BASE.textos).map(x => `<div class="txt">${refsHTML(x.r)} ${esc(x.d)}${x.c?`<div class="c so-det">Cuidado: ${esc(x.c)}</div>`:""}</div>`).join("");
+  const il = (t.ilustracoes||BASE.ilustracoes).map(x => `<div class="txt"><b>${esc(x.n)}</b> <span class="area">· ${esc(x.u)}</span><div class="c">${esc(x.p)}</div></div>`).join("");
+  return `<h2>Bíblia</h2>
+    <div class="card">
+      <div class="linha" style="margin-top:0;flex-wrap:nowrap"><input type="text" id="bBusca" placeholder="Ex.: Pv 16.9 ou uma palavra (sabedoria)"><button class="btn" id="bIr" style="flex:0 0 auto">Ir</button></div>
+      <div class="linha"><select id="bLivro" style="flex:2;padding:10px;border-radius:10px;font-size:16px"></select><select id="bCap" style="flex:1;padding:10px;border-radius:10px;font-size:16px"></select></div>
+      <div id="bTexto" style="margin-top:10px"><span class="spin"></span>A carregar a Bíblia...</div>
+      <p class="aviso">Tradução Bíblia Livre, de licença aberta.</p>
+    </div>
+    <h2>Textos-chave do tema</h2><div class="card">${tx}</div>
+    <h2>Ilustrações</h2><div class="card">${il}</div>`;
+}
+function montarBiblia(){
+  const sl = document.getElementById("bLivro"); if(!sl) return;
+  carregarBiblia().then(B => {
+    if(estado.bLivro == null){ estado.bLivro = 19; estado.bCap = 16; }
+    sl.innerHTML = B.map((b,i) => `<option value="${i}" ${i===estado.bLivro?"selected":""}>${esc(b[0])}</option>`).join("");
+    const sc = document.getElementById("bCap");
+    const encherCaps = () => { const n = B[estado.bLivro][2].length; if(estado.bCap > n) estado.bCap = 1; sc.innerHTML = Array.from({length:n},(_,i)=>`<option value="${i+1}" ${i+1===estado.bCap?"selected":""}>${i+1}</option>`).join(""); };
+    const mostrar = () => { const c = B[estado.bLivro][2][estado.bCap-1]||[]; document.getElementById("bTexto").innerHTML = `<div class="area">${esc(B[estado.bLivro][0])} ${estado.bCap}</div>` + c.map((t,i)=>`<p class="vers"><sup>${i+1}</sup> ${esc(t)}</p>`).join(""); salvarEstado(); };
+    encherCaps(); mostrar();
+    sl.onchange = () => { estado.bLivro = +sl.value; estado.bCap = 1; encherCaps(); mostrar(); };
+    sc.onchange = () => { estado.bCap = +sc.value; mostrar(); };
+    const ir = () => {
+      const q = document.getElementById("bBusca").value.trim(); if(!q) return;
+      const pr = partirRefs(q)[0];
+      const r = pr && pr.ref ? lerRef(pr.ref) : null;
+      const alvo = document.getElementById("bTexto");
+      if(r){ alvo.innerHTML = `<div class="area">${esc(r.livro)}</div>` + versosHTML(r); return; }
+      const nq = norm(q); const res = [];
+      for(const b of B){ b[2].forEach((c,ci) => c.forEach((t,vi) => { if(res.length < 80 && norm(t).includes(nq)) res.push(`<p class="vers"><span class="ref" data-ref="${esc(b[1]+" "+(ci+1)+"."+(vi+1))}">${esc(b[1])} ${ci+1}.${vi+1}</span> ${esc(t)}</p>`); })); if(res.length >= 80) break; }
+      alvo.innerHTML = res.length ? `<div class="area">${res.length >= 80 ? "Primeiros 80" : res.length} resultados para "${esc(q)}"</div>` + res.join("") : "Nada encontrado.";
+    };
+    document.getElementById("bIr").onclick = ir;
+    document.getElementById("bBusca").onkeydown = e => { if(e.key === "Enter") ir(); };
+  }).catch(() => { const el = document.getElementById("bTexto"); if(el) el.textContent = "Não foi possível carregar a Bíblia."; });
+}
+
+/* ---- Conceitos ---- */
+function vConceitos(){
+  const mapas = CONCEITOS.mapas.map(m => `<div class="card">
+      <div class="area">${esc(m.linha)}</div><h3>${esc(m.autor)}</h3><div class="aviso" style="margin-top:-4px">${esc(m.obra)}</div>
+      ${m.itens.map(x => `<div class="txt"><span class="key">${esc(x.k)}</span><div class="c so-det" style="color:#333;font-size:15.5px;margin-top:6px">${esc(x.d)}</div><div>${refsHTML(x.t)}</div></div>`).join("")}
+      <div class="so-det"><ul class="lst" style="margin-top:10px">${m.notas.map(n=>`<li>${md(n)}</li>`).join("")}</ul></div>
+    </div>`).join("");
+  const eq = CONCEITOS.equivalencias.map(r => `<div class="txt"><b>${esc(r[2])}</b><div class="c">Sproul: ${esc(r[0])} · Weatherhead: ${esc(r[1])}</div></div>`).join("");
+  const v = CONCEITOS.vocacao;
+  return `<div class="frase" style="font-size:17px">A Bíblia fala da vontade de Deus em <mark style="background:#ffe58a;color:#1d1d1f">mais de um sentido</mark>. Antes de responder, pergunte: de que vontade estamos a falar?<small>Toque em "Detalhado" no topo para ver as explicações.</small></div>
+    <h2>Mapa rápido: três perguntas</h2>
+    <div class="card"><ol class="passos">
+      <li><b>O que Deus vai fazer?</b> Vontade decretiva / última. <mark>Confiar.</mark></li>
+      <li><b>O que Deus manda?</b> Vontade preceptiva / revelada. <mark>Obedecer.</mark></li>
+      <li><b>O que agrada a Deus?</b> Vontade de disposição. <mark>Alinhar o coração.</mark></li></ol>
+      <p class="aviso">Dentro do que Deus manda, há liberdade para escolher com sabedoria (os 5 filtros).</p></div>
+    <h2>Correspondência entre autores</h2><div class="card">${eq}</div>
+    <h2>Os autores</h2>${mapas}
+    <h2>Vocação: as quatro perguntas (Sproul)</h2>
+    <div class="card"><ol class="passos">${v.perguntas.map(p=>`<li>${md(p)}</li>`).join("")}</ol>
+      <div class="so-det"><ul class="lst">${v.notas.map(n=>`<li>${md(n)}</li>`).join("")}</ul><div class="nota"><b>História:</b> ${esc(v.historia)}</div></div></div>
+    <h2>Glossário</h2><div class="card">${CONCEITOS.glossario.map(g=>`<div class="txt"><b>${esc(g[0])}</b><div class="c">${esc(g[1])}</div></div>`).join("")}</div>`;
+}
+
 /* ============ ESTADO ============ */
 const LS = {
   get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
@@ -236,7 +429,7 @@ function nomeArea(a){ return ({carreira:"Carreira e formação", relacionamentos
 /* ============ CARTÃO DE RESPOSTA ============ */
 function cartao(q, opts = {}){
   const tag = q.ia ? '<span class="tag-ia">IA</span>' : (q.meu ? '<span class="tag-meu">minha</span>' : "");
-  const refs = (q.t||"").split(/;\s*/).filter(Boolean).map(r => `<span class="ref">${esc(r)}</span>`).join("");
+  const refs = refsHTML(q.t);
   const keys = (q.k||[]).map(k => `<span class="key">${esc(k)}</span>`).join("");
   const pass = q.pass ? `<div class="passar">Passar a palavra ao ${esc(q.pass)}</div>` : "";
   const cuidado = q.cuidado ? `<div class="nota">${md(q.cuidado)}</div>` : "";
@@ -256,7 +449,7 @@ function cartao(q, opts = {}){
       <li class="fecho"><b>Fecho:</b> ${md(q.f)}</li>
     </ol>
     <div class="so-det">${pass}</div>
-    ${cuidado}${acoes}
+    ${q.fonte ? `<div class="fonte">Fonte: ${esc(q.fonte)}</div>` : ""}${cuidado}${acoes}
   </div>`;
 }
 function minusc(s){ s = String(s||"").trim(); return s ? s.charAt(0).toLowerCase() + s.slice(1) : s; }
@@ -266,7 +459,8 @@ const ABAS = [
   {id:"inicio", n:"Base", i:'<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'},
   {id:"perguntar", n:"Perguntar", i:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>'},
   {id:"banco", n:"Respostas", i:'<path d="M4 5h16M4 12h16M4 19h10"/>'},
-  {id:"textos", n:"Textos", i:'<path d="M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4zM20 4h-5a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h6z"/>'},
+  {id:"conceitos", n:"Conceitos", i:'<circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/>'},
+  {id:"biblia", n:"Bíblia", i:'<path d="M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4zM20 4h-5a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h6z"/>'},
   {id:"temas", n:"Temas", i:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'}
 ];
 function desenharNav(){
@@ -286,7 +480,7 @@ function cabecalho(){
 function render(){
   cabecalho(); desenharNav();
   const app = document.getElementById("app");
-  const f = {inicio:vInicio, perguntar:vPerguntar, banco:vBanco, textos:vTextos, temas:vTemas}[estado.aba] || vInicio;
+  const f = {inicio:vInicio, perguntar:vPerguntar, banco:vBanco, conceitos:vConceitos, biblia:vBiblia, textos:vBiblia, temas:vTemas}[estado.aba] || vInicio;
   app.innerHTML = f();
   ligar();
   window.scrollTo(0,0);
@@ -296,10 +490,10 @@ function render(){
 function vInicio(){
   const t = temaActual();
   if(t.id !== "vontade") return vInicioTema(t);
-  const filtros = t.filtros.map((x,i) => `<div class="filtro"><div class="num">${i+1}</div><div><b>${esc(x.k)}</b> <span class="ref">${esc(x.t)}</span><div class="d so-det">${esc(x.d)}</div></div></div>`).join("");
+  const filtros = t.filtros.map((x,i) => `<div class="filtro"><div class="num">${i+1}</div><div><b>${esc(x.k)}</b> ${refsHTML(x.t)}<div class="d so-det">${esc(x.d)}</div></div></div>`).join("");
   const formula = t.formula.map(x => `<li><b>${esc(x[0])}:</b> <span class="so-det">${esc(x[1])}</span></li>`).join("");
   const areas = Object.entries(t.areas).map(([k,v]) => `<div class="txt"><div class="area">${k==="erro"?"Medo de errar":nomeArea(k)}</div><div>${md(v)}</div></div>`).join("");
-  const vont = t.vontades.map(x => `<div class="txt"><b>${esc(x.k)}</b> <span class="ref">${esc(x.t)}</span><div class="c">${esc(x.d)}</div></div>`).join("");
+  const vont = t.vontades.map(x => `<div class="txt"><b>${esc(x.k)}</b> ${refsHTML(x.t)}<div class="c">${esc(x.d)}</div></div>`).join("");
   return `
     <div class="frase">${md(t.frase).replace(/<mark>/g,'<mark style="background:#ffe58a;color:#1d1d1f">')}<small>Repetir sempre. Voltar a esta frase em cada resposta.</small></div>
     <h2>Os 5 filtros</h2><div class="card">${filtros}</div>
@@ -365,6 +559,7 @@ async function gerarIA(pergunta){
 Quem responde: Garcia, contabilista, chefe de departamento na função pública, casado e pai, cristão evangélico, que fala a jovens adultos.
 Tema: ${t.nome}. ${t.sub||""}
 Contexto: ${t.contexto||""}
+Conceitos dos livros estudados (cruza-os quando ajudar e indica a fonte): ${RESUMO_LIVROS}
 Princípio orientador: a vontade moral de Deus está revelada na Escritura; dentro dela Deus dá liberdade, sabedoria e conselho (Palavra, Glória, Sabedoria, Conselho, Passo).
 
 Pergunta feita por um jovem: "${pergunta}"
@@ -379,10 +574,10 @@ Regras:
 ${painel}
 
 Responde APENAS com JSON válido neste formato:
-{"a":"carreira|relacionamentos|chamado|outra palavra curta","k":["3 a 5 palavras-chave curtas"],"p":"princípio numa ou duas frases","t":"referências","e":"exemplo concreto em uma ou duas frases","f":"frase final curta e marcante","pass":"","cuidado":""}`;
+{"a":"carreira|relacionamentos|chamado|outra palavra curta","k":["3 a 5 palavras-chave curtas"],"p":"princípio numa ou duas frases","t":"referências","e":"exemplo concreto em uma ou duas frases","f":"frase final curta e marcante","pass":"","cuidado":"","fonte":"autor(es) usados, se algum"}`;
   const r = await sampleNS.json(prompt, {modelTier:"default"});
   if(!r || typeof r !== "object" || !r.p) throw new Error("Resposta incompleta");
-  return {a:String(r.a||"geral").toLowerCase(), q:pergunta, k:Array.isArray(r.k)?r.k.slice(0,5).map(String):[], p:String(r.p||""), t:String(r.t||""), e:String(r.e||""), f:String(r.f||""), pass:String(r.pass||""), cuidado:String(r.cuidado||""), ia:true};
+  return {a:String(r.a||"geral").toLowerCase(), q:pergunta, k:Array.isArray(r.k)?r.k.slice(0,5).map(String):[], p:String(r.p||""), t:String(r.t||""), e:String(r.e||""), f:String(r.f||""), pass:String(r.pass||""), cuidado:String(r.cuidado||""), fonte:String(r.fonte||""), ia:true};
 }
 
 /* ---- Banco ---- */
