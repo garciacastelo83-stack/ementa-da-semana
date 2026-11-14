@@ -17,3 +17,7 @@ Também funciona no navegador em https://garciacastelo83-stack.github.io/ementa-
 ## Clube de Leitura da Família
 
 Segunda app deste repositório (pasta `leitura/`). Os APK aparecem em Releases com o nome `ClubeDeLeitura-1.X.apk`.
+
+## Painel Bíblico: guia de resposta
+
+Terceira app deste repositório (pasta `painel/`), para preparar debates e estudos bíblicos. Os APK aparecem em Releases com o nome `PainelBiblico-1.X.apk`. Versão web: https://garciacastelo83-stack.github.io/ementa-da-semana/painel/

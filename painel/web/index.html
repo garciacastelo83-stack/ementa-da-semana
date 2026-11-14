@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f3a5f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Painel Bíblico: guia de resposta</title>
+<style>
+:root{--azul:#1f3a5f;--azul2:#2c5282;--creme:#fbf8f1;--tinta:#1d1d1f;--suave:#6b6b70;--linha:#e6e0d2;--ouro:#c9a227;--mark:#ffe58a;--verde:#2f6b3f;--card:#ffffff}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--creme);color:var(--tinta);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:1.45}
+header{background:var(--azul);color:#fff;padding:14px 16px 10px;position:sticky;top:0;z-index:5}
+header .t{font-size:13px;opacity:.8;letter-spacing:.04em;text-transform:uppercase}
+header h1{margin:2px 0 0;font-size:19px;font-weight:700}
+header .sub{font-size:13px;opacity:.85;margin-top:2px}
+.modo{display:flex;gap:6px;margin-top:10px}
+.modo button{flex:1;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:20px;padding:6px 8px;font-size:14px}
+.modo button.on{background:#fff;color:var(--azul);font-weight:700}
+main{padding:14px 14px 96px;max-width:760px;margin:0 auto}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--linha);display:flex;z-index:6;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;padding:9px 2px 8px;font-size:11.5px;color:var(--suave);display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button svg{width:22px;height:22px}
+nav button.on{color:var(--azul);font-weight:700}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.05em;color:var(--azul2);margin:22px 0 8px}
+h2:first-child{margin-top:4px}
+.card{background:var(--card);border:1px solid var(--linha);border-radius:14px;padding:14px 15px;margin:0 0 12px}
+.frase{background:var(--azul);color:#fff;border-radius:14px;padding:16px;font-size:19px;font-weight:600;line-height:1.35}
+.frase small{display:block;font-weight:400;font-size:13px;opacity:.8;margin-top:8px}
+mark{background:var(--mark);padding:0 3px;border-radius:3px;color:inherit;font-weight:700}
+.filtro{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--linha)}
+.filtro:last-child{border-bottom:0}
+.num{flex:0 0 32px;height:32px;border-radius:50%;background:var(--ouro);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
+.filtro b{font-size:18px}
+.filtro .d{color:#333;font-size:15.5px}
+.ref{display:inline-block;background:#eef3fa;color:var(--azul2);border-radius:8px;padding:2px 8px;font-size:14px;font-weight:600;margin:4px 4px 0 0}
+.area{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--suave);font-weight:700}
+.card h3{margin:4px 0 8px;font-size:18px;line-height:1.3}
+.keys{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.key{background:var(--mark);font-weight:800;border-radius:8px;padding:4px 10px;font-size:16px}
+body.curto .key{font-size:21px;padding:6px 12px}
+.princ{margin:0 0 6px;font-size:16.5px}
+ol.passos{margin:10px 0 0;padding-left:20px}
+ol.passos li{margin:0 0 8px;font-size:15.5px}
+ol.passos li b{color:var(--azul2)}
+body.curto .so-det{display:none}
+body.detalhe .so-curto{display:none}
+.passar{margin-top:8px;font-size:14px;color:var(--verde);font-weight:700}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px}
+.chips button{flex:0 0 auto;border:1px solid var(--linha);background:#fff;border-radius:18px;padding:6px 12px;font-size:14px}
+.chips button.on{background:var(--azul);color:#fff;border-color:var(--azul)}
+textarea,input[type=text]{width:100%;border:1px solid #cfc7b5;border-radius:12px;padding:12px;font-size:17px;font-family:inherit;background:#fff}
+textarea{min-height:90px;resize:vertical}
+.btn{border:0;border-radius:12px;padding:12px 14px;font-size:16px;font-weight:700;background:var(--azul);color:#fff}
+.btn.sec{background:#fff;color:var(--azul);border:1px solid var(--azul)}
+.btn.peq{padding:7px 11px;font-size:14px;font-weight:600}
+.linha{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.linha .btn{flex:1}
+.aviso{font-size:14px;color:var(--suave);margin:8px 0}
+.nota{background:#fff6dd;border:1px solid #f0dc9c;border-radius:12px;padding:10px 12px;font-size:14.5px;margin:10px 0}
+.tag-ia{font-size:11px;background:#e9e3ff;color:#4b3aa0;border-radius:6px;padding:2px 6px;margin-left:6px;font-weight:700;vertical-align:middle}
+.tag-meu{font-size:11px;background:#e2f2e6;color:var(--verde);border-radius:6px;padding:2px 6px;margin-left:6px;font-weight:700;vertical-align:middle}
+.lst{margin:0;padding-left:20px}
+.lst li{margin-bottom:8px}
+.txt{padding:10px 0;border-bottom:1px solid var(--linha)}
+.txt:last-child{border-bottom:0}
+.txt .c{font-size:14px;color:var(--suave);margin-top:3px}
+.gera{min-height:20px}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid #ccc;border-top-color:var(--azul);border-radius:50%;animation:r 1s linear infinite;vertical-align:-3px;margin-right:6px}
+@keyframes r{to{transform:rotate(360deg)}}
+.tema{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tema.on{border-color:var(--azul);box-shadow:0 0 0 2px rgba(31,58,95,.15)}
+label{display:block;font-weight:700;font-size:14px;margin:10px 0 4px;color:var(--azul2)}
+.mic{width:48px;flex:0 0 48px !important}
+.mic.on{background:#b23b3b}
+.vazio{color:var(--suave);text-align:center;padding:18px}
+.fecho{font-style:italic}
+details summary{cursor:pointer;font-weight:700;color:var(--azul2)}
+</style>
+</head>
+<body class="curto">
+<header>
+  <div class="t" id="hTema">Debate bíblico</div>
+  <h1 id="hNome">Painel</h1>
+  <div class="sub" id="hSub"></div>
+  <div class="modo">
+    <button id="mCurto" class="on">Olhar rápido</button>
+    <button id="mDet">Detalhado</button>
+  </div>
+</header>
+<main id="app"></main>
+<nav id="nav"></nav>
+
+<script>
+/* ============ DADOS BASE ============ */
+const BASE = {
+  id: "vontade",
+  nome: "Esta é a vontade de Deus",
+  sub: "Discernir para viver: carreira, relacionamentos e chamado",
+  contexto: "Painel com jovens adultos (25 a 35 anos) numa conferência bíblica em Luanda. Painelistas: um pastor, um evangelista que é juiz de profissão, e Garcia, contabilista, chefe de departamento na função pública, casado e pai. Mensagem: a vontade moral de Deus está revelada na Escritura; dentro dela Deus dá liberdade, sabedoria e conselho para decidir.",
+  frase: "Deus não está a jogar às escondidas connosco. O que Ele quer de nós já está escrito. O resto, Ele confiou-nos com **liberdade** e **sabedoria**.",
+  filtros: [
+    {k:"Palavra", d:"Tem cabimento na Bíblia? Se não tem, não se paga.", t:"Sl 119.105"},
+    {k:"Glória", d:"Honra a Deus e serve o próximo, ou só a mim?", t:"1Co 10.31"},
+    {k:"Sabedoria", d:"Fiz as contas? Dons, custos, consequências para a família e para a fé.", t:"Lc 14.28; Tg 1.5"},
+    {k:"Conselho", d:"Quem assinou comigo? Pais, pastor, gente madura que me conhece.", t:"Pv 15.22"},
+    {k:"Passo", d:"Está tudo conforme? Então execute. Deus dirige os passos de quem anda.", t:"Pv 16.9"}
+  ],
+  formula: [
+    ["Acolher", "\"O irmão pergunta...\" numa frase."],
+    ["Princípio", "O princípio bíblico numa frase."],
+    ["Texto", "Um versículo. Só um."],
+    ["Exemplo", "Um caso de Luanda ou da minha vida."],
+    ["Fecho", "Uma frase final e passo a palavra."]
+  ],
+  areas: {
+    carreira: "Não há cursos espirituais e cursos seculares. Há **trabalho feito para o Senhor**. Daniel e José foram administradores públicos fiéis.",
+    relacionamentos: "A Bíblia não diz com quem deve casar, mas diz **com que tipo de pessoa**: alguém que segue Cristo e tem carácter.",
+    chamado: "Todos somos chamados. A pergunta é **onde** vivo esse chamado. Não é preciso deixar a profissão para servir a Deus.",
+    erro: "Se agiu dentro da Palavra e com sabedoria, **não saiu da vontade de Deus**. Deus faz tudo cooperar para o bem (Rm 8.28)."
+  },
+  vontades: [
+    {k:"Decretiva", d:"O que Deus determinou e sempre se cumpre. Só a conhecemos depois de acontecer.", t:"Ef 1.11; Dt 29.29"},
+    {k:"Moral", d:"O que Deus manda. Está escrito e posso desobedecer. É a parte que me cabe.", t:"1Ts 4.3; 1Ts 5.18"},
+    {k:"\"Plano secreto\"", d:"Ideia popular de um curso, emprego e cônjuge únicos a adivinhar. A Bíblia não manda procurá-lo.", t:"DeYoung, Sproul"}
+  ],
+  erros: [
+    "Tratar sentimentos e impressões como **voz de Deus**.",
+    "Pedir **lã de Gideão** (Jz 6.36-40): foi insegurança, não modelo.",
+    "Abrir a Bíblia **ao acaso** à procura de resposta.",
+    "**Paralisia**: anos \"à espera de confirmação\".",
+    "\"Deus disse-me que tu és a minha esposa\": **espiritualizar desejos**.",
+    "Pensar que a vontade de Deus é sempre **o mais difícil**.",
+    "**Porta aberta** não é aprovação: Jonas também encontrou um barco (Jn 1.3).",
+    "Aceitar **profecias** que contradizem a Palavra ou servem quem as dá."
+  ],
+  textos: [
+    {r:"Pv 16.9", d:"O homem planeia, o Senhor dirige os passos.", c:"Planear não é falta de fé."},
+    {r:"Rm 12.1-2", d:"A mente renovada experimenta a vontade de Deus.", c:"Foco na transformação, não em direcções secretas."},
+    {r:"Tg 1.5", d:"Peça sabedoria a Deus.", c:"Pede-se sabedoria, não um sinal."},
+    {r:"Tg 4.13-15", d:"\"Se o Senhor quiser.\"", c:"Planear com humildade."},
+    {r:"Pv 3.5-6", d:"Confie e Ele endireita as veredas.", c:"Guia para quem confia, não revelação de pormenores."},
+    {r:"1Ts 4.3", d:"Esta é a vontade de Deus: a santificação.", c:"Quando a Bíblia diz \"vontade de Deus\", quase sempre é moral."},
+    {r:"1Ts 5.18", d:"Em tudo dai graças.", c:""},
+    {r:"Pv 15.22", d:"Com muitos conselheiros, os planos se firmam.", c:""},
+    {r:"1Co 7", d:"Casamento e celibato são dons; casar \"no Senhor\" (v. 39).", c:"Texto central para relacionamentos."},
+    {r:"2Co 6.14", d:"Não vos prendais a jugo desigual.", c:""},
+    {r:"Cl 3.23-24", d:"Fazei tudo como para o Senhor.", c:"Trabalho como vocação."},
+    {r:"Gn 2.15", d:"Adão trabalhava antes da queda.", c:"Trabalho não é castigo."},
+    {r:"Dt 29.29", d:"O encoberto é de Deus, o revelado é nosso.", c:"Resume vontade decretiva e moral."},
+    {r:"Rm 8.28-29", d:"Tudo coopera para o bem.", c:"O bem é sermos parecidos com Cristo."},
+    {r:"Ef 5.15-17", d:"Compreendei a vontade do Senhor.", c:"Contexto: viver com sabedoria e cheio do Espírito."},
+    {r:"Cl 3.15", d:"A paz de Cristo seja o árbitro.", c:"Contexto comunitário, não um sentimento individual."},
+    {r:"Jr 29.11", d:"Pensamentos de paz.", c:"Dito aos exilados, antes de 70 anos de exílio. Mostra o carácter de Deus, não promete sucesso rápido."}
+  ],
+  ilustracoes: [
+    {n:"Daniel na Babilónia", u:"Carreira, integridade", p:"Administrador público num governo pagão; não lhe acharam falta (Dn 6.4)."},
+    {n:"José no Egipto", u:"Carreira, espera", p:"Escravo, preso, governador. Deus usou tudo (Gn 50.20)."},
+    {n:"Neemias", u:"Como decidir", p:"Orou meses, planeou ao pormenor, pediu recursos ao rei (Ne 1-2)."},
+    {n:"Rute e Boaz", u:"Relacionamentos", p:"Carácter visto no trabalho, conselho de Noemi, processo honrado (Rt 2-4)."},
+    {n:"Paulo e a Macedónia", u:"Chamado", p:"Portas fechadas; continuou a andar e Deus redireccionou (At 16.6-10)."},
+    {n:"Escolha dos sete", u:"Decidir em comunidade", p:"Critérios claros, igreja envolvida, oração (At 6.1-6)."},
+    {n:"Ló escolhe a planície", u:"Aviso", p:"Escolheu pelo que via e ignorou Sodoma (Gn 13.10-13)."},
+    {n:"Wilberforce (1785)", u:"Profissão e serviço", p:"Pensou deixar o Parlamento depois da conversão. John Newton aconselhou-o a ficar. Liderou a abolição do tráfico de escravos (1807)."},
+    {n:"Igreja Confessante (1934)", u:"Falsa \"vontade de Deus\"", p:"Os \"Cristãos Alemães\" viam Hitler como revelação de Deus. A Igreja Confessante (Barth, Bonhoeffer) disse: só Cristo é a Palavra de Deus."},
+    {n:"Lutero e a vocação", u:"Trabalho", p:"A Reforma ensinou que quem trabalha honestamente serve a Deus tanto como o monge."}
+  ],
+  fecho: "Meus irmãos, descansem. Se amam a Deus, conhecem a Palavra, ouvem conselho e decidem com juízo, estão dentro da vontade de Deus. E se errarem, Deus não perde o controlo da vossa história (Rm 8.28). Não fiquem parados à espera de sinal. **Façam alguma coisa**, e façam-na para o Senhor.",
+  painel: ["pastor","juiz"],
+  perguntas: [
+    {a:"carreira", q:"Como sei que curso ou profissão Deus quer para mim?", k:["dons","necessidade","oportunidade","liberdade"], p:"Deus não esconde um curso \"certo\". Dá-lhe **dons**, **sabedoria** e **liberdade** para escolher dentro dos seus caminhos.", t:"Tg 1.5; 1Pe 4.10; Pv 16.9", e:"Cruze três círculos: o que faz bem e os outros confirmam, onde há necessidade real no nosso país, e a porta que está mesmo aberta. Onde se tocam, há um bom caminho.", f:"Escolha com oração e faça o curso para o Senhor."},
+    {a:"carreira", q:"Estou num emprego de que não gosto. Devo sair?", k:["fidelidade","fazer contas","conselho","plano"], p:"Primeiro **trabalhe bem onde está**. Depois avalie com calma. Mudar não é pecado; **fugir sem plano** raramente é sabedoria.", t:"Cl 3.23; Lc 14.28", e:"Na contabilidade não se aprova despesa sem cabimento. Antes de sair, faça as contas: família, renda, propinas, próximo emprego.", f:"Saia com plano, não com raiva."},
+    {a:"carreira", q:"Estou desempregado há muito tempo. O que Deus quer de mim?", k:["esperar activo","trabalho possível","fiel no pouco"], p:"Esperar em Deus **não é ficar sentado**. É ser fiel no que está à mão.", t:"Rt 2.2-3; Lc 16.10", e:"Rute foi apanhar espigas, trabalho humilde, e foi ali que Deus abriu o caminho. Formação, biscato honesto, voluntariado na igreja.", f:"Deus costuma encontrar-nos a trabalhar."},
+    {a:"carreira", q:"Sem cunha não se consegue emprego. Posso usar?", k:["referência honesta","sem esquema","competência"], p:"Pedir uma **referência honesta** não é pecado. **Comprar lugar** ou passar à frente injustamente é.", t:"Pv 22.29; Pv 11.1", e:"José chegou ao palácio pela competência e pela mão de Deus, não por esquema (Gn 41.38-40).", f:"A porta que o esquema abre cobra depois."},
+    {a:"carreira", q:"No meu trabalho há esquemas e gasosa. Fico ou saio?", k:["integridade","não participar","Daniel"], p:"A vontade de Deus **nunca passa pela gasosa**. Posso ficar se **não participar**; se me obrigarem a pecar, tenho de sair.", t:"Dn 6.4; Pv 11.1", e:"Daniel era administrador público num governo pagão e não lhe acharam falta nem negligência.", f:"Passo ao Doutor, que vê isto todos os dias no tribunal.", pass:"juiz"},
+    {a:"carreira", q:"Tenho oportunidade de ir para Portugal ou outro país. Como decido?", k:["motivo","família","igreja","porta aberta"], p:"Emigrar não é pecado. Decide-se com os **mesmos filtros**. Uma **porta aberta não é a resposta** sozinha.", t:"Pv 15.22; Hb 10.25", e:"Jonas encontrou um barco pronto a partir e estava a fugir de Deus (Jn 1.3). Pergunte: onde vou congregar? Quem fica e como fica?", f:"Vá, se for, com a igreja na mala."},
+    {a:"carreira", q:"Ganhar muito dinheiro é contra a vontade de Deus?", k:["amor ao dinheiro","mordomia","generosidade"], p:"O problema é o **amor ao dinheiro**, não o salário. A pergunta certa é: **o que faço com o que ganho?**", t:"1Tm 6.9-10, 17-19", e:"O mesmo texto que avisa os que querem ficar ricos manda os ricos serem generosos e prontos a repartir.", f:"Ganhe bem, viva com juízo e reparta."},
+    {a:"carreira", q:"Fiz um curso que não tem nada a ver comigo. Perdi tempo?", k:["Deus aproveita tudo","nada se perde"], p:"Nas mãos de Deus **nada se perde**. Ele aproveita cada etapa.", t:"Rm 8.28; Gn 50.20", e:"José aprendeu gestão como escravo e na prisão. Foi isso que usou para governar o Egipto.", f:"O que parecia desvio pode ser preparação."},
+    {a:"carreira", q:"Vale a pena trabalhar de dia e estudar à noite?", k:["investimento","disciplina","descanso"], p:"Não é atraso, é **investimento**. Mas sem **descanso** e sem Deus, cansa em vão.", t:"Ec 9.10; Sl 127.2", e:"Muitos aqui fazem isso. Eu sei o que é sair do serviço e ir para a aula. Organize a semana e guarde o domingo.", f:"Estude com fé e durma também, que isso também é confiar."},
+    {a:"relacionamentos", q:"Como sei se esta é a pessoa certa?", k:["segue Cristo","carácter","visão comum","conselho"], p:"Não espere um sinal do céu. Pergunte: **segue Cristo?** Tem **carácter?** Temos **visão comum?** Quem nos conhece **aprova?**", t:"1Co 7.39; Pv 31.30", e:"Bonito passa, carácter fica. Veja como a pessoa trata a família, o dinheiro e a igreja.", f:"Se passa nos critérios, há liberdade para avançar."},
+    {a:"relacionamentos", q:"Um irmão disse que teve revelação de que sou a esposa dele. E agora?", k:["desconfiar","liberdade dos dois","testar"], p:"Deus **não decide por dois falando só com um**. Revelação usada para pressionar deve ser **recusada**.", t:"1Ts 5.21; 1Jo 4.1", e:"Se for de Deus, Ele fala também consigo, com paz, sem pressão, e confirmado por quem vos conhece.", f:"Teste tudo, retenha o bem.", pass:"pastor"},
+    {a:"relacionamentos", q:"Tenho mais de 30 anos e continuo solteira. Fiz algo errado?", k:["dom","sem atraso","viver agora"], p:"Estar solteiro **não é castigo** nem atraso espiritual. Paulo chama ao celibato **um dom**.", t:"1Co 7.7, 32-35", e:"Aos 30 já perguntam no óbito, no casamento e no aniversário: \"então, quando?\". A pressão da família não é a voz de Deus.", f:"Viva plenamente agora e continue aberta."},
+    {a:"relacionamentos", q:"Posso namorar ou casar com um não crente se for boa pessoa?", k:["no Senhor","vontade moral"], p:"Aqui a Bíblia é clara: casar **no Senhor**. Isto é **vontade moral**, não zona de liberdade.", t:"2Co 6.14; 1Co 7.39", e:"Bom carácter sem Cristo é como dois bois de forças diferentes no mesmo jugo: cada um puxa para o seu lado.", f:"O amor verdadeiro não pede que deixe Cristo de fora."},
+    {a:"relacionamentos", q:"A família pressiona por causa da idade, do alambamento e da festa.", k:["honrar","conversar","sem dívidas"], p:"**Honrar a família** é bíblico. Mas começar o casamento **endividado** não é sabedoria.", t:"Ef 6.2; Pv 22.7", e:"Um casamento simples e abençoado vale mais do que uma festa grande e um lar a pagar dívidas.", f:"Honre os pais e proteja o seu futuro lar."},
+    {a:"relacionamentos", q:"Podemos viver juntos antes de casar?", k:["aliança","honra","santidade"], p:"O casamento é **aliança pública** diante de Deus e da comunidade. Viver juntos sem ela **não honra** esse plano.", t:"Hb 13.4; 1Ts 4.3-7", e:"Muitos começam assim por causa dos custos. A saída é casar com simplicidade, não adiar a aliança.", f:"Comece bem: primeiro a aliança, depois a casa.", pass:"juiz"},
+    {a:"relacionamentos", q:"E se eu casei com a pessoa errada?", k:["aliança","amar","ajuda"], p:"Depois de casado, o seu cônjuge **é a vontade de Deus para si**. A pergunta passa a ser: **como amo bem esta pessoa?**", t:"Ef 5.25-33; Mt 19.6", e:"Ninguém casa com a pessoa perfeita. Casamos com alguém que, com Deus, aprendemos a amar.", f:"Se há crise séria, procure ajuda pastoral cedo.", pass:"pastor"},
+    {a:"chamado", q:"Como sei se sou chamado para o ministério?", k:["desejo","carácter","confirmação da igreja"], p:"Três sinais: **desejo**, **carácter e aptidão**, e **confirmação da igreja**.", t:"1Tm 3.1-7; At 13.1-3", e:"Em Antioquia foi a igreja, em oração, que separou Barnabé e Saulo.", f:"O pastor explica isto melhor do que eu.", pass:"pastor"},
+    {a:"chamado", q:"Preciso de deixar o meu emprego para servir a Deus?", k:["vocação","profissão é altar","Paulo fazia tendas"], p:"Não. **Todos somos chamados**. O escritório, a sala de aula e a loja também são **lugar de serviço**.", t:"Cl 3.23; At 18.3; Ef 4.1", e:"Neste painel há um juiz evangelista e um contabilista ao serviço da igreja. Wilberforce quis deixar a política e foi aconselhado a ficar.", f:"Sirva a Deus onde Ele já o pôs."},
+    {a:"chamado", q:"Se Deus já programou tudo, para quê decidir?", k:["soberano","responsável","as duas juntas"], p:"Deus é **soberano** e nós somos **responsáveis**. Ele governa através das nossas escolhas, não apesar delas.", t:"Pv 16.9; Fp 2.12-13", e:"O mesmo versículo diz que o homem planeia e que o Senhor dirige. As duas coisas são verdade.", f:"Planeie como responsável e descanse como filho."},
+    {a:"chamado", q:"E se eu errar a vontade de Deus?", k:["vontade moral","sabedoria","restauração"], p:"Se agiu **dentro da Palavra** e com sabedoria, não saiu da vontade de Deus. Se pecou, há **arrependimento e restauração**.", t:"Rm 8.28; 1Jo 1.9", e:"Deus não tem um \"plano B\" de segunda categoria. Pedro negou Jesus e foi restaurado para pastorear.", f:"Deus não perde o controlo da sua história."},
+    {a:"chamado", q:"Como distingo a voz de Deus dos meus desejos?", k:["Escritura","fruto","conselho"], p:"Teste tudo pela **Escritura**, pelo **fruto** e pelo **conselho** da igreja. Desejos não são maus em si.", t:"1Ts 5.21; Sl 37.4; Gl 5.22-23", e:"Quem se deleita no Senhor vê os próprios desejos mudarem. Muitas vezes Deus guia através deles.", f:"Deseje Deus primeiro e os desejos alinham-se."},
+    {a:"chamado", q:"E as profecias e os sonhos sobre o meu futuro?", k:["examinar","abaixo da Palavra","fruto"], p:"Podem ser **examinados**, nunca postos **acima da Palavra**.", t:"1Co 14.29; Dt 18.22; 1Jo 4.1", e:"Se a profecia contradiz a Bíblia, manipula ou só beneficia quem a dá, não é de Deus.", f:"O juiz pode explicar como se pesa uma prova.", pass:"juiz"}
+  ]
+};
+
+/* ============ ESTADO ============ */
+const LS = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+let temasUser = LS.get("pb_temas", []);
+let estado = LS.get("pb_estado", {tema:"vontade", aba:"inicio", modo:"curto", filtro:"todas"});
+let sampleNS = null, dictNS = null;
+
+function temas(){ return [BASE, ...temasUser]; }
+function temaActual(){ return temas().find(t => t.id === estado.tema) || BASE; }
+function minhas(id){ return LS.get("pb_q_" + id, []); }
+function guardarMinhas(id, arr){ LS.set("pb_q_" + id, arr); }
+function salvarEstado(){ LS.set("pb_estado", estado); }
+
+/* ============ UTILITÁRIOS ============ */
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const md = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<mark>$1</mark>");
+const norm = s => String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+const STOP = new Set("como que para com sem uma uns umas meu minha meus minhas seu sua isso isto esta este ser sou deus vontade quer devo posso mais muito pelo pela nos nao sim ele ela eles elas qual quais quando onde porque entao ainda tenho tem esta estou fazer fiz sobre".split(" "));
+function tokens(s){ return norm(s).split(/[^a-z0-9]+/).filter(w => w.length > 2 && !STOP.has(w)); }
+function procurar(texto, lista){
+  const tk = tokens(texto);
+  if(!tk.length) return [];
+  return lista.map(q => {
+    const alvo = norm([q.q, (q.k||[]).join(" "), q.p, q.a].join(" "));
+    const chaves = norm((q.k||[]).join(" ") + " " + q.q);
+    let s = 0;
+    tk.forEach(w => {
+      const raiz = w.slice(0, Math.max(4, Math.min(6, w.length - 1)));
+      if(chaves.includes(raiz)) s += 2; else if(alvo.includes(raiz)) s += 1;
+    });
+    return {q, s};
+  }).filter(x => x.s > 0).sort((a,b) => b.s - a.s).slice(0, 3).map(x => x.q);
+}
+function nomeArea(a){ return ({carreira:"Carreira e formação", relacionamentos:"Relacionamentos e família", chamado:"Chamado e vida espiritual"})[a] || (a ? a.charAt(0).toUpperCase()+a.slice(1) : "Geral"); }
+
+/* ============ CARTÃO DE RESPOSTA ============ */
+function cartao(q, opts = {}){
+  const tag = q.ia ? '<span class="tag-ia">IA</span>' : (q.meu ? '<span class="tag-meu">minha</span>' : "");
+  const refs = (q.t||"").split(/;\s*/).filter(Boolean).map(r => `<span class="ref">${esc(r)}</span>`).join("");
+  const keys = (q.k||[]).map(k => `<span class="key">${esc(k)}</span>`).join("");
+  const pass = q.pass ? `<div class="passar">Passar a palavra ao ${esc(q.pass)}</div>` : "";
+  const cuidado = q.cuidado ? `<div class="nota">${md(q.cuidado)}</div>` : "";
+  const acoes = opts.editavel ? `<div class="linha"><button class="btn sec peq" data-edit="${opts.idx}">Editar</button><button class="btn sec peq" data-del="${opts.idx}">Apagar</button>${sampleNS ? `<button class="btn sec peq" data-regen="${opts.idx}">Gerar de novo</button>` : ""}</div>` : "";
+  return `<div class="card">
+    <div class="area">${esc(nomeArea(q.a))}${tag}</div>
+    <h3>${esc(q.q)}</h3>
+    <div class="keys">${keys}</div>
+    <p class="princ">${md(q.p)}</p>
+    <div>${refs}</div>
+    <div class="so-curto">${pass}</div>
+    <ol class="passos so-det">
+      <li><b>Acolher:</b> "O irmão pergunta ${esc(minusc(q.q))}"</li>
+      <li><b>Princípio:</b> ${md(q.p)}</li>
+      <li><b>Texto:</b> ${esc(q.t)}</li>
+      <li><b>Exemplo:</b> ${md(q.e)}</li>
+      <li class="fecho"><b>Fecho:</b> ${md(q.f)}</li>
+    </ol>
+    <div class="so-det">${pass}</div>
+    ${cuidado}${acoes}
+  </div>`;
+}
+function minusc(s){ s = String(s||"").trim(); return s ? s.charAt(0).toLowerCase() + s.slice(1) : s; }
+
+/* ============ ABAS ============ */
+const ABAS = [
+  {id:"inicio", n:"Base", i:'<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'},
+  {id:"perguntar", n:"Perguntar", i:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>'},
+  {id:"banco", n:"Respostas", i:'<path d="M4 5h16M4 12h16M4 19h10"/>'},
+  {id:"textos", n:"Textos", i:'<path d="M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4zM20 4h-5a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h6z"/>'},
+  {id:"temas", n:"Temas", i:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'}
+];
+function desenharNav(){
+  document.getElementById("nav").innerHTML = ABAS.map(a =>
+    `<button data-aba="${a.id}" class="${estado.aba===a.id?"on":""}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${a.i}</svg>${a.n}</button>`).join("");
+}
+function cabecalho(){
+  const t = temaActual();
+  document.getElementById("hTema").textContent = t.id === "vontade" ? "Conferência bíblica · Painel" : "Estudo · Debate";
+  document.getElementById("hNome").textContent = t.nome;
+  document.getElementById("hSub").textContent = t.sub || "";
+  document.body.className = estado.modo;
+  document.getElementById("mCurto").classList.toggle("on", estado.modo === "curto");
+  document.getElementById("mDet").classList.toggle("on", estado.modo === "detalhe");
+}
+
+function render(){
+  cabecalho(); desenharNav();
+  const app = document.getElementById("app");
+  const f = {inicio:vInicio, perguntar:vPerguntar, banco:vBanco, textos:vTextos, temas:vTemas}[estado.aba] || vInicio;
+  app.innerHTML = f();
+  ligar();
+  window.scrollTo(0,0);
+}
+
+/* ---- Base ---- */
+function vInicio(){
+  const t = temaActual();
+  if(t.id !== "vontade") return vInicioTema(t);
+  const filtros = t.filtros.map((x,i) => `<div class="filtro"><div class="num">${i+1}</div><div><b>${esc(x.k)}</b> <span class="ref">${esc(x.t)}</span><div class="d so-det">${esc(x.d)}</div></div></div>`).join("");
+  const formula = t.formula.map(x => `<li><b>${esc(x[0])}:</b> <span class="so-det">${esc(x[1])}</span></li>`).join("");
+  const areas = Object.entries(t.areas).map(([k,v]) => `<div class="txt"><div class="area">${k==="erro"?"Medo de errar":nomeArea(k)}</div><div>${md(v)}</div></div>`).join("");
+  const vont = t.vontades.map(x => `<div class="txt"><b>${esc(x.k)}</b> <span class="ref">${esc(x.t)}</span><div class="c">${esc(x.d)}</div></div>`).join("");
+  return `
+    <div class="frase">${md(t.frase).replace(/<mark>/g,'<mark style="background:#ffe58a;color:#1d1d1f">')}<small>Repetir sempre. Voltar a esta frase em cada resposta.</small></div>
+    <h2>Os 5 filtros</h2><div class="card">${filtros}</div>
+    <h2>Cada resposta em 2 minutos</h2><div class="card"><ol class="passos">${formula}</ol><p class="aviso so-det">Se não souber: "Não tenho uma resposta fechada, mas o princípio que me orienta é este..."</p></div>
+    <h2>Uma frase por área</h2><div class="card">${areas}</div>
+    <h2>Três formas de falar da vontade de Deus</h2><div class="card">${vont}</div>
+    <h2>Erros a desmontar</h2><div class="card"><ul class="lst">${t.erros.map(e => `<li>${md(e)}</li>`).join("")}</ul></div>
+    <h2>Sem combinação prévia</h2><div class="card"><ul class="lst">
+      <li>Falo como <mark>profissional, marido e pai</mark>.</li>
+      <li>Não repito: "<mark>Complementando</mark> o que o pastor disse..."</li>
+      <li>Teologia e ministério: <mark>pastor</mark>. Ética, justiça, profecias: <mark>juiz</mark>.</li></ul></div>
+    <h2>Encerramento</h2><div class="card fecho">${md(t.fecho)}</div>`;
+}
+function vInicioTema(t){
+  return `<div class="frase">${esc(t.nome)}<small>${esc(t.sub||"")}</small></div>
+    <h2>Contexto do tema</h2><div class="card">${esc(t.contexto||"Sem contexto. Edite na aba Temas.")}</div>
+    <h2>Os 5 filtros (servem para qualquer decisão)</h2><div class="card">${BASE.filtros.map((x,i)=>`<div class="filtro"><div class="num">${i+1}</div><div><b>${esc(x.k)}</b><div class="d">${esc(x.d)}</div></div></div>`).join("")}</div>
+    <h2>Cada resposta em 2 minutos</h2><div class="card"><ol class="passos">${BASE.formula.map(x=>`<li><b>${esc(x[0])}:</b> ${esc(x[1])}</li>`).join("")}</ol></div>
+    <p class="aviso">Vá a <b>Perguntar</b> para registar as perguntas deste tema e gerar respostas.</p>`;
+}
+
+/* ---- Perguntar ---- */
+let ultimaPergunta = "";
+function vPerguntar(){
+  const t = temaActual();
+  return `
+    <h2>Pergunta feita no debate</h2>
+    <div class="card">
+      <div class="linha" style="margin-top:0;flex-wrap:nowrap">
+        <textarea id="pq" placeholder="Escreva ou dite a pergunta do jovem...">${esc(ultimaPergunta)}</textarea>
+      </div>
+      <div class="linha">
+        ${dictNS ? '<button class="btn sec mic" id="mic" title="Ditar">🎤</button>' : ""}
+        <button class="btn" id="bProcurar">Procurar resposta</button>
+      </div>
+      <div class="linha">
+        ${sampleNS ? '<button class="btn sec" id="bGerar">Gerar resposta nova (IA)</button>' : ""}
+        <button class="btn sec" id="bGuardar">Guardar pergunta</button>
+      </div>
+      ${sampleNS ? "" : '<p class="aviso">A geração com IA aparece quando a app estiver aberta no Claude com ligação. Sem ela, a procura funciona com as respostas já preparadas.</p>'}
+    </div>
+    <div id="gera" class="gera"></div>
+    <div id="res"></div>`;
+}
+function mostrarProcura(txt){
+  const t = temaActual();
+  const lista = [...(t.perguntas||[]), ...minhas(t.id)];
+  const r = procurar(txt, lista);
+  const el = document.getElementById("res");
+  if(!r.length){
+    el.innerHTML = `<div class="card"><b>Sem resposta preparada parecida.</b><p class="aviso">Construa a resposta com os 5 filtros:</p><ol class="passos">${BASE.filtros.map(x=>`<li><b>${esc(x.k)}:</b> ${esc(x.d)}</li>`).join("")}</ol></div>`;
+    return;
+  }
+  el.innerHTML = `<h2>Respostas mais próximas</h2>` + r.map(q => cartao(q)).join("");
+}
+
+async function gerarIA(pergunta){
+  const t = temaActual();
+  const painel = t.id === "vontade"
+    ? 'Se a pergunta for sobretudo de teologia, ministério ou cuidado pastoral, "passar" = "pastor". Se for de ética, justiça, lei ou avaliar profecias, "passar" = "juiz". Caso contrário "".'
+    : '"passar" deve ser "" salvo se o contexto indicar outros painelistas.';
+  const prompt = `És um assistente de preparação para um debate bíblico evangélico em Luanda, Angola.
+Quem responde: Garcia, contabilista, chefe de departamento na função pública, casado e pai, cristão evangélico, que fala a jovens adultos.
+Tema: ${t.nome}. ${t.sub||""}
+Contexto: ${t.contexto||""}
+Princípio orientador: a vontade moral de Deus está revelada na Escritura; dentro dela Deus dá liberdade, sabedoria e conselho (Palavra, Glória, Sabedoria, Conselho, Passo).
+
+Pergunta feita por um jovem: "${pergunta}"
+
+Prepara uma resposta honesta, fiel à Bíblia e ligada à realidade angolana (desemprego, cunha, gasosa, alambamento, pressão familiar, emigração, estudar à noite, etc., só quando fizer sentido).
+Regras:
+- Português de Angola, tom natural e próximo, frases curtas. Nunca uses travessões.
+- Usa só referências bíblicas que realmente dizem o que afirmas. No máximo 3. Formato "Pv 16.9; Tg 1.5".
+- Se a Bíblia não responde directamente, diz isso com honestidade no princípio e dá o princípio mais próximo.
+- Marca com **dupla estrela** uma a três palavras essenciais no princípio.
+- Em temas delicados (abuso, violência, saúde mental, crise conjugal grave), acrescenta em "cuidado" que se deve encaminhar para acompanhamento pastoral ou profissional.
+${painel}
+
+Responde APENAS com JSON válido neste formato:
+{"a":"carreira|relacionamentos|chamado|outra palavra curta","k":["3 a 5 palavras-chave curtas"],"p":"princípio numa ou duas frases","t":"referências","e":"exemplo concreto em uma ou duas frases","f":"frase final curta e marcante","pass":"","cuidado":""}`;
+  const r = await sampleNS.json(prompt, {modelTier:"default"});
+  if(!r || typeof r !== "object" || !r.p) throw new Error("Resposta incompleta");
+  return {a:String(r.a||"geral").toLowerCase(), q:pergunta, k:Array.isArray(r.k)?r.k.slice(0,5).map(String):[], p:String(r.p||""), t:String(r.t||""), e:String(r.e||""), f:String(r.f||""), pass:String(r.pass||""), cuidado:String(r.cuidado||""), ia:true};
+}
+
+/* ---- Banco ---- */
+function vBanco(){
+  const t = temaActual();
+  const meus = minhas(t.id);
+  const base = t.perguntas || [];
+  const areas = ["todas", ...new Set(base.map(q=>q.a))];
+  if(meus.length) areas.push("minhas");
+  if(!areas.includes(estado.filtro)) estado.filtro = "todas";
+  const chips = areas.map(a => `<button data-filtro="${a}" class="${estado.filtro===a?"on":""}">${a==="todas"?"Todas":a==="minhas"?"Minhas ("+meus.length+")":nomeArea(a).split(" ")[0]}</button>`).join("");
+  let html = `<div class="chips">${chips}</div>`;
+  if(estado.filtro === "minhas" || (estado.filtro === "todas" && meus.length)){
+    html += (estado.filtro==="todas" ? `<h2>Perguntas registadas</h2>` : "") + meus.map((q,i) => cartao(q,{editavel:true, idx:i})).join("");
+  }
+  if(estado.filtro !== "minhas"){
+    const l = base.filter(q => estado.filtro==="todas" || q.a===estado.filtro);
+    if(estado.filtro==="todas" && meus.length && l.length) html += `<h2>Preparadas</h2>`;
+    html += l.map(q => cartao(q)).join("");
+  }
+  if(!base.length && !meus.length) html += `<div class="vazio">Ainda não há perguntas neste tema. Use a aba Perguntar.</div>`;
+  return html;
+}
+
+/* ---- Textos ---- */
+function vTextos(){
+  const t = temaActual();
+  const tx = (t.textos||BASE.textos).map(x => `<div class="txt"><span class="ref">${esc(x.r)}</span> ${esc(x.d)}${x.c?`<div class="c so-det">Cuidado: ${esc(x.c)}</div>`:""}</div>`).join("");
+  const il = (t.ilustracoes||BASE.ilustracoes).map(x => `<div class="txt"><b>${esc(x.n)}</b> <span class="area">· ${esc(x.u)}</span><div class="c">${esc(x.p)}</div></div>`).join("");
+  return `<h2>Textos bíblicos</h2><div class="card">${tx}</div><h2>Ilustrações</h2><div class="card">${il}</div>`;
+}
+
+/* ---- Temas ---- */
+function vTemas(){
+  const lista = temas().map(t => `<div class="card tema ${t.id===estado.tema?"on":""}">
+      <div><b>${esc(t.nome)}</b><div class="aviso" style="margin:2px 0 0">${esc(t.sub||"")} · ${(t.perguntas||[]).length + minhas(t.id).length} perguntas</div></div>
+      <div style="display:flex;gap:6px;flex-direction:column">
+        ${t.id===estado.tema ? '<span class="tag-meu">activo</span>' : `<button class="btn peq" data-usar="${t.id}">Abrir</button>`}
+        ${t.id!=="vontade" ? `<button class="btn sec peq" data-apagartema="${t.id}">Apagar</button>` : ""}
+      </div></div>`).join("");
+  return `<h2>Os meus estudos e debates</h2>${lista}
+    <h2>Novo tema</h2>
+    <div class="card">
+      <label>Nome do tema</label><input type="text" id="tNome" placeholder="Ex.: Mordomia e finanças cristãs">
+      <label>Subtítulo</label><input type="text" id="tSub" placeholder="Ex.: Debate com casais da igreja">
+      <label>Contexto (público, painelistas, objectivo)</label><textarea id="tCtx" placeholder="Quem está, qual o objectivo, que linha bíblica defender..."></textarea>
+      <div class="linha"><button class="btn" id="bNovoTema">Criar tema</button></div>
+    </div>
+    <h2>Cópia de segurança</h2>
+    <div class="card">
+      <p class="aviso">As perguntas que regista ficam guardadas só neste telemóvel. Copie a cópia de segurança de vez em quando.</p>
+      <div class="linha"><button class="btn sec" id="bCopiar">Copiar cópia de segurança</button></div>
+      <details style="margin-top:12px"><summary>Restaurar</summary>
+        <textarea id="tRest" placeholder="Cole aqui a cópia de segurança"></textarea>
+        <div class="linha"><button class="btn sec" id="bRest">Restaurar</button></div></details>
+      <div id="msgBk" class="aviso"></div>
+    </div>`;
+}
+
+/* ============ EDITOR DE PERGUNTA ============ */
+function editor(q, idx){
+  const app = document.getElementById("app");
+  app.innerHTML = `<h2>${idx==null?"Nova resposta":"Editar resposta"}</h2><div class="card">
+    <label>Pergunta</label><textarea id="eQ">${esc(q.q)}</textarea>
+    <label>Área</label><input type="text" id="eA" value="${esc(q.a||"")}" placeholder="carreira, relacionamentos, chamado...">
+    <label>Palavras-chave (separadas por vírgula)</label><input type="text" id="eK" value="${esc((q.k||[]).join(", "))}">
+    <label>Princípio (use **palavra** para destacar)</label><textarea id="eP">${esc(q.p||"")}</textarea>
+    <label>Textos bíblicos</label><input type="text" id="eT" value="${esc(q.t||"")}" placeholder="Pv 16.9; Tg 1.5">
+    <label>Exemplo</label><textarea id="eE">${esc(q.e||"")}</textarea>
+    <label>Frase final</label><input type="text" id="eF" value="${esc(q.f||"")}">
+    <label>Passar a palavra a</label><input type="text" id="ePass" value="${esc(q.pass||"")}" placeholder="pastor, juiz ou vazio">
+    <div class="linha"><button class="btn" id="eOk">Guardar</button><button class="btn sec" id="eCancel">Cancelar</button></div></div>`;
+  document.getElementById("eCancel").onclick = () => { estado.aba = "banco"; render(); };
+  document.getElementById("eOk").onclick = () => {
+    const t = temaActual(); const arr = minhas(t.id);
+    const nq = {...q, q:val("eQ"), a:val("eA").toLowerCase()||"geral", k:val("eK").split(",").map(s=>s.trim()).filter(Boolean), p:val("eP"), t:val("eT"), e:val("eE"), f:val("eF"), pass:val("ePass"), meu: !q.ia || q.meu};
+    if(!nq.q){ return; }
+    if(idx==null) arr.unshift(nq); else arr[idx] = nq;
+    guardarMinhas(t.id, arr); estado.aba = "banco"; estado.filtro = "minhas"; salvarEstado(); render();
+  };
+  window.scrollTo(0,0);
+}
+const val = id => (document.getElementById(id)?.value || "").trim();
+
+/* ============ EVENTOS ============ */
+function ligar(){
+  document.querySelectorAll("[data-aba]").forEach(b => b.onclick = () => { estado.aba = b.dataset.aba; salvarEstado(); render(); });
+  document.querySelectorAll("[data-filtro]").forEach(b => b.onclick = () => { estado.filtro = b.dataset.filtro; salvarEstado(); render(); });
+  document.querySelectorAll("[data-usar]").forEach(b => b.onclick = () => { estado.tema = b.dataset.usar; estado.aba = "inicio"; estado.filtro="todas"; salvarEstado(); render(); });
+  document.querySelectorAll("[data-apagartema]").forEach(b => b.onclick = () => {
+    if(b.dataset.c !== "1"){ b.dataset.c = "1"; b.textContent = "Confirmar"; return; }
+    temasUser = temasUser.filter(t => t.id !== b.dataset.apagartema); LS.set("pb_temas", temasUser);
+    if(estado.tema === b.dataset.apagartema) estado.tema = "vontade"; salvarEstado(); render();
+  });
+  document.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => { const i = +b.dataset.edit; editor(minhas(temaActual().id)[i], i); });
+  document.querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
+    if(b.dataset.c !== "1"){ b.dataset.c = "1"; b.textContent = "Confirmar"; return; }
+    const t = temaActual(); const arr = minhas(t.id); arr.splice(+b.dataset.del,1); guardarMinhas(t.id, arr); render();
+  });
+  document.querySelectorAll("[data-regen]").forEach(b => b.onclick = async () => {
+    const t = temaActual(); const i = +b.dataset.regen; const arr = minhas(t.id);
+    b.innerHTML = '<span class="spin"></span>A gerar'; b.disabled = true;
+    try{ arr[i] = await gerarIA(arr[i].q); guardarMinhas(t.id, arr); render(); }
+    catch(e){ b.textContent = "Falhou. Tente de novo"; b.disabled = false; }
+  });
+
+  const pq = document.getElementById("pq");
+  if(pq){
+    pq.oninput = () => { ultimaPergunta = pq.value; };
+    document.getElementById("bProcurar").onclick = () => mostrarProcura(pq.value);
+    document.getElementById("bGuardar").onclick = () => {
+      const txt = pq.value.trim(); if(!txt) return;
+      editor({q:txt, a:"", k:[], p:"", t:"", e:"", f:"", meu:true}, null);
+    };
+    const bg = document.getElementById("bGerar");
+    if(bg) bg.onclick = async () => {
+      const txt = pq.value.trim(); if(!txt) return;
+      const g = document.getElementById("gera");
+      g.innerHTML = '<div class="card"><span class="spin"></span>A preparar a resposta com base bíblica...</div>';
+      bg.disabled = true;
+      try{
+        const q = await gerarIA(txt);
+        const t = temaActual(); const arr = minhas(t.id); arr.unshift(q); guardarMinhas(t.id, arr);
+        g.innerHTML = `<h2>Resposta gerada (guardada em Respostas)</h2>` + cartao(q) + '<p class="aviso">Confira sempre os versículos antes de os citar.</p>';
+      }catch(e){
+        const msg = e && e.code === "not_granted" ? "A IA não foi autorizada nesta app." : e && e.code === "rate_limited" ? "Muitos pedidos seguidos. Espere um pouco." : "Não foi possível gerar agora. Use a procura e os 5 filtros.";
+        g.innerHTML = `<div class="nota">${msg}</div>`;
+        mostrarProcura(txt);
+      }
+      bg.disabled = false;
+    };
+    const mic = document.getElementById("mic");
+    if(mic && dictNS){
+      let ouvindo = false;
+      dictNS.onFinal(({text}) => { pq.value = (pq.value ? pq.value.trim() + " " : "") + text; ultimaPergunta = pq.value; });
+      dictNS.onState(({state}) => { ouvindo = state === "listening"; mic.classList.toggle("on", ouvindo); });
+      mic.onclick = () => { if(ouvindo){ dictNS.stop().catch(()=>{}); } else { dictNS.start().catch(()=>{ mic.remove(); }); } };
+    }
+  }
+
+  const bn = document.getElementById("bNovoTema");
+  if(bn) bn.onclick = () => {
+    const nome = val("tNome"); if(!nome) return;
+    const t = {id:"t"+Date.now(), nome, sub:val("tSub"), contexto:val("tCtx"), perguntas:[]};
+    temasUser.push(t); LS.set("pb_temas", temasUser); estado.tema = t.id; estado.aba = "inicio"; salvarEstado(); render();
+  };
+  const bc = document.getElementById("bCopiar");
+  if(bc) bc.onclick = async () => {
+    const dados = {temas: temasUser, perguntas: Object.fromEntries(temas().map(t => [t.id, minhas(t.id)]))};
+    try{ await navigator.clipboard.writeText(JSON.stringify(dados)); document.getElementById("msgBk").textContent = "Copiado. Cole numa nota ou envie para si no WhatsApp."; }
+    catch(e){ document.getElementById("msgBk").textContent = "Não foi possível copiar neste navegador."; }
+  };
+  const br = document.getElementById("bRest");
+  if(br) br.onclick = () => {
+    try{
+      const d = JSON.parse(val("tRest"));
+      if(Array.isArray(d.temas)){ temasUser = d.temas; LS.set("pb_temas", temasUser); }
+      if(d.perguntas) Object.entries(d.perguntas).forEach(([id, arr]) => Array.isArray(arr) && guardarMinhas(id, arr));
+      document.getElementById("msgBk").textContent = "Restaurado."; render();
+    }catch(e){ document.getElementById("msgBk").textContent = "Texto inválido."; }
+  };
+}
+document.getElementById("mCurto").onclick = () => { estado.modo = "curto"; salvarEstado(); cabecalho(); };
+document.getElementById("mDet").onclick = () => { estado.modo = "detalhe"; salvarEstado(); cabecalho(); };
+
+render();
+
+/* ============ CAPACIDADES (IA e ditado) ============ */
+(function ligarClaude(n){
+  if(window.claude && typeof window.claude.use === "function"){
+    window.claude.use("sample").then(s => { if(s){ sampleNS = s; if(["perguntar","banco"].includes(estado.aba)) render(); } }).catch(()=>{});
+    window.claude.use("dictation").then(d => { if(d){ dictNS = d; if(estado.aba==="perguntar") render(); } }).catch(()=>{});
+  } else if(n < 20){ setTimeout(() => ligarClaude(n+1), 250); }
+})(0);
+</script>
+<script>if(/^https?:$/.test(location.protocol)&&"serviceWorker" in navigator&&!/claude/.test(location.host)){try{navigator.serviceWorker.register("sw.js").catch(function(){})}catch(e){}}</script>
+</body>
+</html>

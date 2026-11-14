@@ -3,7 +3,7 @@ name: Publicar sites (iPhone e navegador)
 on:
   push:
     branches: [ main ]
-    paths: [ 'web/**', 'leitura/web/**', '.github/workflows/pages.yml' ]
+    paths: [ 'web/**', 'leitura/web/**', 'painel/web/**', '.github/workflows/pages.yml' ]
   workflow_dispatch:
 
 permissions:
@@ -24,9 +24,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Juntar as duas apps
         run: |
-          mkdir -p _site/leitura
+          mkdir -p _site/leitura _site/painel
           cp -r web/* _site/
           cp -r leitura/web/* _site/leitura/
+          cp -r painel/web/* _site/painel/
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
