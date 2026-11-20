@@ -25,3 +25,7 @@ Terceira app deste repositório (pasta `painel/`), para preparar debates e estud
 ## Mbongo da Família: contribuições e organização de eventos
 
 Quarta app deste repositório (pasta `mbongo/`), para controlar as contribuições dos eventos da família (núcleos, membros, orçamento, despesas, cronograma, noivos, convites e ementa). Os APK aparecem em Releases com o nome `MbongoDaFamilia-1.X.apk`. Versão web: https://garciacastelo83-stack.github.io/ementa-da-semana/mbongo/
+
+## Família que Cresce: plataforma familiar de desenvolvimento
+
+Quinta app deste repositório (pasta `familia/`), para o Projecto Família que Cresce: membros por ramo da família, agenda, oportunidades de formação e emprego, mentoria, planos individuais, fundo solidário com dupla aprovação e indicadores. Os APK aparecem em Releases com o nome `FamiliaQueCresce-1.X.apk`. Versão web: https://garciacastelo83-stack.github.io/ementa-da-semana/familia/

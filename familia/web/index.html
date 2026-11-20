@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2F6B3F">
+<title>Família que Cresce</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Família">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --verde:#2f6b3f;--verde2:#4f9a5f;--verde-claro:#e8f2ea;--terra:#b8743a;--terra-claro:#f7ece1;
+  --fundo:#faf8f3;--cartao:#ffffff;--texto:#1f2a22;--suave:#66706a;--linha:#e4e1d8;--alerta:#b23b3b;
+  --sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--fundo);color:var(--texto);font-size:15px;line-height:1.45;padding-bottom:calc(76px + var(--sb))}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:700}
+header{background:var(--verde);color:#fff;padding:calc(16px + var(--st)) 18px 20px;position:sticky;top:0;z-index:15}
+header .top{display:flex;justify-content:space-between;align-items:center;gap:10px;max-width:860px;margin:0 auto}
+header h1{font-size:20px}
+header small{opacity:.85;font-size:12.5px}
+.perfil{background:rgba(255,255,255,.16);border:0;color:#fff;border-radius:20px;padding:6px 10px;font-size:12.5px;font-family:inherit;width:auto;margin:0}
+.perfil option{color:#000}
+main{max-width:860px;margin:0 auto;padding:16px}
+.sec{display:none}.sec.on{display:block}
+.titulo{display:flex;justify-content:space-between;align-items:center;margin:4px 0 12px;gap:8px}
+.titulo h2{font-size:20px}
+.btn{background:var(--verde);color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:600;font-family:inherit;font-size:14px;cursor:pointer;text-decoration:none;display:inline-block}
+.btn.sec2{background:var(--verde-claro);color:var(--verde)}
+.btn.terra{background:var(--terra)}
+.btn.wa{background:#1f9d55}
+.btn.mini{padding:6px 11px;font-size:12.5px;border-radius:8px}
+.btn.perigo{background:#f5e3e3;color:var(--alerta)}
+.btn.largo{width:100%;padding:13px;font-size:15px;margin-bottom:8px}
+.card{background:var(--cartao);border:1px solid var(--linha);border-radius:14px;padding:14px;margin-bottom:10px}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+@media(min-width:640px){.kpis{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:var(--cartao);border:1px solid var(--linha);border-radius:14px;padding:12px}
+.kpi b{display:block;font-size:22px;font-family:Fraunces,Georgia,serif;color:var(--verde);word-break:break-word}
+.kpi span{font-size:12.5px;color:var(--suave)}
+.lema{background:var(--terra-claro);border-left:4px solid var(--terra);border-radius:10px;padding:12px 14px;font-style:italic;margin-bottom:14px;font-size:14px}
+.ola{font-size:15px;margin-bottom:10px}
+.linha{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.meta{font-size:12.5px;color:var(--suave)}
+.tag{display:inline-block;font-size:11.5px;padding:2px 8px;border-radius:20px;background:var(--verde-claro);color:var(--verde);margin:3px 4px 0 0;font-weight:500;white-space:nowrap}
+.tag.t{background:var(--terra-claro);color:var(--terra)}
+.tag.r{background:#f5e3e3;color:var(--alerta)}
+.tag.g{background:#eceae4;color:#555}
+input,select,textarea{width:100%;padding:11px;border:1px solid var(--linha);border-radius:10px;font-family:inherit;font-size:16px;background:#fff;margin-top:4px;color:var(--texto)}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:10px}
+label.chk{display:flex;gap:10px;align-items:center;font-weight:500;font-size:14px}
+label.chk input{width:20px;height:20px;margin:0;flex:none}
+.busca{margin-bottom:12px}
+.vazio{text-align:center;color:var(--suave);padding:26px 10px;font-size:14px}
+.barra{height:8px;background:#eceae4;border-radius:8px;overflow:hidden;margin-top:6px}
+.barra i{display:block;height:100%;background:var(--verde2)}
+.acoes{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.cadeado{background:#f1efe9;border:1px dashed #c9c4b6;border-radius:12px;padding:18px;text-align:center;color:var(--suave)}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--linha);display:flex;overflow-x:auto;z-index:20;padding-bottom:var(--sb);scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:1;min-width:64px;background:none;border:0;padding:8px 4px 10px;font-family:inherit;font-size:11px;color:var(--suave);cursor:pointer}
+nav button .ic{display:block;font-size:19px;margin-bottom:2px}
+nav button.on{color:var(--verde);font-weight:600}
+.modal{position:fixed;inset:0;background:rgba(20,30,22,.45);display:none;align-items:flex-end;justify-content:center;z-index:40}
+.modal.on{display:flex}
+.modal .caixa{background:#fff;width:100%;max-width:560px;max-height:90vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 18px calc(18px + var(--sb))}
+@media(min-width:640px){.modal{align-items:center}.modal .caixa{border-radius:18px}}
+.modal h3{margin-bottom:14px;font-size:18px}
+.toast{position:fixed;bottom:calc(88px + var(--sb));left:50%;transform:translateX(-50%);background:var(--texto);color:#fff;padding:10px 16px;border-radius:10px;font-size:13.5px;opacity:0;transition:.25s;pointer-events:none;z-index:60;max-width:90%;text-align:center}
+.toast.on{opacity:1}
+.tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{border:1px solid var(--linha);background:#fff;border-radius:20px;padding:7px 13px;font-family:inherit;font-size:13px;cursor:pointer;white-space:nowrap;color:var(--texto)}
+.tabs button.on{background:var(--verde);color:#fff;border-color:var(--verde)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+td,th{padding:8px 6px;border-bottom:1px solid var(--linha);text-align:left;vertical-align:top}
+th{font-size:12px;color:var(--suave);font-weight:600}
+td.num,th.num{text-align:right;white-space:nowrap}
+.entrada{color:var(--verde)}.saida{color:var(--alerta)}
+pre.msg{white-space:pre-wrap;background:var(--verde-claro);border-radius:10px;padding:12px;font-family:inherit;font-size:13.5px}
+.aviso{font-size:12.5px;color:var(--suave);margin-top:6px}
+.boas{text-align:center}
+.boas .logo{font-size:46px;margin-bottom:6px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="top">
+    <div>
+      <h1>🌱 Família que Cresce</h1>
+      <small>Plataforma Familiar de Desenvolvimento</small>
+    </div>
+    <select class="perfil" id="perfil" title="Perfil activo">
+      <option value="coord">Coordenador</option>
+      <option value="fin">Financeiro</option>
+      <option value="membro">Membro</option>
+    </select>
+  </div>
+</header>
+
+<main>
+  <section class="sec on" id="s-inicio">
+    <div class="ola" id="ola"></div>
+    <div class="lema">Uma família unida pelo amor, fortalecida pelo conhecimento e transformada pela responsabilidade.</div>
+    <div class="kpis" id="kpis"></div>
+    <div class="titulo"><h2>Próximas actividades</h2><button class="btn sec2 mini" onclick="ir('agenda')">Ver agenda</button></div>
+    <div id="inicio-eventos"></div>
+    <div class="titulo"><h2>Oportunidades com prazo</h2><button class="btn sec2 mini" onclick="ir('oport')">Ver todas</button></div>
+    <div id="inicio-oport"></div>
+  </section>
+
+  <section class="sec" id="s-membros">
+    <div class="titulo"><h2>Membros</h2><button class="btn" onclick="formMembro()">+ Registar</button></div>
+    <input class="busca" id="busca-membros" placeholder="Procurar por nome, ramo ou competência" oninput="rMembros()">
+    <div class="tabs" id="tabs-ramo"></div>
+    <div id="lista-membros"></div>
+  </section>
+
+  <section class="sec" id="s-agenda">
+    <div class="titulo"><h2>Agenda familiar</h2><button class="btn" onclick="formEvento()">+ Actividade</button></div>
+    <div class="tabs" id="tabs-agenda"></div>
+    <div id="lista-eventos"></div>
+  </section>
+
+  <section class="sec" id="s-oport">
+    <div class="titulo"><h2>Oportunidades</h2><button class="btn" onclick="formOport()">+ Divulgar</button></div>
+    <div class="tabs" id="tabs-oport"></div>
+    <div id="lista-oport"></div>
+  </section>
+
+  <section class="sec" id="s-mentoria">
+    <div class="titulo"><h2>Mentoria</h2><button class="btn" onclick="formMentoria()">+ Novo par</button></div>
+    <p class="meta" style="margin-bottom:10px">Cada mentor acompanha no máximo duas pessoas. A mentoria orienta, não fiscaliza a vida privada.</p>
+    <h3 style="font-size:16px;margin:10px 0 8px">Acompanhamentos activos</h3>
+    <div id="lista-mentoria"></div>
+    <h3 style="font-size:16px;margin:16px 0 8px">Directório de mentores</h3>
+    <div id="lista-mentores"></div>
+  </section>
+
+  <section class="sec" id="s-planos">
+    <div class="titulo"><h2>Planos individuais</h2><button class="btn" onclick="formPlano()">+ Plano</button></div>
+    <p class="meta" style="margin-bottom:10px">Acesso restrito: cada membro vê só o seu plano; a coordenação vê todos.</p>
+    <div id="lista-planos"></div>
+  </section>
+
+  <section class="sec" id="s-fundo">
+    <div class="titulo"><h2>Fundo solidário</h2></div>
+    <div id="fundo-corpo"></div>
+  </section>
+
+  <section class="sec" id="s-indic">
+    <div class="titulo"><h2>Indicadores</h2></div>
+    <div id="indic-corpo"></div>
+  </section>
+
+  <section class="sec" id="s-mais">
+    <div class="titulo"><h2>Ferramentas</h2></div>
+    <div class="card">
+      <h3 style="font-size:16px;margin-bottom:6px">Convocatória para o WhatsApp</h3>
+      <p class="meta">Gera a mensagem de uma actividade para enviar ao grupo da família.</p>
+      <select id="sel-convoc" style="margin:10px 0"></select>
+      <pre class="msg" id="msg-convoc"></pre>
+      <div class="acoes"><button class="btn wa" onclick="whatsapp(el('msg-convoc').textContent)">Enviar no WhatsApp</button><button class="btn sec2" onclick="copiar(el('msg-convoc').textContent,'Mensagem copiada')">Copiar</button></div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:16px;margin-bottom:6px">Código de conduta</h3>
+      <ul style="padding-left:18px;font-size:14px" id="conduta"></ul>
+    </div>
+    <div class="card">
+      <h3 style="font-size:16px;margin-bottom:6px">Cópia de segurança</h3>
+      <p class="meta">Os dados ficam guardados neste telemóvel. Guarde uma cópia regularmente e envie-a para o seu e-mail ou Drive. Também serve para passar os dados para outro telemóvel.</p>
+      <div class="acoes">
+        <button class="btn" onclick="exportar()">Guardar cópia</button>
+        <button class="btn sec2" onclick="formImportar()">Restaurar cópia</button>
+      </div>
+      <div class="acoes">
+        <button class="btn perigo mini" onclick="confirmar('Carregar os dados de exemplo? Os dados actuais serão substituídos. Guarde uma cópia antes, se precisar.',()=>{D=demo();gravar();tudo();toast('Dados de exemplo carregados')})">Carregar exemplo</button>
+        <button class="btn perigo mini" onclick="confirmar('Apagar todos os dados deste telemóvel e começar do zero?',()=>{try{localStorage.removeItem(CHAVE)}catch(e){};location.reload()})">Apagar tudo</button>
+      </div>
+    </div>
+    <p class="meta" style="text-align:center;margin-top:8px">Família que Cresce · versão 1.0</p>
+  </section>
+</main>
+
+<nav id="nav"></nav>
+
+<div class="modal" id="modal"><div class="caixa" id="caixa"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- utilitários ---------- */
+const el=id=>document.getElementById(id);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const kz=v=>new Intl.NumberFormat('pt-PT',{maximumFractionDigits:0}).format(v||0)+' Kz';
+const iso=d=>{const z=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return z.toISOString().slice(0,10)};
+const hoje=()=>iso(new Date());
+const addDias=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)};
+const dataPt=s=>{if(!s)return'';const[a,m,d]=s.split('-');return `${d}/${m}/${a}`};
+const diasAte=s=>Math.round((new Date(s+'T12:00')-new Date(hoje()+'T12:00'))/864e5);
+const nome=id=>(D.membros.find(m=>m.id===id)||{}).nome||'—';
+const ANDROID=!!window.AndroidBridge;
+function toast(t){const e=el('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2400)}
+function copiarAntigo(t){const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}a.remove();return ok}
+function copiar(t,msg){
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast(msg),()=>toast(copiarAntigo(t)?msg:'Não foi possível copiar'));
+  else toast(copiarAntigo(t)?msg:'Não foi possível copiar');
+}
+function whatsapp(t){
+  const url='https://wa.me/?text='+encodeURIComponent(t);
+  if(ANDROID)location.href=url;else window.open(url,'_blank');
+}
+function guardarFicheiro(nomeF,texto,mime){
+  if(ANDROID){
+    const b64=btoa(unescape(encodeURIComponent(texto)));
+    window.AndroidBridge.save(nomeF,b64,mime);return;
+  }
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([texto],{type:mime}));a.download=nomeF;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);toast('Ficheiro guardado');
+}
+
+/* ---------- dados ---------- */
+const CHAVE='familia-que-cresce-v1';
+function vazio(){return{eu:'',membros:[],eventos:[],oportunidades:[],mentorias:[],planos:[],mov:[],pedidos:[]}}
+function demo(){
+  const m=(nome,ramo,parentesco,tel,comp,inter,mentor)=>({id:uid(),nome,ramo,parentesco,telefone:tel,competencias:comp,interesses:inter,mentor,consent:true});
+  const membros=[
+    m('Garcia Castelo','Irmãos','Irmão','923 000 001','Contabilidade, finanças públicas, formação','Mentoria financeira',true),
+    m('Ana Castelo','Irmãos','Irmã','923 000 002','Enfermagem','Concluir licenciatura',false),
+    m('Pedro Francisco','Primos','Primo','924 000 003','Informática, redes','Emprego na área de TI',true),
+    m('Rosa Manuel','Primos','Prima','925 000 004','Costura, pastelaria','Pequeno negócio',false),
+    m('Domingos Pedro','Tios','Tio','926 000 005','Direito, mediação familiar','Mentoria jurídica',true),
+    m('Joana Castelo','Sobrinhos','Sobrinha','927 000 006','Ensino médio concluído','Curso técnico, bolsa',false),
+    m('Manuel Castelo','Sobrinhos','Sobrinho','928 000 007','Condução, mecânica básica','Carta profissional, emprego',false)
+  ];
+  const [g,a,p,r,d,j,mm]=membros.map(x=>x.id);
+  return{
+    eu:g,membros,
+    eventos:[
+      {id:uid(),titulo:'Reunião constitutiva do projecto',tipo:'Reunião',data:addDias(5),hora:'15:00',local:'Casa do tio Domingos, Luanda',descricao:'Aprovação do documento fundador e constituição do Núcleo de Coordenação.',presencas:[g,d,p]},
+      {id:uid(),titulo:'Workshop: Como construir um currículo',tipo:'Workshop',data:addDias(19),hora:'10:00',local:'Cenffor, Luanda',descricao:'Traga o seu BI e certificados. Sairá com o currículo pronto.',presencas:[j,mm]},
+      {id:uid(),titulo:'Encontro de espiritualidade e valores',tipo:'Espiritualidade',data:addDias(12),hora:'17:00',local:'Online (videochamada)',descricao:'Reflexão sobre Gálatas 6:2 e 6:5.',presencas:[]},
+      {id:uid(),titulo:'Encontro de jovens',tipo:'Jovens',data:addDias(26),hora:'14:00',local:'Ilha de Luanda',descricao:'Convívio e conversa sobre escolhas profissionais.',presencas:[]},
+      {id:uid(),titulo:'Reunião do Núcleo de Coordenação',tipo:'Reunião',data:addDias(-10),hora:'19:00',local:'Online',descricao:'Preparação do levantamento de necessidades.',presencas:[g,d,p]}
+    ],
+    oportunidades:[
+      {id:uid(),titulo:'Curso técnico de electricidade de instalações',tipo:'Curso',entidade:'Centro de formação profissional',prazo:addDias(14),descricao:'Curso profissional, 6 meses.',interessados:[mm]},
+      {id:uid(),titulo:'Bolsa de estudo para licenciatura',tipo:'Bolsa',entidade:'Programa de bolsas',prazo:addDias(30),descricao:'Candidaturas online. Apoio na preparação dos documentos.',interessados:[j,a]},
+      {id:uid(),titulo:'Assistente administrativo',tipo:'Vaga',entidade:'Empresa parceira (indicação de familiar)',prazo:addDias(8),descricao:'Ensino médio concluído, informática na óptica do utilizador.',interessados:[]},
+      {id:uid(),titulo:'Estágio em suporte informático',tipo:'Estágio',entidade:'Empresa de telecomunicações',prazo:addDias(21),descricao:'Estágio de 3 meses com possibilidade de contrato.',interessados:[p]}
+    ],
+    mentorias:[
+      {id:uid(),mentor:g,mentorado:r,area:'Educação financeira e pequeno negócio',sessoes:[{data:addDias(-14),nota:'Definido orçamento mensal da pastelaria.'}]},
+      {id:uid(),mentor:p,mentorado:j,area:'Orientação profissional',sessoes:[]}
+    ],
+    planos:[
+      {id:uid(),membro:j,objectivo:'Entrar num curso superior em 2027',area:'Educação',metas:[{t:'Preparar documentos da bolsa',f:true},{t:'Fazer exame de acesso',f:false},{t:'Abrir conta poupança',f:false}]},
+      {id:uid(),membro:r,objectivo:'Formalizar a pastelaria em casa',area:'Autonomia financeira',metas:[{t:'Registar custos de 3 meses',f:true},{t:'Definir preços com margem',f:true},{t:'Conseguir 10 clientes fixos',f:false},{t:'Tratar do alvará simplificado',f:false}]}
+    ],
+    mov:[
+      {id:uid(),tipo:'entrada',data:addDias(-40),descricao:'Contribuição voluntária',membro:g,valor:50000},
+      {id:uid(),tipo:'entrada',data:addDias(-35),descricao:'Contribuição voluntária',membro:d,valor:30000},
+      {id:uid(),tipo:'entrada',data:addDias(-20),descricao:'Donativo pontual',membro:p,valor:15000},
+      {id:uid(),tipo:'saida',data:addDias(-12),descricao:'Material para workshop de currículo',membro:'',valor:8500}
+    ],
+    pedidos:[
+      {id:uid(),membro:j,motivo:'Propina do curso preparatório de acesso',valor:25000,data:addDias(-3),aprov:['coord'],estado:'pendente'},
+      {id:uid(),membro:mm,motivo:'Inscrição no curso técnico',valor:12000,data:addDias(-1),aprov:[],estado:'pendente'}
+    ]
+  };
+}
+let D;
+function ler(){try{const s=localStorage.getItem(CHAVE);return s?JSON.parse(s):null}catch(e){return null}}
+function gravar(){try{localStorage.setItem(CHAVE,JSON.stringify(D))}catch(e){toast('Atenção: não foi possível guardar os dados')}}
+const guardado=ler();
+D=Object.assign(vazio(),guardado||{});
+
+let perfil='coord';
+try{perfil=localStorage.getItem(CHAVE+'-perfil')||'coord'}catch(e){}
+const podeFin=()=>perfil==='coord'||perfil==='fin';
+const isCoord=()=>perfil==='coord';
+
+/* ---------- navegação ---------- */
+const SECS=[['inicio','🏡','Início'],['membros','👥','Membros'],['agenda','📅','Agenda'],['oport','🎓','Oportun.'],['mentoria','🤝','Mentoria'],['planos','🎯','Planos'],['fundo','💰','Fundo'],['indic','📊','Indicad.'],['mais','⚙️','Mais']];
+let atual='inicio';
+el('nav').innerHTML=SECS.map(([k,i,t])=>`<button data-s="${k}" onclick="ir('${k}')"><span class="ic">${i}</span>${t}</button>`).join('');
+function ir(k){
+  atual=k;
+  document.querySelectorAll('.sec').forEach(s=>s.classList.toggle('on',s.id==='s-'+k));
+  document.querySelectorAll('nav button').forEach(b=>{b.classList.toggle('on',b.dataset.s===k);if(b.dataset.s===k)b.scrollIntoView({inline:'nearest',block:'nearest'})});
+  try{if(location.hash!=='#'+k)history.replaceState(null,'','#'+k)}catch(e){}
+  window.scrollTo(0,0);
+}
+// botão "voltar" do Android: fecha a janela aberta, depois volta ao Início
+window.voltar=function(){
+  if(el('modal').classList.contains('on')){if(!el('modal').dataset.fixo)fechar();return 'x'}
+  if(atual!=='inicio'){ir('inicio');return 'x'}
+  return '';
+};
+el('perfil').value=perfil;
+el('perfil').onchange=e=>{perfil=e.target.value;try{localStorage.setItem(CHAVE+'-perfil',perfil)}catch(x){};tudo();toast('Perfil: '+e.target.selectedOptions[0].text)};
+
+/* ---------- janelas e formulários ---------- */
+function abrir(html,fixo){el('caixa').innerHTML=html;el('modal').dataset.fixo=fixo?'1':'';el('modal').classList.add('on');el('caixa').scrollTop=0}
+function fechar(){el('modal').classList.remove('on')}
+el('modal').onclick=e=>{if(e.target.id==='modal'&&!el('modal').dataset.fixo)fechar()};
+function confirmar(texto,fn){
+  abrir(`<h3>Confirmar</h3><p style="margin-bottom:14px">${esc(texto)}</p><div class="acoes"><button class="btn perigo" id="ok">Confirmar</button><button class="btn sec2" onclick="fechar()">Cancelar</button></div>`);
+  el('ok').onclick=()=>{fechar();fn()};
+}
+const optMembros=(vazioTxt)=>(vazioTxt?[['',vazioTxt]]:[]).concat(D.membros.map(m=>[m.id,m.nome]));
+function form(titulo,campos,valores,guardar,extra=''){
+  const h=campos.map(c=>{
+    const v=valores[c.k]??c.def??'';
+    if(c.t==='chk')return `<label class="chk"><input type="checkbox" id="f-${c.k}" ${v?'checked':''}> ${c.l}</label>`;
+    if(c.t==='sel')return `<label>${c.l}<select id="f-${c.k}">${c.o.map(o=>{const[val,txt]=Array.isArray(o)?o:[o,o];return `<option value="${esc(val)}" ${val==v?'selected':''}>${esc(txt)}</option>`}).join('')}</select></label>`;
+    if(c.t==='area')return `<label>${c.l}<textarea id="f-${c.k}" rows="3">${esc(v)}</textarea></label>`;
+    return `<label>${c.l}<input id="f-${c.k}" type="${c.t||'text'}" value="${esc(v)}" ${c.t==='number'?'min="0" step="any" inputmode="decimal"':''}></label>`;
+  }).join('');
+  abrir(`<h3>${titulo}</h3>${h}${extra}<div class="acoes"><button class="btn" id="gravar">Guardar</button><button class="btn sec2" onclick="fechar()">Cancelar</button></div>`);
+  el('gravar').onclick=()=>{
+    const o={};
+    for(const c of campos){const e=el('f-'+c.k);o[c.k]=c.t==='chk'?e.checked:c.t==='number'?parseFloat(String(e.value).replace(',','.'))||0:e.value.trim();
+      if(c.req&&!o[c.k]){toast('Preencha: '+c.l);e.focus();return}}
+    if(guardar(o)!==false){gravar();fechar();tudo()}
+  };
+}
+
+/* ---------- INÍCIO ---------- */
+function saldo(){return D.mov.reduce((s,m)=>s+(m.tipo==='entrada'?m.valor:-m.valor),0)}
+function rInicio(){
+  const eu=D.membros.find(m=>m.id===D.eu);
+  const h=new Date().getHours();
+  el('ola').innerHTML=eu?`${h<12?'Bom dia':h<19?'Boa tarde':'Boa noite'}, <b>${esc(eu.nome.split(' ')[0])}</b>.`:'';
+  const prox=D.eventos.filter(e=>e.data>=hoje()).sort((a,b)=>a.data.localeCompare(b.data));
+  const op=D.oportunidades.filter(o=>o.prazo>=hoje());
+  el('kpis').innerHTML=[
+    [D.membros.length,'membros registados'],
+    [prox.length,'actividades marcadas'],
+    [op.length,'oportunidades abertas'],
+    [podeFin()?kz(saldo()):'🔒','saldo do fundo']
+  ].map(([b,s])=>`<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join('');
+  el('inicio-eventos').innerHTML=prox.slice(0,3).map(cartaoEvento).join('')||'<div class="vazio">Sem actividades marcadas.</div>';
+  el('inicio-oport').innerHTML=op.sort((a,b)=>a.prazo.localeCompare(b.prazo)).slice(0,2).map(cartaoOport).join('')||'<div class="vazio">Sem oportunidades abertas.</div>';
+}
+
+/* ---------- MEMBROS ---------- */
+const RAMOS=['Irmãos','Primos','Tios','Sobrinhos','Netos','Outros'];
+let ramoF='Todos';
+function rMembros(){
+  el('tabs-ramo').innerHTML=['Todos',...RAMOS].map(r=>`<button class="${r===ramoF?'on':''}" onclick="ramoF='${r}';rMembros()">${r}</button>`).join('');
+  const q=(el('busca-membros').value||'').toLowerCase();
+  const l=D.membros.filter(m=>(ramoF==='Todos'||m.ramo===ramoF)&&(`${m.nome} ${m.ramo} ${m.competencias} ${m.interesses}`.toLowerCase().includes(q))).sort((a,b)=>a.nome.localeCompare(b.nome));
+  el('lista-membros').innerHTML=l.map(m=>`
+    <div class="card">
+      <div class="linha"><div><b>${esc(m.nome)}</b>${m.id===D.eu?' <span class="tag t">eu</span>':''}<div class="meta">${esc(m.parentesco)}${m.parentesco?' · ':''}ramo ${esc(m.ramo)}${(isCoord()||m.id===D.eu)&&m.telefone?' · '+esc(m.telefone):''}</div></div>
+      ${m.mentor?'<span class="tag">Mentor</span>':''}</div>
+      ${m.competencias?`<div class="meta" style="margin-top:6px"><b>Sabe:</b> ${esc(m.competencias)}</div>`:''}
+      ${m.interesses?`<div class="meta"><b>Procura:</b> ${esc(m.interesses)}</div>`:''}
+      ${isCoord()||m.id===D.eu?`<div class="acoes"><button class="btn sec2 mini" onclick="formMembro('${m.id}')">Editar</button>${m.id!==D.eu?`<button class="btn sec2 mini" onclick="D.eu='${m.id}';gravar();tudo();toast('Este passa a ser o seu perfil')">Sou eu</button>`:''}${isCoord()&&m.telefone?`<a class="btn sec2 mini" href="tel:${esc(m.telefone.replace(/\s/g,''))}">Ligar</a>`:''}${isCoord()?`<button class="btn perigo mini" onclick="apagarMembro('${m.id}')">Remover</button>`:''}</div>`:''}
+    </div>`).join('')||'<div class="vazio">Nenhum membro encontrado.</div>';
+}
+function formMembro(id){
+  if(!id&&!isCoord()&&D.eu){toast('O registo de novos membros é feito pela coordenação');return}
+  const m=D.membros.find(x=>x.id===id)||{};
+  form(id?'Editar membro':'Registar membro',[
+    {k:'nome',l:'Nome',req:1},{k:'ramo',l:'Ramo da família',t:'sel',o:RAMOS},{k:'parentesco',l:'Parentesco (ex.: prima, tio)'},
+    {k:'telefone',l:'Telefone',t:'tel'},{k:'competencias',l:'Competências que pode partilhar'},{k:'interesses',l:'O que procura no projecto'},
+    {k:'mentor',l:'Disponível para ser mentor',t:'chk'},{k:'consent',l:'A pessoa autoriza o registo voluntário dos seus dados',t:'chk',def:!!id}
+  ],m,o=>{
+    if(!o.consent){toast('O registo exige consentimento');return false}
+    if(id)Object.assign(m,o);else{const n={id:uid(),...o};D.membros.push(n);if(!D.eu)D.eu=n.id}
+    toast('Membro guardado');
+  });
+}
+function apagarMembro(id){confirmar('Remover '+nome(id)+'? Os planos e mentorias dessa pessoa também serão removidos.',()=>{
+  D.membros=D.membros.filter(m=>m.id!==id);D.planos=D.planos.filter(p=>p.membro!==id);
+  D.mentorias=D.mentorias.filter(x=>x.mentor!==id&&x.mentorado!==id);if(D.eu===id)D.eu=(D.membros[0]||{}).id||'';gravar();tudo();toast('Membro removido')})}
+function precisaEu(){if(!D.eu){toast('Registe-se primeiro como membro');ir('membros');return true}return false}
+
+/* ---------- AGENDA ---------- */
+const TIPOS_EV=['Reunião','Encontro geral','Workshop','Jovens','Educação financeira','Espiritualidade','Visita','Feira de oportunidades'];
+let agF='proximas';
+function cartaoEvento(e){
+  const vou=e.presencas.includes(D.eu), d=diasAte(e.data);
+  return `<div class="card"><div class="linha"><div><b>${esc(e.titulo)}</b><div class="meta">📅 ${dataPt(e.data)} às ${esc(e.hora)}${e.local?' · 📍 '+esc(e.local):''}</div></div><span class="tag t">${esc(e.tipo)}</span></div>
+  ${e.descricao?`<div class="meta" style="margin-top:6px">${esc(e.descricao)}</div>`:''}
+  <div class="meta" style="margin-top:6px">${e.presencas.length} confirmado(s)${d>=0?` · ${d===0?'hoje':d===1?'amanhã':'daqui a '+d+' dias'}`:''}</div>
+  ${isCoord()&&e.presencas.length?`<div class="meta">Confirmados: ${e.presencas.map(nome).map(esc).join(', ')}</div>`:''}
+  <div class="acoes">${d>=0?`<button class="btn ${vou?'sec2':''} mini" onclick="presenca('${e.id}')">${vou?'✓ Vou estar':'Confirmar presença'}</button>`:''}
+  ${isCoord()?`<button class="btn sec2 mini" onclick="convocar('${e.id}')">Convocar</button><button class="btn sec2 mini" onclick="formEvento('${e.id}')">Editar</button><button class="btn perigo mini" onclick="confirmar('Apagar esta actividade?',()=>{D.eventos=D.eventos.filter(x=>x.id!=='${e.id}');gravar();tudo()})">Apagar</button>`:''}</div></div>`;
+}
+function presenca(id){if(precisaEu())return;const e=D.eventos.find(x=>x.id===id);const i=e.presencas.indexOf(D.eu);i<0?e.presencas.push(D.eu):e.presencas.splice(i,1);gravar();tudo();toast(i<0?'Presença confirmada':'Presença retirada')}
+function convocar(id){ir('mais');el('sel-convoc').value=id;msgConvoc()}
+function rAgenda(){
+  el('tabs-agenda').innerHTML=[['proximas','Próximas'],['passadas','Realizadas']].map(([k,t])=>`<button class="${k===agF?'on':''}" onclick="agF='${k}';rAgenda()">${t}</button>`).join('');
+  const l=D.eventos.filter(e=>agF==='proximas'?e.data>=hoje():e.data<hoje()).sort((a,b)=>agF==='proximas'?a.data.localeCompare(b.data):b.data.localeCompare(a.data));
+  el('lista-eventos').innerHTML=l.map(cartaoEvento).join('')||'<div class="vazio">Nada por aqui.</div>';
+}
+function formEvento(id){
+  if(!isCoord()){toast('Só a coordenação marca actividades');return}
+  const e=D.eventos.find(x=>x.id===id)||{};
+  form(id?'Editar actividade':'Nova actividade',[{k:'titulo',l:'Título',req:1},{k:'tipo',l:'Tipo',t:'sel',o:TIPOS_EV},{k:'data',l:'Data',t:'date',req:1,def:hoje()},{k:'hora',l:'Hora',t:'time',def:'15:00'},{k:'local',l:'Local'},{k:'descricao',l:'Descrição',t:'area'}],e,o=>{
+    if(id)Object.assign(e,o);else D.eventos.push({id:uid(),presencas:[],...o});toast('Actividade guardada')});
+}
+
+/* ---------- OPORTUNIDADES ---------- */
+const TIPOS_OP=['Curso','Bolsa','Vaga','Estágio','Empreendedorismo'];
+let opF='Todas';
+function cartaoOport(o){
+  const d=diasAte(o.prazo), quer=o.interessados.includes(D.eu);
+  return `<div class="card"><div class="linha"><div><b>${esc(o.titulo)}</b><div class="meta">${esc(o.entidade)}</div></div><span class="tag">${esc(o.tipo)}</span></div>
+  ${o.descricao?`<div class="meta" style="margin-top:6px">${esc(o.descricao)}</div>`:''}
+  <div style="margin-top:6px">${d<0?'<span class="tag g">Prazo terminado</span>':`<span class="tag ${d<=7?'r':'t'}">Prazo: ${dataPt(o.prazo)} (${d===0?'hoje':d+' dia(s)'})</span>`} <span class="tag g">${o.interessados.length} interessado(s)</span></div>
+  ${isCoord()&&o.interessados.length?`<div class="meta" style="margin-top:6px">Interessados: ${o.interessados.map(nome).map(esc).join(', ')}</div>`:''}
+  <div class="acoes">${d>=0?`<button class="btn ${quer?'sec2':''} mini" onclick="interesse('${o.id}')">${quer?'✓ Tenho interesse':'Tenho interesse'}</button>`:''}
+  <button class="btn sec2 mini" onclick="whatsapp(textoOport('${o.id}'))">Partilhar</button>
+  ${isCoord()?`<button class="btn sec2 mini" onclick="formOport('${o.id}')">Editar</button><button class="btn perigo mini" onclick="confirmar('Apagar esta oportunidade?',()=>{D.oportunidades=D.oportunidades.filter(x=>x.id!=='${o.id}');gravar();tudo()})">Apagar</button>`:''}</div></div>`;
+}
+function textoOport(id){const o=D.oportunidades.find(x=>x.id===id);return `🌱 *Família que Cresce*\n📢 Oportunidade: *${o.titulo}* (${o.tipo})\n🏢 ${o.entidade}\n⏳ Prazo: ${dataPt(o.prazo)}\n\n${o.descricao||''}\n\nQuem tiver interesse, fale com a coordenação.`}
+function interesse(id){if(precisaEu())return;const o=D.oportunidades.find(x=>x.id===id);const i=o.interessados.indexOf(D.eu);i<0?o.interessados.push(D.eu):o.interessados.splice(i,1);gravar();tudo();toast(i<0?'Interesse registado. A coordenação vai contactá-lo.':'Interesse retirado')}
+function rOport(){
+  el('tabs-oport').innerHTML=['Todas',...TIPOS_OP].map(t=>`<button class="${t===opF?'on':''}" onclick="opF='${t}';rOport()">${t}</button>`).join('');
+  const l=D.oportunidades.filter(o=>opF==='Todas'||o.tipo===opF).sort((a,b)=>(a.prazo<hoje())-(b.prazo<hoje())||a.prazo.localeCompare(b.prazo));
+  el('lista-oport').innerHTML=l.map(cartaoOport).join('')||'<div class="vazio">Sem oportunidades nesta categoria.</div>';
+}
+function formOport(id){
+  const o=D.oportunidades.find(x=>x.id===id)||{};
+  form(id?'Editar oportunidade':'Divulgar oportunidade',[{k:'titulo',l:'Título',req:1},{k:'tipo',l:'Tipo',t:'sel',o:TIPOS_OP},{k:'entidade',l:'Entidade'},{k:'prazo',l:'Prazo de candidatura',t:'date',req:1,def:addDias(14)},{k:'descricao',l:'Requisitos e como candidatar-se',t:'area'}],o,v=>{
+    if(id)Object.assign(o,v);else D.oportunidades.push({id:uid(),interessados:[],...v});toast('Oportunidade publicada')});
+}
+
+/* ---------- MENTORIA ---------- */
+function rMentoria(){
+  const vis=D.mentorias.filter(x=>isCoord()||x.mentor===D.eu||x.mentorado===D.eu);
+  el('lista-mentoria').innerHTML=vis.map(x=>`
+    <div class="card"><div class="linha"><div><b>${esc(nome(x.mentor))}</b> acompanha <b>${esc(nome(x.mentorado))}</b><div class="meta">${esc(x.area)}</div></div><span class="tag t">${x.sessoes.length} sessão(ões)</span></div>
+    ${x.sessoes.slice(-2).reverse().map(s=>`<div class="meta" style="margin-top:6px">• ${dataPt(s.data)}: ${esc(s.nota)}</div>`).join('')}
+    <div class="acoes"><button class="btn sec2 mini" onclick="formSessao('${x.id}')">Registar sessão</button>${isCoord()?`<button class="btn perigo mini" onclick="confirmar('Terminar este acompanhamento?',()=>{D.mentorias=D.mentorias.filter(y=>y.id!=='${x.id}');gravar();tudo()})">Terminar</button>`:''}</div></div>`).join('')
+    ||`<div class="vazio">${isCoord()?'Ainda não há acompanhamentos.':'Não tem acompanhamentos activos. Escolha um mentor abaixo.'}</div>`;
+  el('lista-mentores').innerHTML=D.membros.filter(m=>m.mentor).map(m=>{
+    const n=D.mentorias.filter(x=>x.mentor===m.id).length;
+    return `<div class="card"><div class="linha"><div><b>${esc(m.nome)}</b><div class="meta">${esc(m.competencias)}</div></div><span class="tag ${n>=2?'g':''}">${n>=2?'Sem vagas':(2-n)+' vaga(s)'}</span></div>
+    ${n<2&&m.id!==D.eu&&!isCoord()?`<div class="acoes"><button class="btn mini" onclick="pedirMentor('${m.id}')">Pedir acompanhamento</button></div>`:''}</div>`}).join('')||'<div class="vazio">Ainda não há mentores. Marque "Disponível para ser mentor" no registo de um membro.</div>';
+}
+function formMentoria(){
+  if(!isCoord()){toast('Os pares de mentoria são definidos pela coordenação');return}
+  const mentores=D.membros.filter(m=>m.mentor);
+  if(!mentores.length){toast('Primeiro marque algum membro como mentor');return}
+  form('Novo acompanhamento',[{k:'mentor',l:'Mentor',t:'sel',o:mentores.map(m=>[m.id,m.nome])},{k:'mentorado',l:'Pessoa acompanhada',t:'sel',o:optMembros()},{k:'area',l:'Área (ex.: orientação profissional)',req:1}],{},o=>{
+    if(o.mentor===o.mentorado){toast('Escolha pessoas diferentes');return false}
+    if(D.mentorias.filter(x=>x.mentor===o.mentor).length>=2){toast('Este mentor já acompanha duas pessoas');return false}
+    D.mentorias.push({id:uid(),sessoes:[],...o});toast('Acompanhamento criado')});
+}
+function pedirMentor(mid){
+  if(precisaEu())return;
+  form('Pedir acompanhamento a '+esc(nome(mid)),[{k:'area',l:'Em que precisa de orientação?',req:1}],{},o=>{
+    if(D.mentorias.filter(x=>x.mentor===mid).length>=2){toast('Este mentor já não tem vagas');return false}
+    D.mentorias.push({id:uid(),mentor:mid,mentorado:D.eu,area:o.area,sessoes:[]});toast('Pedido registado')});
+}
+function formSessao(id){
+  const x=D.mentorias.find(y=>y.id===id);
+  form('Registar sessão',[{k:'data',l:'Data',t:'date',def:hoje()},{k:'nota',l:'O que se combinou (sem detalhes privados)',t:'area',req:1}],{},o=>{x.sessoes.push(o);toast('Sessão registada')});
+}
+
+/* ---------- PLANOS ---------- */
+function rPlanos(){
+  const vis=D.planos.filter(p=>isCoord()||p.membro===D.eu);
+  if(perfil==='fin'&&!vis.length){el('lista-planos').innerHTML='<div class="cadeado">🔒 Os planos individuais são visíveis apenas para a própria pessoa e para a coordenação.</div>';return}
+  el('lista-planos').innerHTML=vis.map(p=>{
+    const f=p.metas.filter(m=>m.f).length, pc=p.metas.length?Math.round(f/p.metas.length*100):0;
+    return `<div class="card"><div class="linha"><div><b>${esc(p.objectivo)}</b><div class="meta">${esc(nome(p.membro))} · ${esc(p.area)}</div></div><span class="tag">${pc}%</span></div>
+    <div class="barra"><i style="width:${pc}%"></i></div>
+    <div style="margin-top:8px">${p.metas.map((m,i)=>`<label class="chk" style="margin:6px 0"><input type="checkbox" ${m.f?'checked':''} onchange="meta('${p.id}',${i},this.checked)"> ${esc(m.t)}</label>`).join('')}</div>
+    <div class="acoes"><button class="btn sec2 mini" onclick="novaMeta('${p.id}')">+ Meta</button><button class="btn perigo mini" onclick="confirmar('Apagar este plano?',()=>{D.planos=D.planos.filter(x=>x.id!=='${p.id}');gravar();tudo()})">Apagar</button></div></div>`}).join('')
+    ||'<div class="vazio">Ainda não tem um plano. Comece por um objectivo simples para os próximos meses.</div>';
+}
+function meta(pid,i,v){D.planos.find(p=>p.id===pid).metas[i].f=v;gravar();tudo();if(v)toast('Meta cumprida. Parabéns! 🌱')}
+function novaMeta(pid){form('Nova meta',[{k:'t',l:'Meta concreta',req:1}],{},o=>{D.planos.find(p=>p.id===pid).metas.push({t:o.t,f:false})})}
+function formPlano(){
+  if(precisaEu())return;
+  const campos=[{k:'objectivo',l:'Objectivo',req:1},{k:'area',l:'Área',t:'sel',o:['Educação','Emprego','Autonomia financeira','Família','Desenvolvimento pessoal']},{k:'metas',l:'Metas (uma por linha)',t:'area'}];
+  if(isCoord())campos.unshift({k:'membro',l:'Membro',t:'sel',o:optMembros()});
+  form('Novo plano individual',campos,{membro:D.eu},o=>{
+    D.planos.push({id:uid(),membro:o.membro||D.eu,objectivo:o.objectivo,area:o.area,metas:o.metas.split('\n').map(t=>t.trim()).filter(Boolean).map(t=>({t,f:false}))});toast('Plano criado')});
+}
+
+/* ---------- FUNDO ---------- */
+let fF='resumo';
+function trimestre(d){const[a,m]=d.split('-');return `${a} T${Math.ceil(m/3)}`}
+function rFundo(){
+  const s=saldo(), ent=D.mov.filter(m=>m.tipo==='entrada').reduce((a,m)=>a+m.valor,0), sai=D.mov.filter(m=>m.tipo==='saida').reduce((a,m)=>a+m.valor,0);
+  const meus=D.pedidos.filter(p=>p.membro===D.eu);
+  if(!podeFin()){
+    el('fundo-corpo').innerHTML=`
+      <div class="kpis"><div class="kpi"><b>${kz(s)}</b><span>saldo disponível</span></div><div class="kpi"><b>${D.mov.filter(m=>m.tipo==='entrada').length}</b><span>contribuições recebidas</span></div></div>
+      <p class="meta" style="margin-bottom:12px">Ninguém é obrigado a contribuir. Os detalhes financeiros são vistos apenas pelos responsáveis autorizados e apresentados em relatório trimestral.</p>
+      <div class="acoes" style="margin-bottom:14px"><button class="btn" onclick="formContrib()">Registar contribuição</button><button class="btn terra" onclick="formPedido()">Pedir apoio</button></div>
+      <h3 style="font-size:16px;margin-bottom:8px">Os meus pedidos</h3>
+      ${meus.map(cartaoPedido).join('')||'<div class="vazio">Não tem pedidos.</div>'}`;
+    return;
+  }
+  const pend=D.pedidos.filter(p=>p.estado==='pendente'||p.estado==='aprovado');
+  const tabs=[['resumo','Resumo'],['mov','Movimentos'],['pedidos',`Pedidos (${pend.length})`],['relat','Relatório']];
+  let corpo='';
+  if(fF==='resumo'){
+    corpo=`<div class="kpis"><div class="kpi"><b>${kz(s)}</b><span>saldo</span></div><div class="kpi"><b class="entrada">${kz(ent)}</b><span>entradas</span></div><div class="kpi"><b class="saida">${kz(sai)}</b><span>saídas</span></div><div class="kpi"><b>${pend.length}</b><span>pedidos em análise</span></div></div>
+    <div class="acoes"><button class="btn" onclick="formContrib()">+ Entrada</button><button class="btn sec2" onclick="formDespesa()">+ Despesa</button></div>
+    <div class="card" style="margin-top:14px"><b>Regras em vigor</b><ul style="padding-left:18px;font-size:13.5px;margin-top:6px"><li>Sem quotas obrigatórias.</li><li>Apoio aprovado só com dupla autorização (coordenação e finanças).</li><li>Não se aprova apoio sem saldo para o cobrir.</li><li>Contas separadas das finanças pessoais dos coordenadores.</li></ul></div>`;
+  }else if(fF==='mov'){
+    const l=[...D.mov].sort((a,b)=>b.data.localeCompare(a.data));
+    corpo=l.length?`<div class="card" style="padding:6px 10px"><table><tr><th>Data</th><th>Descrição</th><th class="num">Valor</th><th></th></tr>${l.map(m=>`<tr><td>${dataPt(m.data)}</td><td>${esc(m.descricao)}${m.membro?`<div class="meta">${esc(nome(m.membro))}</div>`:''}</td><td class="num ${m.tipo}">${m.tipo==='saida'?'−':'+'}${kz(m.valor)}</td><td><button class="btn perigo mini" onclick="confirmar('Anular este movimento?',()=>{D.mov=D.mov.filter(x=>x.id!=='${m.id}');gravar();tudo()})">✕</button></td></tr>`).join('')}</table></div>`:'<div class="vazio">Ainda não há movimentos.</div>';
+  }else if(fF==='pedidos'){
+    const l=[...D.pedidos].sort((a,b)=>b.data.localeCompare(a.data));
+    corpo=`<div class="acoes" style="margin-bottom:10px"><button class="btn terra" onclick="formPedido()">+ Registar pedido</button></div>`+(l.map(cartaoPedido).join('')||'<div class="vazio">Sem pedidos.</div>');
+  }else{
+    const g={};D.mov.forEach(m=>{const t=trimestre(m.data);g[t]=g[t]||{e:0,s:0};g[t][m.tipo==='entrada'?'e':'s']+=m.valor});
+    const ts=Object.keys(g).sort();let acum=0;
+    const linhas=ts.map(t=>{acum+=g[t].e-g[t].s;return `<tr><td>${t}</td><td class="num entrada">${kz(g[t].e)}</td><td class="num saida">${kz(g[t].s)}</td><td class="num"><b>${kz(acum)}</b></td></tr>`}).join('');
+    window._relat=relatorioTexto(g,ts);
+    corpo=`${ts.length?`<div class="card" style="padding:6px 10px"><table><tr><th>Trimestre</th><th class="num">Entradas</th><th class="num">Saídas</th><th class="num">Saldo</th></tr>${linhas}</table></div>`:''}
+    <div class="card"><b>Resumo para o grupo da família</b><pre class="msg" style="margin-top:8px">${esc(window._relat)}</pre><div class="acoes"><button class="btn wa" onclick="whatsapp(window._relat)">Enviar no WhatsApp</button><button class="btn sec2" onclick="copiar(window._relat,'Relatório copiado')">Copiar</button></div><p class="aviso">Sem nomes de quem contribuiu nem de quem recebeu apoio.</p></div>`;
+  }
+  el('fundo-corpo').innerHTML=`<div class="tabs">${tabs.map(([k,t])=>`<button class="${k===fF?'on':''}" onclick="fF='${k}';rFundo()">${t}</button>`).join('')}</div>${corpo}`;
+}
+function relatorioTexto(g,ts){
+  const ent=D.mov.filter(m=>m.tipo==='entrada'), sai=D.mov.filter(m=>m.tipo==='saida');
+  return `🌱 *Família que Cresce*\nRelatório do Fundo Solidário (${dataPt(hoje())})\n\n`+
+  (ts.length?ts.map(t=>`${t}: entradas ${kz(g[t].e)}, saídas ${kz(g[t].s)}`).join('\n')+'\n\n':'')+
+  `Total recebido: ${kz(ent.reduce((a,m)=>a+m.valor,0))} (${ent.length} contribuições)\nTotal aplicado: ${kz(sai.reduce((a,m)=>a+m.valor,0))}\nApoios concedidos: ${D.pedidos.filter(p=>p.estado==='pago').length}\nSaldo actual: ${kz(saldo())}\n\nObrigado a todos os que contribuíram voluntariamente. Cada gesto conta.`;
+}
+const ESTADO={pendente:['Em análise','t'],aprovado:['Aprovado, por pagar',''],pago:['Pago',''],recusado:['Não aprovado','g']};
+function cartaoPedido(p){
+  const [et,ec]=ESTADO[p.estado];
+  const jaAprovei=p.aprov.includes(perfil);
+  const podeAprovar=podeFin()&&p.estado==='pendente'&&!jaAprovei;
+  return `<div class="card"><div class="linha"><div><b>${esc(p.motivo)}</b><div class="meta">${podeFin()||p.membro===D.eu?esc(nome(p.membro))+' · ':''}${dataPt(p.data)}</div></div><b style="white-space:nowrap">${kz(p.valor)}</b></div>
+  <div style="margin-top:6px"><span class="tag ${ec}">${et}</span>${p.estado==='pendente'?`<span class="tag g">Coordenação ${p.aprov.includes('coord')?'✓':'…'}</span><span class="tag g">Finanças ${p.aprov.includes('fin')?'✓':'…'}</span>`:''}</div>
+  <div class="acoes">${podeAprovar?`<button class="btn mini" onclick="aprovar('${p.id}')">Aprovar</button><button class="btn perigo mini" onclick="recusar('${p.id}')">Não aprovar</button>`:''}
+  ${p.estado==='aprovado'&&perfil==='fin'?`<button class="btn terra mini" onclick="pagar('${p.id}')">Registar pagamento</button>`:''}
+  ${jaAprovei&&p.estado==='pendente'?'<span class="meta">Já aprovou. Falta a outra assinatura.</span>':''}</div></div>`;
+}
+function aprovar(id){
+  const p=D.pedidos.find(x=>x.id===id);
+  const comprometido=D.pedidos.filter(x=>x.estado==='aprovado').reduce((a,x)=>a+x.valor,0);
+  if(p.valor>saldo()-comprometido){toast('Saldo insuficiente. Não se prometem apoios sem financiamento.');return}
+  p.aprov.push(perfil);if(p.aprov.includes('coord')&&p.aprov.includes('fin'))p.estado='aprovado';
+  gravar();tudo();toast(p.estado==='aprovado'?'Pedido aprovado com dupla autorização':'Primeira aprovação registada');
+}
+function recusar(id){confirmar('Marcar este pedido como não aprovado?',()=>{D.pedidos.find(x=>x.id===id).estado='recusado';gravar();tudo()})}
+function pagar(id){const p=D.pedidos.find(x=>x.id===id);p.estado='pago';D.mov.push({id:uid(),tipo:'saida',data:hoje(),descricao:'Apoio: '+p.motivo,membro:'',valor:p.valor});gravar();tudo();toast('Pagamento registado no fundo')}
+function formContrib(){
+  const campos=[{k:'valor',l:'Valor (Kz)',t:'number',req:1},{k:'data',l:'Data',t:'date',def:hoje()},{k:'descricao',l:'Tipo',t:'sel',o:['Contribuição voluntária','Donativo pontual','Apoio de parceiro','Patrocínio de workshop']}];
+  if(podeFin())campos.unshift({k:'membro',l:'Quem contribuiu',t:'sel',o:optMembros('Parceiro externo')});
+  form('Registar contribuição',campos,{membro:D.eu},o=>{D.mov.push({id:uid(),tipo:'entrada',...o,membro:o.membro??D.eu});toast('Obrigado pela contribuição 🌱')});
+}
+function formDespesa(){form('Registar despesa',[{k:'descricao',l:'Descrição',req:1},{k:'valor',l:'Valor (Kz)',t:'number',req:1},{k:'data',l:'Data',t:'date',def:hoje()}],{},o=>{
+  if(o.valor>saldo()){toast('A despesa ultrapassa o saldo disponível');return false}D.mov.push({id:uid(),tipo:'saida',membro:'',...o});toast('Despesa registada')})}
+function formPedido(){
+  if(!podeFin()&&precisaEu())return;
+  if(!D.membros.length){toast('Registe primeiro os membros');return}
+  const campos=[{k:'motivo',l:'Para quê?',req:1},{k:'valor',l:'Valor necessário (Kz)',t:'number',req:1}];
+  if(podeFin())campos.unshift({k:'membro',l:'Membro',t:'sel',o:optMembros()});
+  form('Pedido de apoio',campos,{membro:D.eu},o=>{D.pedidos.push({id:uid(),membro:o.membro||D.eu,motivo:o.motivo,valor:o.valor,data:hoje(),aprov:[],estado:'pendente'});toast('Pedido enviado. É tratado com confidencialidade.')},
+  '<p class="aviso" style="margin-bottom:10px">O pedido é analisado com confidencialidade e precisa de duas aprovações.</p>');
+}
+
+/* ---------- INDICADORES ---------- */
+function rIndic(){
+  const metasT=D.planos.reduce((a,p)=>a+p.metas.length,0), metasF=D.planos.reduce((a,p)=>a+p.metas.filter(m=>m.f).length,0);
+  const realizados=D.eventos.filter(e=>e.data<hoje());
+  const pres=realizados.reduce((a,e)=>a+e.presencas.length,0);
+  const ind=[
+    ['Familiares envolvidos',D.membros.length],
+    ['Mentores disponíveis',D.membros.filter(m=>m.mentor).length],
+    ['Acompanhamentos de mentoria',D.mentorias.length],
+    ['Sessões de mentoria',D.mentorias.reduce((a,x)=>a+x.sessoes.length,0)],
+    ['Actividades realizadas',realizados.length],
+    ['Workshops marcados ou feitos',D.eventos.filter(e=>e.tipo==='Workshop').length],
+    ['Presenças em actividades realizadas',pres],
+    ['Oportunidades divulgadas',D.oportunidades.length],
+    ['Manifestações de interesse',D.oportunidades.reduce((a,o)=>a+o.interessados.length,0)],
+    ['Planos individuais activos',D.planos.length],
+    ['Metas cumpridas',`${metasF} de ${metasT}`],
+    ['Apoios concedidos',D.pedidos.filter(p=>p.estado==='pago').length]
+  ];
+  const porRamo=RAMOS.map(r=>[r,D.membros.filter(m=>m.ramo===r).length]).filter(x=>x[1]);
+  const max=Math.max(...porRamo.map(x=>x[1]),1);
+  el('indic-corpo').innerHTML=`
+    <p class="meta" style="margin-bottom:12px">Resultados agregados, sem identificar pessoas. As metas numéricas serão definidas depois do diagnóstico inicial.</p>
+    <div class="card" style="padding:6px 10px"><table>${ind.map(([a,b])=>`<tr><td>${a}</td><td class="num"><b>${b}</b></td></tr>`).join('')}</table></div>
+    ${porRamo.length?`<div class="card"><b>Membros por ramo da família</b>${porRamo.map(([r,n])=>`<div style="margin-top:8px"><div class="linha meta"><span>${r}</span><span>${n}</span></div><div class="barra"><i style="width:${n/max*100}%"></i></div></div>`).join('')}</div>`:''}
+    <div class="card"><b>Progresso das metas pessoais</b><div class="barra" style="height:12px"><i style="width:${metasT?metasF/metasT*100:0}%"></i></div><div class="meta" style="margin-top:4px">${metasT?Math.round(metasF/metasT*100):0}% das metas definidas já foram cumpridas</div></div>`;
+}
+
+/* ---------- MAIS ---------- */
+const CONDUTA=['Sem humilhações nem julgamentos públicos.','Respeito pela privacidade de cada familiar.','Nenhuma situação pessoal é divulgada sem consentimento.','Respeito pela liberdade religiosa e pelas escolhas individuais.','Sem discriminação por condição económica, escolaridade, género ou estado civil.','Tolerância zero para violência, intimidação e exploração.','Situações complexas são encaminhadas para profissionais.','Protecção especial dos dados e da imagem das crianças.','O apoio nunca serve para controlar a vida de quem o recebe.'];
+function rMais(){
+  el('conduta').innerHTML=CONDUTA.map(c=>`<li style="margin-bottom:4px">${c}</li>`).join('');
+  const prox=D.eventos.filter(e=>e.data>=hoje()).sort((a,b)=>a.data.localeCompare(b.data));
+  const sel=el('sel-convoc'), ant=sel.value;
+  sel.innerHTML=prox.map(e=>`<option value="${e.id}">${dataPt(e.data)} · ${esc(e.titulo)}</option>`).join('')||'<option value="">Sem actividades marcadas</option>';
+  if(prox.some(e=>e.id===ant))sel.value=ant;
+  sel.onchange=msgConvoc;msgConvoc();
+}
+function msgConvoc(){
+  const e=D.eventos.find(x=>x.id===el('sel-convoc').value);
+  if(!e){el('msg-convoc').textContent='Marque primeiro uma actividade na agenda.';return}
+  const dias=['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+  const dw=dias[new Date(e.data+'T12:00').getDay()];
+  el('msg-convoc').textContent=`🌱 *Família que Cresce*\n\nQuerida família,\n\nEstão todos convidados para: *${e.titulo}*\n\n📅 ${dw}, ${dataPt(e.data)}\n🕒 ${e.hora}\n${e.local?'📍 '+e.local+'\n':''}\n${e.descricao?e.descricao+'\n\n':''}A participação é livre e cada presença faz diferença. Confirmem por favor até à véspera, respondendo a esta mensagem.\n\n_Uma família unida pelo amor, fortalecida pelo conhecimento e transformada pela responsabilidade._`;
+}
+function exportar(){guardarFicheiro(`familia-que-cresce-copia-${hoje()}.json`,JSON.stringify(D,null,1),'application/json')}
+function formImportar(){
+  abrir(`<h3>Restaurar cópia</h3><p class="meta" style="margin-bottom:12px">Escolha o ficheiro .json guardado antes. Os dados actuais deste telemóvel serão substituídos.</p><label>Ficheiro da cópia<input type="file" id="impf" accept=".json,application/json,text/plain,*/*"></label><label>Ou cole aqui o conteúdo<textarea id="imp" rows="4"></textarea></label><div class="acoes"><button class="btn" id="impok">Restaurar</button><button class="btn sec2" onclick="fechar()">Cancelar</button></div>`);
+  el('impf').onchange=ev=>{const f=ev.target.files[0];if(f)f.text().then(t=>{el('imp').value=t;toast('Ficheiro lido. Toque em Restaurar.')})};
+  el('impok').onclick=()=>{try{const o=JSON.parse(el('imp').value);if(!o.membros||!o.mov)throw 0;D=Object.assign(vazio(),o);gravar();fechar();tudo();toast('Dados restaurados')}catch(e){toast('Este conteúdo não é uma cópia válida')}};
+}
+
+/* ---------- primeira utilização ---------- */
+function boasVindas(){
+  abrir(`<div class="boas"><div class="logo">🌱</div><h3>Bem-vindo à Família que Cresce</h3>
+  <p class="meta" style="margin-bottom:16px">Escolha como quer começar. Pode mudar depois, no separador Mais.</p></div>
+  <label>O seu nome<input id="bv-nome" placeholder="Ex.: Garcia Castelo"></label>
+  <label>Ramo da família<select id="bv-ramo">${RAMOS.map(r=>`<option>${r}</option>`).join('')}</select></label>
+  <button class="btn largo" id="bv-vazio">Começar a registar a família</button>
+  <button class="btn sec2 largo" id="bv-demo">Ver primeiro com dados de exemplo</button>
+  <button class="btn sec2 largo" id="bv-rest">Restaurar uma cópia de segurança</button>`,true);
+  el('bv-vazio').onclick=()=>{
+    const n=el('bv-nome').value.trim();if(!n){toast('Escreva o seu nome');el('bv-nome').focus();return}
+    D=vazio();const m={id:uid(),nome:n,ramo:el('bv-ramo').value,parentesco:'',telefone:'',competencias:'',interesses:'',mentor:false,consent:true};
+    D.membros.push(m);D.eu=m.id;perfil='coord';try{localStorage.setItem(CHAVE+'-perfil','coord')}catch(e){}
+    el('perfil').value='coord';gravar();fechar();tudo();ir('membros');toast('Agora registe os outros familiares');
+  };
+  el('bv-demo').onclick=()=>{D=demo();gravar();fechar();tudo();toast('Dados de exemplo carregados. Experimente trocar o perfil no topo.')};
+  el('bv-rest').onclick=()=>{formImportar()};
+}
+
+/* ---------- arranque ---------- */
+function tudo(){rInicio();rMembros();rAgenda();rOport();rMentoria();rPlanos();rFundo();rIndic();rMais()}
+tudo();
+const h0=location.hash.slice(1);ir(SECS.some(s=>s[0]===h0)?h0:'inicio');
+if(!guardado)boasVindas();
+if('serviceWorker' in navigator&&!ANDROID&&location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+</script>
+</body>
+</html>
