@@ -21,3 +21,7 @@ Segunda app deste repositório (pasta `leitura/`). Os APK aparecem em Releases c
 ## Painel Bíblico: guia de resposta
 
 Terceira app deste repositório (pasta `painel/`), para preparar debates e estudos bíblicos. Os APK aparecem em Releases com o nome `PainelBiblico-1.X.apk`. Versão web: https://garciacastelo83-stack.github.io/ementa-da-semana/painel/
+
+## Mbongo da Família: contribuições e organização de eventos
+
+Quarta app deste repositório (pasta `mbongo/`), para controlar as contribuições dos eventos da família (núcleos, membros, orçamento, despesas, cronograma, noivos, convites e ementa). Os APK aparecem em Releases com o nome `MbongoDaFamilia-1.X.apk`. Versão web: https://garciacastelo83-stack.github.io/ementa-da-semana/mbongo/
