@@ -29,3 +29,7 @@ Quarta app deste repositório (pasta `mbongo/`), para controlar as contribuiçõ
 ## Família que Cresce: plataforma familiar de desenvolvimento
 
 Quinta app deste repositório (pasta `familia/`), para o Projecto Família que Cresce: membros por ramo da família, agenda, oportunidades de formação e emprego, mentoria, planos individuais, fundo solidário com dupla aprovação e indicadores. Os APK aparecem em Releases com o nome `FamiliaQueCresce-1.X.apk`. Versão web: https://garciacastelo83-stack.github.io/ementa-da-semana/familia/
+
+## Futsal em Equipa: gestão de equipas, treinos, jogos e finanças
+
+Sexta app deste repositório (pasta `futsal/`). Várias equipas independentes na mesma app (família, igreja, amigos), cada uma com logótipo, jogadores, funções, agenda, presenças, convocatórias, divisão automática de equipas, resultados, estatísticas e tesouraria própria. Doze relatórios com o logótipo da equipa, em PDF, imagem, Excel (CSV) ou WhatsApp. Os APK aparecem em Releases com o nome `FutsalEmEquipa-1.X.apk`. Versão web: https://garciacastelo83-stack.github.io/ementa-da-semana/futsal/

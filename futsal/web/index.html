@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B1F3A">
+<title>Futsal em Equipa</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Futsal">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="html2canvas.min.js"></script>
+<script src="jspdf.umd.min.js"></script>
+<style>
+:root{
+  --navy:#0b1f3a;--navy2:#13315c;--laranja:#f97316;--cor:#f97316;
+  --fundo:#f3f5f8;--cartao:#fff;--texto:#0f172a;--suave:#64748b;--linha:#e2e8f0;
+  --ok:#16a34a;--ok-c:#dcfce7;--mau:#dc2626;--mau-c:#fee2e2;--aviso:#d97706;--aviso-c:#fef3c7;--info-c:#e0ecff;
+  --sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--fundo);color:var(--texto);font-size:15px;line-height:1.45;padding-bottom:calc(74px + var(--sb))}
+.cond{font-family:"Barlow Condensed","Arial Narrow",Inter,sans-serif;letter-spacing:.3px}
+h1,h2,h3{font-family:"Barlow Condensed","Arial Narrow",Inter,sans-serif;font-weight:700;letter-spacing:.3px}
+header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:calc(12px + var(--st)) 14px 12px;position:sticky;top:0;z-index:15;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+.hwrap{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.hwrap .app{width:34px;height:34px;border-radius:9px}
+.eqbtn{flex:1;display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#fff;border-radius:12px;padding:6px 10px;font-family:inherit;text-align:left;cursor:pointer;min-width:0}
+.eqbtn img{width:30px;height:30px;border-radius:50%;background:#fff;object-fit:cover;flex:none}
+.eqbtn .t{min-width:0}.eqbtn small{display:block;font-size:10.5px;opacity:.7;text-transform:uppercase;letter-spacing:.6px}
+.eqbtn b{display:block;font-size:17px;font-family:"Barlow Condensed",Inter,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eubtn{background:var(--cor);color:#fff;border:0;border-radius:20px;padding:7px 11px;font-size:12px;font-weight:600;font-family:inherit;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+main{max-width:900px;margin:0 auto;padding:14px}
+.sec{display:none}.sec.on{display:block}
+.titulo{display:flex;justify-content:space-between;align-items:center;margin:6px 0 12px;gap:8px}
+.titulo h2{font-size:24px;text-transform:uppercase}
+.sub{font-size:13px;color:var(--suave);margin:-8px 0 12px}
+.btn{background:var(--navy);color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:600;font-family:inherit;font-size:14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;justify-content:center}
+.btn.cor{background:var(--cor)}
+.btn.claro{background:#e8edf5;color:var(--navy)}
+.btn.verde{background:var(--ok)}.btn.wa{background:#1f9d55}
+.btn.perigo{background:var(--mau-c);color:var(--mau)}
+.btn.mini{padding:6px 10px;font-size:12.5px;border-radius:8px}
+.btn.largo{width:100%;padding:13px;font-size:15px;margin-bottom:8px}
+.btn:disabled{opacity:.45}
+.card{background:var(--cartao);border:1px solid var(--linha);border-radius:14px;padding:14px;margin-bottom:10px}
+.card.click{cursor:pointer}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+@media(min-width:640px){.kpis{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:var(--cartao);border:1px solid var(--linha);border-radius:14px;padding:12px;border-top:4px solid var(--cor)}
+.kpi b{display:block;font-size:28px;font-family:"Barlow Condensed",Inter,sans-serif;line-height:1.1;word-break:break-word}
+.kpi span{font-size:12px;color:var(--suave)}
+.hero{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;border-radius:16px;padding:16px;margin-bottom:14px;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;border:18px solid var(--cor);opacity:.35}
+.hero .rot{font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:.75}
+.hero h3{font-size:24px;margin:2px 0 4px}
+.hero .meta{color:#cbd5e1}
+.linha{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.meta{font-size:12.5px;color:var(--suave)}
+.tag{display:inline-block;font-size:11.5px;padding:2px 8px;border-radius:20px;background:#e8edf5;color:var(--navy);margin:3px 4px 0 0;font-weight:600;white-space:nowrap}
+.tag.ok{background:var(--ok-c);color:var(--ok)}.tag.mau{background:var(--mau-c);color:var(--mau)}.tag.am{background:var(--aviso-c);color:var(--aviso)}.tag.cor{background:var(--cor);color:#fff}
+input,select,textarea{width:100%;padding:11px;border:1px solid var(--linha);border-radius:10px;font-family:inherit;font-size:16px;background:#fff;margin-top:4px;color:var(--texto)}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:10px}
+label.chk{display:flex;gap:10px;align-items:center;font-weight:500;font-size:14px}
+label.chk input{width:20px;height:20px;margin:0;flex:none}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.busca{margin-bottom:10px}
+.vazio{text-align:center;color:var(--suave);padding:24px 10px;font-size:14px}
+.acoes{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{border:1px solid var(--linha);background:#fff;border-radius:20px;padding:7px 13px;font-family:inherit;font-size:13px;cursor:pointer;white-space:nowrap;color:var(--texto);font-weight:500}
+.tabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.av{width:42px;height:42px;border-radius:50%;flex:none;object-fit:cover;display:inline-flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:15px;background:var(--navy2)}
+.av.p{width:34px;height:34px;font-size:12.5px}
+.jrow{display:flex;gap:10px;align-items:center}
+.jrow .info{flex:1;min-width:0}
+.jrow .info b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.estrelas{color:#f59e0b;font-size:12px;letter-spacing:1px}
+.num{font-family:"Barlow Condensed",Inter,sans-serif;font-weight:700;font-size:15px;color:var(--suave);min-width:24px;text-align:center}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+td,th{padding:8px 6px;border-bottom:1px solid var(--linha);text-align:left;vertical-align:top}
+th{font-size:11.5px;color:var(--suave);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+td.n,th.n{text-align:right;white-space:nowrap}
+.rec{color:var(--ok)}.desp{color:var(--mau)}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--linha);display:flex;overflow-x:auto;z-index:20;padding-bottom:var(--sb);scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:1;min-width:62px;background:none;border:0;padding:8px 2px 9px;font-family:inherit;font-size:10.5px;color:var(--suave);cursor:pointer;font-weight:500}
+nav button .ic{display:block;font-size:19px;margin-bottom:1px}
+nav button.on{color:var(--navy);font-weight:700;box-shadow:inset 0 3px 0 var(--cor)}
+.camada{position:fixed;inset:0;background:rgba(8,15,30,.5);display:none;align-items:flex-end;justify-content:center}
+.camada.on{display:flex}
+#folha{z-index:35}#modal{z-index:45}
+.caixa{background:#fff;width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(18px + var(--sb))}
+#folha .caixa{max-height:96vh;background:var(--fundo)}
+@media(min-width:700px){.camada{align-items:center}.caixa{border-radius:18px}}
+.caixa h3{font-size:22px;margin-bottom:12px}
+.fcab{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px;position:sticky;top:-16px;background:inherit;padding:6px 0;z-index:2}
+.fcab h3{margin:0}
+.fechar{background:#e8edf5;border:0;border-radius:50%;width:34px;height:34px;font-size:17px;cursor:pointer;flex:none}
+.bloco{margin-bottom:14px}
+.bloco>h4{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--suave);margin:0 0 8px;font-weight:700}
+.estado{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.estado button{border:1px solid var(--linha);background:#fff;border-radius:16px;padding:4px 9px;font-size:12px;font-family:inherit;cursor:pointer;color:var(--texto)}
+.estado button.on.conf,.estado button.on.pres{background:var(--ok);color:#fff;border-color:var(--ok)}
+.estado button.on.just{background:var(--aviso);color:#fff;border-color:var(--aviso)}
+.estado button.on.injust{background:var(--mau);color:#fff;border-color:var(--mau)}
+.estado button.on.nconf{background:#94a3b8;color:#fff;border-color:#94a3b8}
+.grupos{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:560px){.grupos{grid-template-columns:1fr 1fr}}
+.grupo{border-radius:12px;border:2px solid var(--linha);background:#fff;padding:10px}
+.grupo h5{font-family:"Barlow Condensed",Inter,sans-serif;font-size:18px;display:flex;justify-content:space-between}
+.mover{display:flex;gap:3px}
+.mover button{border:0;border-radius:6px;width:24px;height:24px;font-size:11px;font-weight:700;color:#fff;cursor:pointer}
+.placar{display:flex;align-items:center;justify-content:center;gap:14px;margin:6px 0}
+.placar .lado{text-align:center;flex:1}
+.placar .lado b{display:block;font-family:"Barlow Condensed",Inter,sans-serif;font-size:15px}
+.placar .res{font-family:"Barlow Condensed",Inter,sans-serif;font-size:40px;font-weight:700}
+.placar input{width:64px;text-align:center;font-size:26px;font-weight:700;padding:6px}
+.vde{display:inline-block;width:22px;height:22px;border-radius:6px;color:#fff;font-weight:700;font-size:12px;text-align:center;line-height:22px;margin-right:3px}
+.vde.V{background:var(--ok)}.vde.E{background:#94a3b8}.vde.D{background:var(--mau)}
+.prev{background:#cbd5e1;border-radius:10px;padding:8px;overflow:hidden}
+.prev .doc{box-shadow:0 2px 12px rgba(0,0,0,.2)}
+#render{position:fixed;left:-12000px;top:0;width:794px}
+.toast{position:fixed;bottom:calc(84px + var(--sb));left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 16px;border-radius:10px;font-size:13.5px;opacity:0;transition:.25s;pointer-events:none;z-index:60;max-width:90%;text-align:center}
+.toast.on{opacity:1}
+.aviso-box{background:var(--aviso-c);border-left:4px solid var(--aviso);border-radius:10px;padding:10px 12px;font-size:13.5px;margin-bottom:10px}
+.imgprev{max-width:120px;max-height:120px;border-radius:10px;display:block;margin-top:6px;border:1px solid var(--linha)}
+.ldr{position:fixed;inset:0;background:rgba(255,255,255,.75);z-index:70;display:none;align-items:center;justify-content:center;font-weight:600;color:var(--navy)}
+.ldr.on{display:flex}
+
+/* ---------- documento dos relatórios (A4) ---------- */
+.doc{width:794px;background:#fff;color:#0f172a;font-family:Inter,Arial,sans-serif;font-size:12.5px;padding:34px 38px 30px}
+.doc .dcab{display:flex;align-items:center;gap:16px;border-bottom:4px solid var(--dcor,#f97316);padding-bottom:14px;margin-bottom:16px}
+.doc .dcab img{width:70px;height:70px;border-radius:50%;object-fit:cover;border:2px solid #e2e8f0}
+.doc .dcab .eq{font-size:13px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.doc .dcab h1{font-family:"Barlow Condensed","Arial Narrow",Arial,sans-serif;font-size:30px;line-height:1.05;color:#0b1f3a;text-transform:uppercase}
+.doc .dcab .per{font-size:12px;color:#64748b;margin-top:2px}
+.doc .dcab .app{margin-left:auto;text-align:right;font-size:10px;color:#94a3b8}
+.doc .dcab .app img{width:38px;height:38px;border-radius:9px;border:0;display:block;margin:0 0 3px auto}
+.doc h2{font-family:"Barlow Condensed","Arial Narrow",Arial,sans-serif;font-size:19px;color:#0b1f3a;text-transform:uppercase;margin:16px 0 8px;border-left:5px solid var(--dcor,#f97316);padding-left:8px}
+.doc table{font-size:12px}
+.doc th{background:#0b1f3a;color:#fff;font-size:10.5px;padding:7px 6px;border:0}
+.doc td{padding:6px;border-bottom:1px solid #e2e8f0}
+.doc tr:nth-child(even) td{background:#f8fafc}
+.doc tfoot td{font-weight:700;background:#eef2f7!important;border-top:2px solid #0b1f3a}
+.doc .dk{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:6px 0 4px}
+.doc .dk div{border:1px solid #e2e8f0;border-top:4px solid var(--dcor,#f97316);border-radius:8px;padding:8px}
+.doc .dk b{display:block;font-family:"Barlow Condensed","Arial Narrow",Arial,sans-serif;font-size:24px;color:#0b1f3a}
+.doc .dk span{font-size:10.5px;color:#64748b}
+.doc .drod{margin-top:22px;border-top:1px solid #e2e8f0;padding-top:8px;font-size:10px;color:#94a3b8;display:flex;justify-content:space-between}
+.doc .ass{display:flex;justify-content:space-around;margin-top:44px;text-align:center;font-size:11px;color:#475569}
+.doc .ass div{border-top:1px solid #475569;padding-top:4px;width:200px}
+.doc .av{all:unset;color:#d97706;font-weight:700}
+.doc .ok{color:#16a34a;font-weight:700}.doc .mau{color:#dc2626;font-weight:700}.doc .av{color:#d97706;font-weight:700}
+.doc .mx td,.doc .mx th{text-align:center;padding:5px 3px}
+.doc .mx td:first-child,.doc .mx th:first-child{text-align:left}
+.doc .gr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.doc .gr>div{border:2px solid #e2e8f0;border-radius:10px;padding:10px}
+.doc .nota{font-size:11px;color:#64748b;margin-top:6px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hwrap">
+    <img class="app" src="icon-192.png" alt="">
+    <button class="eqbtn" onclick="escolherEquipa()"><img id="h-logo" alt=""><span class="t"><small>Equipa actual</small><b id="h-eq">·</b></span><span style="margin-left:auto;opacity:.7">▾</span></button>
+    <button class="eubtn" id="h-eu" onclick="escolherEu()"></button>
+  </div>
+</header>
+
+<main>
+  <section class="sec on" id="s-painel"></section>
+  <section class="sec" id="s-jogadores"></section>
+  <section class="sec" id="s-agenda"></section>
+  <section class="sec" id="s-jogos"></section>
+  <section class="sec" id="s-tesouraria"></section>
+  <section class="sec" id="s-relatorios"></section>
+  <section class="sec" id="s-gestao"></section>
+</main>
+
+<nav id="nav"></nav>
+<div class="camada" id="folha"><div class="caixa" id="folha-c"></div></div>
+<div class="camada" id="modal"><div class="caixa" id="modal-c"></div></div>
+<div id="render"></div>
+<div class="toast" id="toast"></div>
+<div class="ldr" id="ldr">A preparar o ficheiro…</div>
+
+<script>
+/* =========================================================
+   UTILITÁRIOS
+   ========================================================= */
+const el=id=>document.getElementById(id);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const kz=v=>new Intl.NumberFormat('pt-PT',{maximumFractionDigits:0}).format(v||0)+' Kz';
+const nf=v=>new Intl.NumberFormat('pt-PT',{maximumFractionDigits:0}).format(v||0);
+const iso=d=>{const z=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return z.toISOString().slice(0,10)};
+const hoje=()=>iso(new Date());
+const addDias=(n,base)=>{const d=base?new Date(base+'T12:00'):new Date();d.setDate(d.getDate()+n);return iso(d)};
+const dataPt=s=>{if(!s)return'';const[a,m,d]=s.split('-');return `${d}/${m}/${a}`};
+const DIAS=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const dataLonga=s=>{const d=new Date(s+'T12:00');return `${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]}`};
+const diasAte=s=>Math.round((new Date(s+'T12:00')-new Date(hoje()+'T12:00'))/864e5);
+const ANDROID=!!window.AndroidBridge;
+const pct=(a,b)=>b?Math.round(a/b*100):0;
+function toast(t){const e=el('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2600)}
+function copiarAntigo(t){const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}a.remove();return ok}
+function copiar(t,msg){if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast(msg),()=>toast(copiarAntigo(t)?msg:'Não foi possível copiar'));else toast(copiarAntigo(t)?msg:'Não foi possível copiar')}
+function telIntl(t){let d=String(t||'').replace(/\D/g,'');if(d.length===9&&d[0]==='9')d='244'+d;return d}
+function whatsapp(texto,tel){const url='https://wa.me/'+(tel?telIntl(tel):'')+'?text='+encodeURIComponent(texto);if(ANDROID)location.href=url;else window.open(url,'_blank')}
+function b64utf8(t){return btoa(unescape(encodeURIComponent(t)))}
+function salvarB64(nome,b64,mime){
+  if(ANDROID){window.AndroidBridge.save(nome,b64,mime);return}
+  const bin=atob(b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([u],{type:mime}));a.download=nome;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);toast('Ficheiro guardado: '+nome);
+}
+function nomeFich(s){return s.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w]+/g,'-').replace(/^-|-$/g,'').toLowerCase()}
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function baralhar(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function comprimirImg(file,max,mime='image/jpeg',q=.7){
+  return new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{
+    const s=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);
+    const x=c.getContext('2d');if(mime==='image/jpeg'){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height)}x.drawImage(im,0,0,c.width,c.height);ok(c.toDataURL(mime,q))};im.onerror=ko;im.src=r.result};r.onerror=ko;r.readAsDataURL(file)});
+}
+
+/* =========================================================
+   DADOS
+   ========================================================= */
+const CHAVE='futsal-em-equipa-v1';
+const POS=['Guarda-redes','Fixo','Ala','Pivô','Universal'];
+const POS_C={'Guarda-redes':'GR','Fixo':'FX','Ala':'AL','Pivô':'PV','Universal':'UN'};
+const FUNC={admin:'Administrador',coord:'Coordenador',tes:'Tesoureiro',trein:'Treinador',jog:'Jogador'};
+const TIPOS_EQ=['Família','Igreja','Amigos','Empresa','Escola','Outro'];
+const TIPOS_EV=['Treino','Jogo','Torneio','Convívio'];
+const EST={nconf:'Não confirmado',conf:'Confirmado',just:'Ausência justificada',injust:'Ausência não justificada',pres:'Presente'};
+const CAT_REC=['Quota','Pagamento por treino/jogo','Contribuição','Donativo','Patrocínio','Outra receita'];
+const CAT_DESP=['Aluguer de campo','Água','Equipamentos','Transporte','Arbitragem','Inscrição em torneio','Outra despesa'];
+const METODOS=['Dinheiro','Multicaixa Express','Transferência','Outro'];
+const CORES_GR=['#f97316','#2563eb','#16a34a','#9333ea'];
+const NOMES_GR=['Laranja','Azul','Verde','Roxa'];
+
+function vazio(){return{v:1,eu:'admin',eqAct:'',jogadores:[],equipas:[],eventos:[],movs:[],cobrancas:[],avisos:[]}}
+let D;
+function ler(){try{const s=localStorage.getItem(CHAVE);return s?JSON.parse(s):null}catch(e){return null}}
+function gravar(){try{localStorage.setItem(CHAVE,JSON.stringify(D))}catch(e){toast('Atenção: memória cheia. Apague comprovativos antigos ou fotografias grandes.')}}
+const guardado=ler();
+D=Object.assign(vazio(),guardado||{});
+
+/* ---------- consultas ---------- */
+const eqA=()=>D.equipas.find(e=>e.id===D.eqAct)||D.equipas[0];
+const eqPor=id=>D.equipas.find(e=>e.id===id);
+const jog=id=>D.jogadores.find(j=>j.id===id)||{nome:'(removido)',id};
+const inscAct=eq=>eq?eq.insc.filter(i=>i.estado==='activo'):[];
+const jogadoresEq=eq=>inscAct(eq).map(i=>({...jog(i.j),insc:i})).sort((a,b)=>a.nome.localeCompare(b.nome));
+const minhasEquipas=()=>D.eu==='admin'?D.equipas:D.equipas.filter(e=>e.insc.some(i=>i.j===D.eu&&i.estado==='activo'));
+function fun(eq){if(!eq)return[];if(D.eu==='admin')return['admin','coord','tes','trein','jog'];const i=eq.insc.find(i=>i.j===D.eu&&i.estado==='activo');return i?i.f:[]}
+const pode=(f,eq=eqA())=>{const F=fun(eq);return F.includes('admin')||F.includes(f)};
+const P=()=>({admin:D.eu==='admin',coord:pode('coord'),tes:pode('tes'),trein:pode('trein')||pode('coord'),verFin:pode('tes')||pode('coord')});
+const evsEq=eq=>D.eventos.filter(e=>e.eq===eq.id);
+const realizado=e=>e.estado==='realizado'||(e.estado!=='cancelado'&&e.data<hoje());
+const estadoP=(e,j)=>(e.pres||{})[j]||'nconf';
+const nomeCurto=n=>{const p=String(n).trim().split(/\s+/);return p.length>1?p[0]+' '+p[p.length-1]:p[0]};
+const iniciais=n=>String(n).trim().split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase();
+function avatar(j,peq){const c=peq?'av p':'av';if(j.foto)return `<img class="${c}" src="${j.foto}" alt="">`;const h=[...String(j.nome)].reduce((a,c)=>a+c.charCodeAt(0),0)%6;const cs=['#13315c','#0f766e','#7c3aed','#b45309','#be123c','#1d4ed8'];return `<span class="${c}" style="background:${cs[h]}">${esc(iniciais(j.nome))}</span>`}
+const _mono={};
+function logoEq(eq){
+  if(!eq)return'icon-192.png';if(eq.logo)return eq.logo;
+  const k=eq.id+eq.cor+eq.nome;if(_mono[k])return _mono[k];
+  const c=document.createElement('canvas');c.width=c.height=160;const x=c.getContext('2d');
+  x.fillStyle=eq.cor||'#f97316';x.beginPath();x.arc(80,80,80,0,7);x.fill();
+  x.strokeStyle='rgba(255,255,255,.55)';x.lineWidth=6;x.beginPath();x.arc(80,80,66,0,7);x.stroke();
+  x.fillStyle='#fff';x.font='bold 58px "Barlow Condensed",Arial';x.textAlign='center';x.textBaseline='middle';
+  x.fillText((eq.sigla||iniciais(eq.nome)).slice(0,3).toUpperCase(),80,84);
+  return _mono[k]=c.toDataURL('image/png');
+}
+function statsJog(eq,jid,ini,fim){
+  const evs=evsEq(eq).filter(e=>realizado(e)&&e.estado!=='cancelado'&&(!ini||e.data>=ini)&&(!fim||e.data<=fim));
+  let pres=0,just=0,injust=0,g=0,a=0,jogos=0;
+  evs.forEach(e=>{const s=estadoP(e,jid);if(s==='pres'){pres++;if(e.tipo==='Jogo'||e.tipo==='Torneio')jogos++}else if(s==='just')just++;else injust++;
+    const m=(e.marc||{})[jid];if(m){g+=m.g||0;a+=m.a||0}});
+  return{total:evs.length,pres,just,injust,g,a,jogos,assid:pct(pres,evs.length)};
+}
+const divida=(eq,jid)=>D.cobrancas.filter(c=>c.eq===eq.id&&(!jid||c.j===jid)&&!c.pago).reduce((s,c)=>s+c.valor,0);
+const saldoEq=(eq,ate)=>D.movs.filter(m=>m.eq===eq.id&&(!ate||m.data<=ate)).reduce((s,m)=>s+(m.tipo==='rec'?m.valor:-m.valor),0);
+function resultadoLetra(e){if(!e.res||e.res.a===''||e.res.a==null)return'';const a=+e.res.a,b=+e.res.b;return a>b?'V':a<b?'D':'E'}
+
+/* =========================================================
+   DADOS DE EXEMPLO
+   ========================================================= */
+function demo(){
+  const R=rng(2026);const pick=a=>a[Math.floor(R()*a.length)];
+  const nomes=[['Garcia Castelo','Fixo',4],['Pedro Francisco','Pivô',5],['Manuel Castelo','Ala',3],['Domingos Pedro','Guarda-redes',4],['João Baptista','Ala',4],['Afonso Miguel','Fixo',3],
+    ['Celso Marcelino','Ala',5],['Mário Lumbamba','Pivô',3],['Nelson Kiala','Guarda-redes',3],['Paulo Sebastião','Universal',4],['Rui Manuel','Ala',2],['Edson Tavares','Fixo',4],
+    ['Hélder Cassoma','Pivô',4],['Dário Neto','Ala',3],['Bruno Kalunga','Guarda-redes',4],['Valter Simão','Universal',3],['Joel Gaspar','Ala',5],['Adilson Mateus','Fixo',2],
+    ['Isaac Domingos','Ala',3],['Wilson Tchipa','Pivô',2]];
+  const jogadores=nomes.map(([n,p,l],i)=>({id:'j'+i,nome:n,telefone:'92'+(3+i%6)+' '+String(100000+i*7919).slice(0,3)+' '+String(1000+i*37).slice(-3),posicao:p,nivel:l,nascimento:'',foto:''}));
+  const J=i=>'j'+i;
+  const mkEq=(id,nome,sigla,tipo,cor,local,quota,valorEv,membros)=>({id,nome,sigla,tipo,cor,logo:'',local,diaHabitual:'Sábado 16h00',quotaValor:quota,quotaPeriodo:quota?'mensal':'nenhuma',valorEvento:valorEv,criado:addDias(-120),
+    insc:membros.map(([i,f],k)=>({j:J(i),f,num:k+1,estado:'activo',desde:addDias(-100)}))});
+  const equipas=[
+    mkEq('e1','Família Castelo FC','FCF','Família','#f97316','Pavilhão do Bairro, Luanda',2000,1000,[[0,['coord','jog']],[1,['trein','jog']],[2,['jog']],[3,['tes','jog']],[4,['jog']],[5,['jog']],[6,['jog']],[7,['jog']],[8,['jog']],[9,['jog']],[10,['jog']],[11,['jog']]]),
+    mkEq('e2','Jovens da Igreja','JDI','Igreja','#2563eb','Campo da Paróquia',0,500,[[12,['coord','trein','jog']],[13,['jog']],[14,['jog']],[15,['tes','jog']],[16,['jog']],[17,['jog']],[18,['jog']],[19,['jog']],[0,['jog']],[6,['jog']]]),
+    mkEq('e3','Amigos de Quinta','ADQ','Amigos','#16a34a','Arena Talatona',1500,1500,[[9,['coord','tes','jog']],[1,['jog']],[4,['jog']],[11,['jog']],[14,['jog']],[16,['jog']],[5,['jog']],[13,['jog']]])
+  ];
+  equipas[1].insc.push({j:J(2),f:['jog'],num:11,estado:'pendente',desde:addDias(-2)});
+  const eventos=[],movs=[],cobr=[];
+  const advs=['Estrela do Cazenga','Unidos do Rangel','Leões de Viana','Académica da Maianga','Juventude do Kilamba','Real Benfica'];
+  equipas.forEach((eq,ei)=>{
+    const mem=eq.insc.filter(i=>i.estado==='activo').map(i=>i.j);
+    for(let k=-8;k<=3;k++){
+      const data=addDias(k*7+ei*2-3);const jogo=(k%3===0);
+      const ev={id:uid()+k+ei,eq:eq.id,tipo:jogo?'Jogo':'Treino',data,hora:ei===2?'19:00':'16:00',fim:ei===2?'21:00':'18:00',local:eq.local,adv:jogo?pick(advs):'',custo:ei===2?12000:8000,notas:'',pres:{},conv:[],grupos:[],res:null,marc:{},estado:data<hoje()?'realizado':'agendado'};
+      mem.forEach(j=>{const r=R();ev.pres[j]=data<hoje()?(r<.78?'pres':r<.9?'just':'injust'):(r<.55?'conf':r<.65?'just':'nconf')});
+      if(data<hoje()){
+        const presentes=mem.filter(j=>ev.pres[j]==='pres');
+        if(jogo){const a=Math.floor(R()*6),b=Math.floor(R()*5);ev.res={a,b};ev.conv=presentes.slice(0,10);
+          for(let g=0;g<a;g++){const s=pick(presentes);ev.marc[s]=ev.marc[s]||{g:0,a:0};ev.marc[s].g++;const as=pick(presentes);if(as!==s&&R()<.6){ev.marc[as]=ev.marc[as]||{g:0,a:0};ev.marc[as].a++}}}
+        else{for(let g=0;g<6;g++){const s=pick(presentes);ev.marc[s]=ev.marc[s]||{g:0,a:0};ev.marc[s].g++}}
+        movs.push({id:uid()+'d'+k+ei,eq:eq.id,tipo:'desp',cat:'Aluguer de campo',data,descricao:'Aluguer do campo ('+ev.tipo.toLowerCase()+')',valor:ev.custo,j:'',resp:'Tesoureiro',metodo:'Dinheiro',comp:'',ev:ev.id});
+        if(R()<.4)movs.push({id:uid()+'a'+k+ei,eq:eq.id,tipo:'desp',cat:'Água',data,descricao:'Água para o '+ev.tipo.toLowerCase(),valor:1500,j:'',resp:'Tesoureiro',metodo:'Dinheiro',comp:''});
+        if(eq.valorEvento){presentes.forEach(j=>{const pago=R()<.85||k<-4;const c={id:uid()+j+k,eq:eq.id,j,descricao:ev.tipo+' de '+dataPt(data),valor:eq.valorEvento,data,ref:ev.id,pago};
+          if(pago){const m={id:uid()+'p'+j+k,eq:eq.id,tipo:'rec',cat:'Pagamento por treino/jogo',data,descricao:c.descricao,valor:c.valor,j,resp:'Tesoureiro',metodo:R()<.6?'Dinheiro':'Multicaixa Express',comp:''};movs.push(m);c.mov=m.id}
+          cobr.push(c)})}
+      }
+      eventos.push(ev);
+    }
+    if(eq.quotaValor){[-1,0].forEach(mo=>{const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+mo);const ref='quota-'+iso(d).slice(0,7);
+      mem.forEach(j=>{const pago=mo<0?R()<.9:R()<.5;const c={id:uid()+j+ref,eq:eq.id,j,descricao:'Quota de '+MESES[d.getMonth()]+' '+d.getFullYear(),valor:eq.quotaValor,data:iso(d),ref,pago};
+        if(pago){const m={id:uid()+'q'+j+ref,eq:eq.id,tipo:'rec',cat:'Quota',data:iso(d),descricao:c.descricao,valor:c.valor,j,resp:'Tesoureiro',metodo:'Multicaixa Express',comp:''};movs.push(m);c.mov=m.id}cobr.push(c)})})}
+    movs.push({id:uid()+'eq'+ei,eq:eq.id,tipo:'rec',cat:'Contribuição',data:addDias(-70),descricao:'Contribuição inicial para o fundo da equipa',valor:30000,j:mem[0],resp:'Tesoureiro',metodo:'Transferência',comp:''});
+    if(ei===0)movs.push({id:uid()+'cam',eq:eq.id,tipo:'desp',cat:'Equipamentos',data:addDias(-50),descricao:'Coletes de treino (2 cores)',valor:18000,j:'',resp:'Tesoureiro',metodo:'Dinheiro',comp:''});
+  });
+  return{v:1,eu:'admin',eqAct:'e1',jogadores,equipas,eventos,movs,cobrancas:cobr,
+    avisos:[{id:'a1',eq:'e1',data:addDias(-2),texto:'Este sábado o treino começa às 16h00 em ponto. Tragam água e os coletes.'},{id:'a2',eq:'e2',data:addDias(-4),texto:'Inscrições abertas para o torneio de Natal da paróquia.'}]};
+}
+
+/* =========================================================
+   NAVEGAÇÃO
+   ========================================================= */
+const SECS=[['painel','🏠','Painel'],['jogadores','👥','Jogadores'],['agenda','📅','Agenda'],['jogos','⚽','Jogos'],['tesouraria','💰','Tesouraria'],['relatorios','📊','Relatórios'],['gestao','⚙️','Gestão']];
+let aba='painel';
+el('nav').innerHTML=SECS.map(([k,i,t])=>`<button data-s="${k}" onclick="ir('${k}')"><span class="ic">${i}</span>${t}</button>`).join('');
+function ir(k){aba=k;document.querySelectorAll('.sec').forEach(s=>s.classList.toggle('on',s.id==='s-'+k));
+  document.querySelectorAll('nav button').forEach(b=>{b.classList.toggle('on',b.dataset.s===k);if(b.dataset.s===k)b.scrollIntoView({inline:'nearest',block:'nearest'})});
+  try{if(location.hash!=='#'+k)history.replaceState(null,'','#'+k)}catch(e){}render(k);window.scrollTo(0,0)}
+window.voltar=function(){
+  if(el('modal').classList.contains('on')){if(!el('modal').dataset.fixo)fecharModal();return 'x'}
+  if(el('folha').classList.contains('on')){fecharFolha();return 'x'}
+  if(aba!=='painel'){ir('painel');return 'x'}return '';
+};
+function abrirModal(html,fixo){el('modal-c').innerHTML=html;el('modal').dataset.fixo=fixo?'1':'';el('modal').classList.add('on');el('modal-c').scrollTop=0}
+function fecharModal(){el('modal').classList.remove('on')}
+let folhaFn=null;
+function abrirFolha(fn,manter){folhaFn=fn;const c=el('folha-c'),st=manter?c.scrollTop:0;c.innerHTML=fn();el('folha').classList.add('on');c.scrollTop=st}
+function refrescarFolha(){if(folhaFn&&el('folha').classList.contains('on'))abrirFolha(folhaFn,true)}
+function fecharFolha(){el('folha').classList.remove('on');folhaFn=null}
+el('modal').onclick=e=>{if(e.target.id==='modal'&&!el('modal').dataset.fixo)fecharModal()};
+el('folha').onclick=e=>{if(e.target.id==='folha')fecharFolha()};
+const cabFolha=t=>`<div class="fcab"><h3>${t}</h3><button class="fechar" onclick="fecharFolha()">✕</button></div>`;
+function confirmar(texto,fn,btn='Confirmar'){abrirModal(`<h3>Confirmar</h3><p style="margin-bottom:14px">${esc(texto)}</p><div class="acoes"><button class="btn perigo" id="ok">${btn}</button><button class="btn claro" onclick="fecharModal()">Cancelar</button></div>`);el('ok').onclick=()=>{fecharModal();fn()}}
+
+/* ---------- formulários ---------- */
+let _img={};
+function form(titulo,campos,valores,guardar,extra=''){
+  _img={};
+  const h=campos.map(c=>{
+    const v=valores[c.k]??c.def??'';
+    if(c.t==='chk')return `<label class="chk"><input type="checkbox" id="f-${c.k}" ${v?'checked':''}> ${c.l}</label>`;
+    if(c.t==='multi')return `<label>${c.l}</label><div style="margin:-4px 0 10px">${c.o.map(([val,txt])=>`<label class="chk" style="margin:6px 0"><input type="checkbox" name="f-${c.k}" value="${val}" ${(v||[]).includes(val)?'checked':''}> ${txt}</label>`).join('')}</div>`;
+    if(c.t==='sel')return `<label>${c.l}<select id="f-${c.k}">${c.o.map(o=>{const[val,txt]=Array.isArray(o)?o:[o,o];return `<option value="${esc(val)}" ${val==v?'selected':''}>${esc(txt)}</option>`}).join('')}</select></label>`;
+    if(c.t==='area')return `<label>${c.l}<textarea id="f-${c.k}" rows="3">${esc(v)}</textarea></label>`;
+    if(c.t==='img'){_img[c.k]=v||'';return `<label>${c.l}<input type="file" accept="image/*" id="f-${c.k}" onchange="lerImg('${c.k}',${c.max||400},'${c.mime||'image/jpeg'}')"><img class="imgprev" id="pv-${c.k}" src="${v||''}" style="${v?'':'display:none'}"></label>${v?`<button class="btn perigo mini" style="margin:-4px 0 10px" onclick="_img['${c.k}']='';el('pv-${c.k}').style.display='none'">Remover imagem</button>`:''}`}
+    if(c.t==='row')return `<div class="g2">${c.c.map(cc=>`<label>${cc.l}<input id="f-${cc.k}" type="${cc.t||'text'}" value="${esc(valores[cc.k]??cc.def??'')}" ${cc.t==='number'?'min="0" step="any" inputmode="decimal"':''}></label>`).join('')}</div>`;
+    return `<label>${c.l}<input id="f-${c.k}" type="${c.t||'text'}" value="${esc(v)}" ${c.t==='number'?'min="0" step="any" inputmode="decimal"':''} ${c.ph?`placeholder="${esc(c.ph)}"`:''}></label>`;
+  }).join('');
+  abrirModal(`<h3>${titulo}</h3>${h}${extra}<div class="acoes"><button class="btn cor" id="gravar">Guardar</button><button class="btn claro" onclick="fecharModal()">Cancelar</button></div>`);
+  const todos=campos.flatMap(c=>c.t==='row'?c.c:[c]);
+  el('gravar').onclick=()=>{
+    const o={};
+    for(const c of todos){
+      if(c.t==='img'){o[c.k]=_img[c.k];continue}
+      if(c.t==='multi'){o[c.k]=[...document.querySelectorAll(`[name="f-${c.k}"]:checked`)].map(x=>x.value);continue}
+      const e=el('f-'+c.k);o[c.k]=c.t==='chk'?e.checked:c.t==='number'?(e.value===''?'':parseFloat(String(e.value).replace(',','.'))||0):e.value.trim();
+      if(c.req&&(o[c.k]===''||o[c.k]===0&&c.t==='number')){toast('Preencha: '+c.l);e.focus();return}
+    }
+    if(guardar(o)!==false){gravar();fecharModal();tudo()}
+  };
+}
+async function lerImg(k,max,mime){const f=el('f-'+k).files[0];if(!f)return;try{_img[k]=await comprimirImg(f,max,mime,.72);const p=el('pv-'+k);p.src=_img[k];p.style.display='block'}catch(e){toast('Não foi possível ler a imagem')}}
+
+/* =========================================================
+   CABEÇALHO: equipa e utilizador
+   ========================================================= */
+function rCab(){
+  const eq=eqA();
+  el('h-eq').textContent=eq?eq.nome:'Sem equipa';el('h-logo').src=logoEq(eq);
+  document.documentElement.style.setProperty('--cor',eq?.cor||'#f97316');
+  el('h-eu').textContent='👤 '+(D.eu==='admin'?'Admin':nomeCurto(jog(D.eu).nome));
+}
+function escolherEquipa(){
+  const l=minhasEquipas();
+  abrirModal(`<h3>Escolher equipa</h3>${l.map(e=>`<div class="card click jrow" onclick="D.eqAct='${e.id}';gravar();fecharModal();tudo()" style="${e.id===eqA()?.id?'border:2px solid '+e.cor:''}"><img class="av" src="${logoEq(e)}"><div class="info"><b>${esc(e.nome)}</b><span class="meta">${esc(e.tipo)} · ${inscAct(e).length} jogadores</span></div>${e.id===eqA()?.id?'<span class="tag cor">actual</span>':''}</div>`).join('')||'<div class="vazio">Ainda não pertence a nenhuma equipa.</div>'}
+  ${P().admin?`<button class="btn cor largo" onclick="fecharModal();formEquipa()">+ Criar nova equipa</button>`:''}`);
+}
+function escolherEu(){
+  abrirModal(`<h3>Quem está a usar a app?</h3><p class="meta" style="margin-bottom:10px">Cada pessoa vê apenas o que a sua função permite. Útil para demonstrar e para partilhar o telemóvel.</p>
+  <div class="card click jrow" onclick="mudarEu('admin')"><span class="av" style="background:var(--navy)">⚙️</span><div class="info"><b>Administrador geral</b><span class="meta">Todas as equipas e configurações</span></div>${D.eu==='admin'?'<span class="tag cor">actual</span>':''}</div>
+  ${[...D.jogadores].sort((a,b)=>a.nome.localeCompare(b.nome)).map(j=>{const fs=[...new Set(D.equipas.flatMap(e=>e.insc.filter(i=>i.j===j.id&&i.estado==='activo').flatMap(i=>i.f)))].filter(f=>f!=='jog').map(f=>FUNC[f]);
+    return `<div class="card click jrow" onclick="mudarEu('${j.id}')">${avatar(j,1)}<div class="info"><b>${esc(j.nome)}</b><span class="meta">${fs.length?fs.join(', '):'Jogador'}</span></div>${D.eu===j.id?'<span class="tag cor">actual</span>':''}</div>`}).join('')}`);
+}
+function mudarEu(id){D.eu=id;const l=minhasEquipas();if(l.length&&!l.some(e=>e.id===D.eqAct))D.eqAct=l[0].id;gravar();fecharModal();fecharFolha();tudo();toast('Agora: '+(id==='admin'?'Administrador geral':jog(id).nome))}
+
+/* =========================================================
+   PAINEL
+   ========================================================= */
+function rPainel(){
+  const eq=eqA(),s=el('s-painel');
+  if(!eq){s.innerHTML=`<div class="card" style="text-align:center;padding:30px"><img src="icon-192.png" style="width:80px;border-radius:18px"><h2 style="margin:10px 0">Futsal em Equipa</h2><p class="meta" style="margin-bottom:14px">Comece por criar a sua primeira equipa.</p>${P().admin?'<button class="btn cor" onclick="formEquipa()">+ Criar equipa</button>':'<p class="meta">Peça ao administrador para o inscrever numa equipa.</p>'}</div>`;return}
+  const p=P(),evs=evsEq(eq),hj=hoje(),mes=hj.slice(0,7);
+  const prox=evs.filter(e=>e.data>=hj&&e.estado!=='cancelado').sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora));
+  const real=evs.filter(e=>realizado(e)&&e.estado!=='cancelado');
+  const membros=inscAct(eq);
+  let tp=0,tt=0;real.forEach(e=>membros.forEach(i=>{tt++;if(estadoP(e,i.j)==='pres')tp++}));
+  const ult=real.filter(e=>e.tipo==='Jogo'&&e.res).sort((a,b)=>b.data.localeCompare(a.data))[0];
+  const h=new Date().getHours(),nm=D.eu==='admin'?'Administrador':nomeCurto(jog(D.eu).nome).split(' ')[0];
+  const ev=prox[0];
+  const meuEst=ev&&D.eu!=='admin'&&membros.some(i=>i.j===D.eu)?estadoP(ev,D.eu):null;
+  const aviso=D.avisos.filter(a=>a.eq===eq.id).sort((a,b)=>b.data.localeCompare(a.data))[0];
+  const pend=eq.insc.filter(i=>i.estado==='pendente');
+  s.innerHTML=`
+  <div class="titulo"><div><h2>${h<12?'Bom dia':h<19?'Boa tarde':'Boa noite'}, ${esc(nm)}!</h2><div class="meta">Resumo da equipa ${esc(eq.nome)}.</div></div></div>
+  ${p.coord&&pend.length?`<div class="aviso-box">📥 ${pend.length} pedido(s) de inscrição à espera de aprovação. <a href="#" onclick="ir('jogadores');return false">Ver</a></div>`:''}
+  <div class="kpis">
+    <div class="kpi"><b>${membros.length}</b><span>Jogadores</span></div>
+    <div class="kpi"><b>${evs.filter(e=>e.data.startsWith(mes)&&e.estado!=='cancelado').length}</b><span>Eventos do mês</span></div>
+    <div class="kpi"><b>${pct(tp,tt)}%</b><span>Assiduidade</span></div>
+    <div class="kpi"><b>${p.verFin?nf(divida(eq)):(D.eu!=='admin'?nf(divida(eq,D.eu)):'·')}</b><span>${p.verFin?'Em dívida (Kz)':'A minha dívida (Kz)'}</span></div>
+  </div>
+  ${ev?`<div class="hero"><div class="rot">Próxima actividade</div><h3>${esc(ev.tipo==='Jogo'?'Jogo contra '+ev.adv:ev.tipo)}</h3>
+    <div class="meta">📅 ${dataLonga(ev.data)} · ${esc(ev.hora)}${ev.fim?' às '+esc(ev.fim):''}<br>📍 ${esc(ev.local||'Campo por confirmar')}</div>
+    <div class="meta" style="margin-top:6px">✅ ${Object.values(ev.pres||{}).filter(x=>x==='conf').length} confirmados</div>
+    ${meuEst?`<div class="estado" style="margin-top:10px">${['conf','nconf','just'].map(k=>`<button class="${k} ${meuEst===k?'on':''}" onclick="marcarEu('${ev.id}','${k}')">${k==='conf'?'Vou':k==='nconf'?'Ainda não sei':'Não posso ir'}</button>`).join('')}</div>`:''}
+    <div class="acoes"><button class="btn cor mini" onclick="abrirEvento('${ev.id}')">Abrir actividade</button></div></div>`
+    :`<div class="card vazio">Sem actividades marcadas.${p.coord||p.trein?` <a href="#" onclick="formEvento();return false">Marcar agora</a>`:''}</div>`}
+  ${aviso?`<div class="card"><div class="meta">📢 Aviso · ${dataPt(aviso.data)}</div><div style="margin-top:4px">${esc(aviso.texto)}</div></div>`:''}
+  ${ult?`<div class="card click" onclick="abrirEvento('${ult.id}')"><div class="meta">Último jogo · ${dataPt(ult.data)}</div><div class="placar"><div class="lado"><b>${esc(eq.nome)}</b></div><div class="res">${ult.res.a} - ${ult.res.b}</div><div class="lado"><b>${esc(ult.adv)}</b></div></div><div style="text-align:center"><span class="vde ${resultadoLetra(ult)}">${resultadoLetra(ult)}</span></div></div>`:''}
+  <h3 style="font-size:18px;margin:14px 0 8px;text-transform:uppercase">Acesso rápido</h3>
+  <div class="kpis">
+    ${[['jogadores','👥','Jogadores'],['agenda','📋','Presenças'],['agenda','🔀','Dividir equipas'],['tesouraria','💰','Tesouraria'],['relatorios','📊','Relatórios'],['jogos','🏆','Estatísticas']].map(([k,i,t])=>`<div class="kpi" style="cursor:pointer;text-align:center" onclick="ir('${k}')"><b>${i}</b><span>${t}</span></div>`).join('')}
+  </div>`;
+}
+function marcarEu(evId,k){const e=D.eventos.find(x=>x.id===evId);e.pres=e.pres||{};e.pres[D.eu]=k;gravar();tudo();refrescarFolha();toast(k==='conf'?'Presença confirmada ⚽':k==='just'?'Ausência registada':'Resposta registada')}
+
+/* =========================================================
+   JOGADORES
+   ========================================================= */
+let posF='Todos',buscaJ='';
+function rJogadores(){
+  const eq=eqA(),s=el('s-jogadores');if(!eq){s.innerHTML='<div class="vazio">Crie primeiro uma equipa.</div>';return}
+  const p=P(),pend=eq.insc.filter(i=>i.estado==='pendente');
+  const l=jogadoresEq(eq).filter(j=>(posF==='Todos'||j.posicao===posF)&&(j.nome+' '+j.posicao).toLowerCase().includes(buscaJ.toLowerCase()));
+  s.innerHTML=`<div class="titulo"><h2>Jogadores</h2>${p.coord?`<button class="btn cor" onclick="adicionarJogador()">+ Adicionar</button>`:''}</div>
+  ${p.coord&&pend.length?`<div class="card" style="border-color:var(--aviso)"><b>Pedidos de inscrição</b>${pend.map(i=>{const j=jog(i.j);return `<div class="jrow" style="margin-top:10px">${avatar(j,1)}<div class="info"><b>${esc(j.nome)}</b><span class="meta">${esc(j.posicao)} · pedido em ${dataPt(i.desde)}</span></div><button class="btn verde mini" onclick="decidirPedido('${i.j}',true)">Aprovar</button><button class="btn perigo mini" onclick="decidirPedido('${i.j}',false)">✕</button></div>`}).join('')}</div>`:''}
+  <input class="busca" placeholder="Procurar jogador" value="${esc(buscaJ)}" oninput="buscaJ=this.value;rJogadoresLista()">
+  <div class="tabs">${['Todos',...POS].map(t=>`<button class="${t===posF?'on':''}" onclick="posF='${t}';rJogadores()">${t}</button>`).join('')}</div>
+  <div id="lista-j"></div>`;
+  rJogadoresLista();
+}
+function rJogadoresLista(){
+  const eq=eqA(),p=P();
+  const l=jogadoresEq(eq).filter(j=>(posF==='Todos'||j.posicao===posF)&&(j.nome+' '+j.posicao).toLowerCase().includes(buscaJ.toLowerCase()));
+  el('lista-j').innerHTML=l.map(j=>{const st=statsJog(eq,j.id),dv=divida(eq,j.id);const fs=j.insc.f.filter(f=>f!=='jog');
+    return `<div class="card click jrow" onclick="abrirJogador('${j.id}')"><span class="num">${j.insc.num||''}</span>${avatar(j)}<div class="info"><b>${esc(j.nome)}${j.id===D.eu?' <span class="tag cor">eu</span>':''}</b>
+      <span class="meta">${esc(j.posicao)} · <span class="estrelas">${'★'.repeat(j.nivel||0)}${'☆'.repeat(5-(j.nivel||0))}</span></span>
+      <div>${fs.map(f=>`<span class="tag">${FUNC[f]}</span>`).join('')}<span class="tag ${st.assid>=75?'ok':st.assid>=50?'am':'mau'}">${st.assid}% assid.</span>${st.g?`<span class="tag">⚽ ${st.g}</span>`:''}${(p.verFin||j.id===D.eu)&&dv?`<span class="tag mau">${kz(dv)}</span>`:''}</div></div></div>`}).join('')||'<div class="vazio">Nenhum jogador encontrado.</div>';
+}
+function decidirPedido(jid,ok){const eq=eqA();const i=eq.insc.find(x=>x.j===jid&&x.estado==='pendente');if(ok){i.estado='activo';i.f=['jog'];i.num=Math.max(0,...inscAct(eq).map(x=>x.num||0))+1}else eq.insc=eq.insc.filter(x=>x!==i);gravar();tudo();toast(ok?'Jogador aprovado':'Pedido recusado')}
+function adicionarJogador(){
+  const eq=eqA();const fora=D.jogadores.filter(j=>!eq.insc.some(i=>i.j===j.id)).sort((a,b)=>a.nome.localeCompare(b.nome));
+  abrirModal(`<h3>Adicionar à ${esc(eq.nome)}</h3>
+  <button class="btn cor largo" onclick="formJogador()">+ Registar jogador novo</button>
+  ${fora.length?`<p class="meta" style="margin:8px 0">Ou escolha alguém que já joga noutra equipa (não duplica o cadastro):</p>
+  ${fora.map(j=>`<div class="card click jrow" onclick="inscrever('${j.id}')">${avatar(j,1)}<div class="info"><b>${esc(j.nome)}</b><span class="meta">${esc(j.posicao)} · ${D.equipas.filter(e=>e.insc.some(i=>i.j===j.id&&i.estado==='activo')).map(e=>esc(e.nome)).join(', ')||'sem equipa'}</span></div><span class="tag cor">+</span></div>`).join('')}`:''}`);
+}
+function inscrever(jid){const eq=eqA();eq.insc.push({j:jid,f:['jog'],num:Math.max(0,...inscAct(eq).map(x=>x.num||0))+1,estado:'activo',desde:hoje()});gravar();fecharModal();tudo();toast(jog(jid).nome+' inscrito na equipa')}
+function formJogador(id){
+  const j=D.jogadores.find(x=>x.id===id)||{};const eq=eqA();const ins=id?eq.insc.find(i=>i.j===id):null;
+  const campos=[{k:'nome',l:'Nome completo',req:1},{k:'telefone',l:'Telefone (WhatsApp)',t:'tel',ph:'923 000 000'},
+    {k:'posicao',l:'Posição',t:'sel',o:POS},{k:'nivel',l:'Nível técnico',t:'sel',o:[[1,'★ Iniciante'],[2,'★★ Básico'],[3,'★★★ Médio'],[4,'★★★★ Bom'],[5,'★★★★★ Muito bom']],def:3},
+    {k:'nascimento',l:'Data de nascimento (opcional)',t:'date'},{k:'foto',l:'Fotografia (opcional)',t:'img',max:220}];
+  if(P().coord)campos.push({k:'num',l:'Número da camisola nesta equipa',t:'number'});
+  form(id?'Editar jogador':'Novo jogador',campos,{...j,num:ins?.num},o=>{
+    o.nivel=+o.nivel||3;const num=o.num;delete o.num;
+    if(id){Object.assign(j,o);if(ins&&num!=='')ins.num=num}
+    else{const n={id:uid(),...o};D.jogadores.push(n);eq.insc.push({j:n.id,f:['jog'],num:num||Math.max(0,...inscAct(eq).map(x=>x.num||0))+1,estado:'activo',desde:hoje()})}
+    toast('Jogador guardado');setTimeout(refrescarFolha,50);
+  });
+}
+function abrirJogador(jid){abrirFolha(()=>fichaJogador(jid))}
+function fichaJogador(jid){
+  const eq=eqA(),j=jog(jid),ins=eq.insc.find(i=>i.j===jid)||{f:[]},p=P(),eu=jid===D.eu;
+  const st=statsJog(eq,jid),dv=divida(eq,jid);
+  const evs=evsEq(eq).filter(e=>realizado(e)&&e.estado!=='cancelado').sort((a,b)=>b.data.localeCompare(a.data)).slice(0,8);
+  const cob=D.cobrancas.filter(c=>c.eq===eq.id&&c.j===jid).sort((a,b)=>b.data.localeCompare(a.data));
+  const outras=D.equipas.filter(e=>e.id!==eq.id&&e.insc.some(i=>i.j===jid&&i.estado==='activo'));
+  return `${cabFolha('Ficha do jogador')}
+  <div class="card" style="text-align:center">${j.foto?`<img src="${j.foto}" style="width:96px;height:96px;border-radius:50%;object-fit:cover">`:avatar(j).replace('class="av"','class="av" style="width:84px;height:84px;font-size:28px"')}
+   <h3 style="margin:8px 0 0">${esc(j.nome)}</h3><div class="meta">#${ins.num||'·'} · ${esc(j.posicao)} · <span class="estrelas">${'★'.repeat(j.nivel||0)}</span></div>
+   <div>${ins.f.map(f=>`<span class="tag">${FUNC[f]}</span>`).join('')}</div>
+   ${outras.length?`<div class="meta" style="margin-top:6px">Também joga em: ${outras.map(e=>esc(e.nome)).join(', ')}</div>`:''}
+   <div class="acoes" style="justify-content:center">
+    ${(p.coord||eu)&&j.telefone?`<button class="btn wa mini" onclick="whatsapp('Olá ${esc(j.nome.split(' ')[0])}!',jog('${jid}').telefone)">WhatsApp</button><a class="btn claro mini" href="tel:${esc(telIntl(j.telefone))}">Ligar</a>`:''}
+    ${p.coord||eu?`<button class="btn claro mini" onclick="formJogador('${jid}')">Editar</button>`:''}
+    ${p.coord?`<button class="btn claro mini" onclick="formFuncoes('${jid}')">Funções</button><button class="btn perigo mini" onclick="removerDaEquipa('${jid}')">Retirar da equipa</button>`:''}
+   </div></div>
+  <div class="kpis"><div class="kpi"><b>${st.assid}%</b><span>Assiduidade (${st.pres}/${st.total})</span></div><div class="kpi"><b>${st.jogos}</b><span>Jogos disputados</span></div><div class="kpi"><b>${st.g}</b><span>Golos</span></div><div class="kpi"><b>${st.a}</b><span>Assistências</span></div></div>
+  <div class="bloco"><h4>Últimas actividades</h4><div class="card" style="padding:4px 10px">${evs.map(e=>{const s=estadoP(e,jid),m=(e.marc||{})[jid];return `<div class="linha" style="padding:7px 0;border-bottom:1px solid var(--linha)"><span>${dataPt(e.data)} · ${esc(e.tipo==='Jogo'?'vs '+e.adv:e.tipo)}${m?` <span class="meta">⚽${m.g||0} 🅰️${m.a||0}</span>`:''}</span><span class="tag ${s==='pres'?'ok':s==='just'?'am':'mau'}">${s==='pres'?'Presente':s==='just'?'Justificada':'Falta'}</span></div>`}).join('')||'<div class="vazio">Sem actividades.</div>'}</div></div>
+  ${p.verFin||eu?`<div class="bloco"><h4>Situação financeira · em dívida: <span style="color:${dv?'var(--mau)':'var(--ok)'}">${kz(dv)}</span></h4>
+   ${dv&&p.verFin&&j.telefone?`<button class="btn wa mini" style="margin-bottom:8px" onclick="lembrarDivida('${jid}')">Lembrar por WhatsApp</button>`:''}
+   <div class="card" style="padding:4px 10px">${cob.slice(0,10).map(c=>`<div class="linha" style="padding:7px 0;border-bottom:1px solid var(--linha)"><span>${esc(c.descricao)}<br><span class="meta">${dataPt(c.data)}</span></span><span style="text-align:right"><b>${kz(c.valor)}</b><br>${c.pago?'<span class="tag ok">Pago</span>':p.tes?`<button class="btn verde mini" onclick="receber('${c.id}')">Receber</button>`:'<span class="tag mau">Em dívida</span>'}</span></div>`).join('')||'<div class="vazio">Sem cobranças.</div>'}</div></div>`:''}
+  <button class="btn claro largo" onclick="relatorio('ficha',{j:'${jid}'})">📄 Relatório individual (PDF/imagem)</button>`;
+}
+function formFuncoes(jid){
+  const eq=eqA(),ins=eq.insc.find(i=>i.j===jid);
+  form('Funções de '+esc(jog(jid).nome.split(' ')[0])+' na '+esc(eq.nome),[{k:'f',l:'Uma pessoa pode acumular várias funções',t:'multi',o:[['coord','Coordenador · gestão desportiva'],['tes','Tesoureiro · receitas, despesas e dívidas'],['trein','Treinador · convocatórias, presenças e divisão'],['jog','Jogador']]}],{f:ins.f},o=>{ins.f=o.f.length?o.f:['jog'];toast('Funções actualizadas');setTimeout(refrescarFolha,50)});
+}
+function removerDaEquipa(jid){const eq=eqA();confirmar(`Retirar ${jog(jid).nome} da ${eq.nome}? O histórico (presenças, golos e pagamentos) fica guardado.`,()=>{eq.insc=eq.insc.filter(i=>i.j!==jid);if(!D.equipas.some(e=>e.insc.some(i=>i.j===jid))&&!D.cobrancas.some(c=>c.j===jid)&&!D.movs.some(m=>m.j===jid)){}gravar();fecharFolha();tudo();toast('Jogador retirado da equipa')},'Retirar')}
+function lembrarDivida(jid){const eq=eqA(),j=jog(jid),l=D.cobrancas.filter(c=>c.eq===eq.id&&c.j===jid&&!c.pago);
+  whatsapp(`Olá ${j.nome.split(' ')[0]}! 👋\nLembrete amigável da tesouraria da *${eq.nome}*:\n\n${l.map(c=>`• ${c.descricao}: ${kz(c.valor)}`).join('\n')}\n\n*Total em aberto: ${kz(divida(eq,jid))}*\n\nPode pagar em dinheiro ou por Multicaixa Express. Obrigado! ⚽`,j.telefone)}
+
+/* =========================================================
+   AGENDA E EVENTOS
+   ========================================================= */
+let agF='proximos';
+function rAgenda(){
+  const eq=eqA(),s=el('s-agenda');if(!eq){s.innerHTML='<div class="vazio">Crie primeiro uma equipa.</div>';return}
+  const p=P(),hj=hoje();
+  const l=evsEq(eq).filter(e=>agF==='proximos'?e.data>=hj&&e.estado!=='cancelado':agF==='passados'?e.data<hj||e.estado==='realizado':e.estado==='cancelado').sort((a,b)=>agF==='proximos'?(a.data+a.hora).localeCompare(b.data+b.hora):(b.data+b.hora).localeCompare(a.data+a.hora));
+  s.innerHTML=`<div class="titulo"><h2>Agenda</h2>${p.coord||p.trein?`<button class="btn cor" onclick="formEvento()">+ Marcar</button>`:''}</div>
+  <div class="tabs">${[['proximos','Próximos'],['passados','Realizados'],['cancelados','Cancelados']].map(([k,t])=>`<button class="${k===agF?'on':''}" onclick="agF='${k}';rAgenda()">${t}</button>`).join('')}</div>
+  ${l.map(cartaoEvento).join('')||'<div class="vazio">Nada por aqui.</div>'}`;
+}
+function cartaoEvento(e){
+  const eq=eqPor(e.eq),conf=Object.values(e.pres||{}).filter(x=>x==='conf'||x==='pres').length,d=diasAte(e.data),r=resultadoLetra(e);
+  const meu=D.eu!=='admin'&&inscAct(eq).some(i=>i.j===D.eu)?estadoP(e,D.eu):null;
+  return `<div class="card click" onclick="abrirEvento('${e.id}')"><div class="linha"><div><b>${e.tipo==='Jogo'?'⚽ Jogo vs '+esc(e.adv):e.tipo==='Treino'?'🏃 Treino':e.tipo==='Torneio'?'🏆 Torneio':'🎉 '+esc(e.tipo)}</b>
+    <div class="meta">📅 ${dataLonga(e.data)} · ${esc(e.hora)}${e.fim?'–'+esc(e.fim):''}<br>📍 ${esc(e.local||'Campo por confirmar')}</div></div>
+    <div style="text-align:right">${e.estado==='cancelado'?'<span class="tag mau">Cancelado</span>':realizado(e)?(r?`<span class="vde ${r}">${r}</span><b class="cond" style="font-size:20px">${e.res.a}-${e.res.b}</b>`:'<span class="tag">Realizado</span>'):`<span class="tag ${d<=1?'cor':''}">${d===0?'Hoje':d===1?'Amanhã':'Em '+d+' dias'}</span>`}</div></div>
+    <div class="meta" style="margin-top:6px">${realizado(e)?`${Object.values(e.pres||{}).filter(x=>x==='pres').length} presentes`:`✅ ${conf} confirmados`}${e.conv?.length?` · ${e.conv.length} convocados`:''}${e.grupos?.length?' · equipas divididas':''}${meu?` · <b>Eu: ${EST[meu]}</b>`:''}</div></div>`;
+}
+function formEvento(id){
+  const p=P();if(!(p.coord||p.trein)){toast('Só a coordenação ou o treinador marcam actividades');return}
+  const eq=eqA(),e=D.eventos.find(x=>x.id===id)||{};
+  form(id?'Editar actividade':'Nova actividade',[{k:'tipo',l:'Tipo',t:'sel',o:TIPOS_EV},{k:'adv',l:'Adversário (se for jogo)'},
+    {t:'row',c:[{k:'data',l:'Data',t:'date',def:hoje()},{k:'hora',l:'Início',t:'time',def:'16:00'}]},
+    {t:'row',c:[{k:'fim',l:'Fim',t:'time',def:'18:00'},{k:'custo',l:'Custo do campo (Kz)',t:'number',def:''}]},
+    {k:'local',l:'Local',def:eq.local},{k:'notas',l:'Notas',t:'area'}],e,o=>{
+    if(!o.data){toast('Indique a data');return false}
+    if(o.tipo==='Jogo'&&!o.adv){toast('Indique o adversário');return false}
+    if(id)Object.assign(e,o);else{const n={id:uid(),eq:eq.id,pres:{},conv:[],grupos:[],res:null,marc:{},estado:'agendado',...o};D.eventos.push(n);setTimeout(()=>abrirEvento(n.id),60)}
+    toast('Actividade guardada');setTimeout(refrescarFolha,50);
+  });
+}
+let evAba='pres';
+function abrirEvento(id){evAba='pres';abrirFolha(()=>fichaEvento(id))}
+function fichaEvento(id){
+  const e=D.eventos.find(x=>x.id===id);if(!e)return cabFolha('Actividade')+'<div class="vazio">Actividade removida.</div>';
+  const eq=eqPor(e.eq),p=P(),passou=realizado(e);
+  const abas=[['pres','Presenças'],['conv','Convocatória'],['div','Dividir equipas'],['res',e.tipo==='Jogo'?'Resultado':'Golos'],['fin','Finanças']].filter(([k])=>k!=='fin'||p.verFin);
+  let corpo='';
+  if(evAba==='pres')corpo=blocoPresencas(e,eq,p,passou);
+  else if(evAba==='conv')corpo=blocoConvocatoria(e,eq,p);
+  else if(evAba==='div')corpo=blocoDivisao(e,eq,p);
+  else if(evAba==='res')corpo=blocoResultado(e,eq,p);
+  else corpo=blocoFinEvento(e,eq,p);
+  return `${cabFolha(e.tipo==='Jogo'?'Jogo vs '+esc(e.adv):esc(e.tipo))}
+  <div class="card"><div class="meta">📅 ${dataLonga(e.data)} · ${esc(e.hora)}${e.fim?' às '+esc(e.fim):''}<br>📍 ${esc(e.local||'Campo por confirmar')}${e.custo?' · Campo: '+kz(e.custo):''}</div>
+  ${e.notas?`<div style="margin-top:6px;font-size:14px">${esc(e.notas)}</div>`:''}
+  <div style="margin-top:6px">${e.estado==='cancelado'?'<span class="tag mau">Cancelado</span>':passou?'<span class="tag ok">Realizado</span>':'<span class="tag cor">Agendado</span>'}</div>
+  ${p.coord||p.trein?`<div class="acoes"><button class="btn claro mini" onclick="formEvento('${e.id}')">Editar</button><button class="btn wa mini" onclick="whatsapp(textoEvento('${e.id}'))">Avisar no WhatsApp</button>
+   ${e.estado!=='cancelado'?`<button class="btn perigo mini" onclick="confirmar('Cancelar esta actividade?',()=>{const x=D.eventos.find(y=>y.id==='${e.id}');x.estado='cancelado';gravar();tudo();refrescarFolha()},'Cancelar actividade')">Cancelar</button>`:`<button class="btn claro mini" onclick="const x=D.eventos.find(y=>y.id==='${e.id}');x.estado='agendado';gravar();tudo();refrescarFolha()">Reactivar</button>`}
+   <button class="btn perigo mini" onclick="confirmar('Apagar definitivamente esta actividade e o seu registo de presenças?',()=>{D.eventos=D.eventos.filter(y=>y.id!=='${e.id}');gravar();fecharFolha();tudo()},'Apagar')">🗑</button></div>`:''}</div>
+  <div class="tabs">${abas.map(([k,t])=>`<button class="${k===evAba?'on':''}" onclick="evAba='${k}';refrescarFolha()">${t}</button>`).join('')}</div>
+  ${corpo}`;
+}
+function textoEvento(id){const e=D.eventos.find(x=>x.id===id),eq=eqPor(e.eq);
+  return `⚽ *${eq.nome}*\n\n${e.tipo==='Jogo'?'*JOGO* contra *'+e.adv+'*':'*'+e.tipo.toUpperCase()+'*'}\n📅 ${dataLonga(e.data)}\n🕒 ${e.hora}${e.fim?' às '+e.fim:''}\n📍 ${e.local||'Campo por confirmar'}\n${e.notas?'\n'+e.notas+'\n':''}\nConfirmem a presença na app *Futsal em Equipa* ou respondam a esta mensagem. 💪`}
+
+function blocoPresencas(e,eq,p,passou){
+  const l=jogadoresEq(eq),c={};Object.keys(EST).forEach(k=>c[k]=0);l.forEach(j=>c[estadoP(e,j.id)]++);
+  const opc=passou?['pres','just','injust']:['conf','nconf','just','injust'];
+  return `<div class="kpis">${(passou?['pres','just','injust','nconf']:['conf','nconf','just','injust']).map(k=>`<div class="kpi"><b>${c[k]}</b><span>${EST[k]}</span></div>`).join('')}</div>
+  ${passou&&p.trein&&c.conf?`<div class="aviso-box">Há ${c.conf} confirmação(ões) por fechar. <button class="btn mini verde" onclick="fecharPresencas('${e.id}')">Marcar confirmados como presentes</button></div>`:''}
+  <p class="meta" style="margin-bottom:8px">${passou?'Depois do evento, o responsável regista a presença efectiva ou a falta.':'Cada jogador confirma a sua presença. O treinador pode actualizar por quem não tem a app.'}</p>
+  ${l.map(j=>{const s=estadoP(e,j.id),podeMudar=p.trein||(j.id===D.eu&&!passou);
+    return `<div class="card" style="padding:10px 12px"><div class="jrow">${avatar(j,1)}<div class="info"><b>${esc(j.nome)}</b><span class="meta">${esc(j.posicao)}</span></div>${!podeMudar?`<span class="tag ${s==='conf'||s==='pres'?'ok':s==='just'?'am':s==='injust'?'mau':''}">${EST[s]}</span>`:''}</div>
+    ${podeMudar?`<div class="estado">${opc.map(k=>`<button class="${k} ${s===k?'on':''}" onclick="marcarP('${e.id}','${j.id}','${k}')">${EST[k]}</button>`).join('')}</div>`:''}</div>`}).join('')}`;
+}
+function marcarP(evId,jid,k){const e=D.eventos.find(x=>x.id===evId);e.pres=e.pres||{};e.pres[jid]=k;gravar();refrescarFolha();rPainel();rAgenda()}
+function fecharPresencas(evId){const e=D.eventos.find(x=>x.id===evId);Object.keys(e.pres).forEach(j=>{if(e.pres[j]==='conf')e.pres[j]='pres';else if(e.pres[j]==='nconf')e.pres[j]='injust'});e.estado='realizado';gravar();tudo();refrescarFolha();toast('Presenças fechadas')}
+
+function blocoConvocatoria(e,eq,p){
+  const l=jogadoresEq(eq),conv=new Set(e.conv||[]);
+  if(!p.trein)return conv.size?`<div class="card"><b>Convocados (${conv.size})</b>${[...conv].map(j=>`<div style="margin-top:6px">${esc(jog(j).nome)}</div>`).join('')}</div>`:'<div class="vazio">O treinador ainda não fez a convocatória.</div>';
+  return `<p class="meta" style="margin-bottom:8px">Seleccione os jogadores convocados. Os confirmados aparecem primeiro.</p>
+  <div class="acoes" style="margin:0 0 10px"><button class="btn claro mini" onclick="convTodos('${e.id}','conf')">Convocar confirmados</button><button class="btn claro mini" onclick="convTodos('${e.id}','')">Limpar</button></div>
+  ${[...l].sort((a,b)=>(estadoP(e,a.id)==='conf'?0:1)-(estadoP(e,b.id)==='conf'?0:1)).map(j=>{const s=estadoP(e,j.id);return `<label class="card chk" style="padding:10px 12px;margin-bottom:6px"><input type="checkbox" ${conv.has(j.id)?'checked':''} onchange="togConv('${e.id}','${j.id}',this.checked)">${avatar(j,1)}<span style="flex:1"><b>${esc(j.nome)}</b><br><span class="meta">${esc(j.posicao)}</span></span><span class="tag ${s==='conf'||s==='pres'?'ok':s==='nconf'?'':'mau'}">${EST[s]}</span></label>`}).join('')}
+  <div class="acoes"><button class="btn wa" onclick="whatsapp(textoConv('${e.id}'))">Enviar convocatória</button><button class="btn claro" onclick="relatorio('convocatoria',{ev:'${e.id}'})">📄 PDF / imagem</button></div>`;
+}
+function togConv(ev,j,v){const e=D.eventos.find(x=>x.id===ev);e.conv=e.conv||[];if(v&&!e.conv.includes(j))e.conv.push(j);if(!v)e.conv=e.conv.filter(x=>x!==j);gravar();rAgenda()}
+function convTodos(ev,k){const e=D.eventos.find(x=>x.id===ev),eq=eqPor(e.eq);e.conv=k?inscAct(eq).map(i=>i.j).filter(j=>['conf','pres'].includes(estadoP(e,j))):[];gravar();refrescarFolha();rAgenda()}
+function textoConv(ev){const e=D.eventos.find(x=>x.id===ev),eq=eqPor(e.eq);const l=(e.conv||[]).map(j=>jog(j)).sort((a,b)=>POS.indexOf(a.posicao)-POS.indexOf(b.posicao));
+  return `📋 *CONVOCATÓRIA · ${eq.nome}*\n${e.tipo==='Jogo'?'Jogo contra *'+e.adv+'*':e.tipo}\n📅 ${dataLonga(e.data)} · ${e.hora}\n📍 ${e.local||'Campo por confirmar'}\n\n${l.map((j,i)=>`${i+1}. ${j.nome} (${POS_C[j.posicao]||''})`).join('\n')||'(sem convocados)'}\n\nChegar 15 minutos antes. Bom jogo! ⚽`}
+
+/* ---------- divisão de equipas ---------- */
+let divN=2,divModo='equilibrado',divBase='conf';
+function poolDiv(e,eq){const ids=inscAct(eq).map(i=>i.j);
+  if(divBase==='conv'&&e.conv?.length)return e.conv.filter(j=>ids.includes(j));
+  if(divBase==='conf'){const l=ids.filter(j=>['conf','pres'].includes(estadoP(e,j)));if(l.length)return l}
+  return ids}
+function gerarDivisao(evId){
+  const e=D.eventos.find(x=>x.id===evId),eq=eqPor(e.eq);const pool=poolDiv(e,eq).map(jog);
+  if(pool.length<divN*2){toast('Poucos jogadores para '+divN+' equipas');return}
+  const G=Array.from({length:divN},()=>[]),nivel=g=>g.reduce((s,j)=>s+(j.nivel||3),0);
+  if(divModo==='sorteio'){baralhar(pool).forEach((j,i)=>G[i%divN].push(j))}
+  else if(divModo==='manual'){pool.forEach(j=>G[0].push(j))}
+  else if(divModo==='nivel'){baralhar(pool).sort((a,b)=>(b.nivel||3)-(a.nivel||3)).forEach(j=>{const g=[...G].sort((a,b)=>a.length-b.length||nivel(a)-nivel(b))[0];g.push(j)})}
+  else{ // equilibrado por posição e nível
+    const ordem=['Guarda-redes','Fixo','Pivô','Ala','Universal'];
+    ordem.forEach(pos=>{baralhar(pool.filter(j=>(j.posicao||'Universal')===pos)).sort((a,b)=>(b.nivel||3)-(a.nivel||3)).forEach(j=>{
+      const g=[...G].sort((a,b)=>a.filter(x=>x.posicao===pos).length-b.filter(x=>x.posicao===pos).length||a.length-b.length||nivel(a)-nivel(b))[0];g.push(j)})});
+  }
+  e.grupos=G.map(g=>g.map(j=>j.id));e.divModo=divModo;gravar();refrescarFolha();rAgenda();toast(divModo==='manual'?'Mova os jogadores com os botões coloridos':'Equipas geradas');
+}
+function moverDiv(evId,jid,gi){const e=D.eventos.find(x=>x.id===evId);e.grupos=e.grupos.map(g=>g.filter(x=>x!==jid));e.grupos[gi].push(jid);gravar();refrescarFolha()}
+function blocoDivisao(e,eq,p){
+  const G=e.grupos||[];
+  const ctrl=p.trein?`<div class="card"><div class="g2"><label>Nº de equipas<select onchange="divN=+this.value"><option ${divN==2?'selected':''}>2</option><option ${divN==3?'selected':''}>3</option><option ${divN==4?'selected':''}>4</option></select></label>
+    <label>Jogadores<select onchange="divBase=this.value"><option value="conf" ${divBase==='conf'?'selected':''}>Confirmados</option><option value="conv" ${divBase==='conv'?'selected':''}>Convocados</option><option value="todos" ${divBase==='todos'?'selected':''}>Todos</option></select></label></div>
+    <label>Critério<select onchange="divModo=this.value"><option value="equilibrado" ${divModo==='equilibrado'?'selected':''}>Equilíbrio por posição e nível</option><option value="nivel" ${divModo==='nivel'?'selected':''}>Equilíbrio por nível técnico</option><option value="sorteio" ${divModo==='sorteio'?'selected':''}>Sorteio</option><option value="manual" ${divModo==='manual'?'selected':''}>Distribuição manual</option></select></label>
+    <button class="btn cor largo" onclick="gerarDivisao('${e.id}')">🔀 ${G.length?'Voltar a dividir':'Dividir equipas'}</button><div class="meta">Depois de dividir, pode trocar qualquer jogador com os botões coloridos.</div></div>`:'';
+  if(!G.length)return ctrl+'<div class="vazio">As equipas ainda não foram divididas.</div>';
+  const nv=g=>g.reduce((s,j)=>s+(jog(j).nivel||3),0);
+  return ctrl+`<div class="grupos">${G.map((g,gi)=>`<div class="grupo" style="border-color:${CORES_GR[gi]}"><h5><span style="color:${CORES_GR[gi]}">Equipa ${NOMES_GR[gi]}</span><span class="meta">${g.length} jog. · nível ${nv(g)}</span></h5>
+    ${g.map(jid=>{const j=jog(jid);return `<div class="jrow" style="margin-top:7px">${avatar(j,1)}<div class="info"><b style="font-size:14px">${esc(j.nome)}</b><span class="meta">${POS_C[j.posicao]||''} · ${'★'.repeat(j.nivel||3)}</span></div>
+      ${p.trein?`<div class="mover">${G.map((_,k)=>k===gi?'':`<button style="background:${CORES_GR[k]}" onclick="moverDiv('${e.id}','${jid}',${k})">${NOMES_GR[k][0]}</button>`).join('')}</div>`:''}</div>`}).join('')}</div>`).join('')}</div>
+  <div class="acoes"><button class="btn wa" onclick="whatsapp(textoDiv('${e.id}'))">Partilhar no WhatsApp</button><button class="btn claro" onclick="relatorio('convocatoria',{ev:'${e.id}'})">📄 PDF / imagem</button></div>`;
+}
+function textoDiv(ev){const e=D.eventos.find(x=>x.id===ev),eq=eqPor(e.eq);return `🔀 *EQUIPAS · ${eq.nome}*\n${e.tipo} de ${dataPt(e.data)}\n\n`+e.grupos.map((g,i)=>`*Equipa ${NOMES_GR[i]}*\n${g.map(j=>'• '+jog(j).nome+' ('+(POS_C[jog(j).posicao]||'')+')').join('\n')}`).join('\n\n')+`\n\nBom jogo a todos! ⚽`}
+
+/* ---------- resultado e marcadores ---------- */
+function blocoResultado(e,eq,p){
+  const pres=jogadoresEq(eq).filter(j=>['pres','conf'].includes(estadoP(e,j.id))||(e.marc||{})[j.id]);
+  const jogo=e.tipo==='Jogo'||e.tipo==='Torneio';const r=e.res||{a:'',b:''};
+  return `${jogo?`<div class="card"><div class="placar"><div class="lado"><img src="${logoEq(eq)}" style="width:44px;height:44px;border-radius:50%"><b>${esc(eq.nome)}</b></div>
+    ${p.trein?`<input type="number" min="0" inputmode="numeric" id="ra" value="${r.a??''}"><span class="res">-</span><input type="number" min="0" inputmode="numeric" id="rb" value="${r.b??''}">`:`<div class="res">${r.a??'·'} - ${r.b??'·'}</div>`}
+    <div class="lado"><span class="av" style="margin:0 auto;background:#94a3b8">${esc(iniciais(e.adv||'?'))}</span><b>${esc(e.adv||'Adversário')}</b></div></div>
+    ${p.trein?`<button class="btn cor largo" onclick="guardarRes('${e.id}')">Guardar resultado</button>`:''}</div>`:`<p class="meta" style="margin-bottom:8px">Nos treinos também pode registar golos e assistências para as estatísticas.</p>`}
+  <div class="bloco"><h4>Golos e assistências</h4>
+  ${pres.map(j=>{const m=(e.marc||{})[j.id]||{g:0,a:0};return `<div class="card jrow" style="padding:9px 12px">${avatar(j,1)}<div class="info"><b>${esc(j.nome)}</b></div>
+    ${p.trein?`<div style="text-align:center"><div class="meta">⚽ Golos</div><div class="mover"><button style="background:#94a3b8" onclick="somar('${e.id}','${j.id}','g',-1)">−</button><b style="min-width:22px;display:inline-block;text-align:center">${m.g||0}</b><button style="background:var(--ok)" onclick="somar('${e.id}','${j.id}','g',1)">+</button></div></div>
+    <div style="text-align:center;margin-left:8px"><div class="meta">🅰️ Assist.</div><div class="mover"><button style="background:#94a3b8" onclick="somar('${e.id}','${j.id}','a',-1)">−</button><b style="min-width:22px;display:inline-block;text-align:center">${m.a||0}</b><button style="background:var(--navy2)" onclick="somar('${e.id}','${j.id}','a',1)">+</button></div></div>`:`<span>⚽ ${m.g||0} · 🅰️ ${m.a||0}</span>`}</div>`}).join('')||'<div class="vazio">Marque primeiro as presenças.</div>'}</div>`;
+}
+function guardarRes(id){const e=D.eventos.find(x=>x.id===id);const a=el('ra').value,b=el('rb').value;if(a===''||b===''){toast('Indique os dois resultados');return}
+  e.res={a:+a,b:+b};if(e.data<=hoje())e.estado='realizado';
+  const golos=Object.values(e.marc||{}).reduce((s,m)=>s+(m.g||0),0);gravar();tudo();refrescarFolha();toast(golos!==+a?`Resultado guardado. Faltam registar ${Math.max(0,a-golos)} marcador(es).`:'Resultado guardado')}
+function somar(ev,j,k,d){const e=D.eventos.find(x=>x.id===ev);e.marc=e.marc||{};const m=e.marc[j]=e.marc[j]||{g:0,a:0};m[k]=Math.max(0,(m[k]||0)+d);if(!m.g&&!m.a)delete e.marc[j];gravar();refrescarFolha()}
+
+/* ---------- finanças do evento ---------- */
+function blocoFinEvento(e,eq,p){
+  const cob=D.cobrancas.filter(c=>c.ref===e.id),desp=D.movs.filter(m=>m.ev===e.id&&m.tipo==='desp');
+  const pres=inscAct(eq).filter(i=>estadoP(e,i.j)==='pres').map(i=>i.j);
+  return `<div class="kpis"><div class="kpi"><b>${nf(desp.reduce((s,m)=>s+m.valor,0))}</b><span>Despesas (Kz)</span></div><div class="kpi"><b>${nf(cob.filter(c=>c.pago).reduce((s,c)=>s+c.valor,0))}</b><span>Recebido (Kz)</span></div><div class="kpi"><b>${nf(cob.filter(c=>!c.pago).reduce((s,c)=>s+c.valor,0))}</b><span>Por receber (Kz)</span></div><div class="kpi"><b>${pres.length}</b><span>Presentes</span></div></div>
+  ${p.tes?`<div class="acoes" style="margin:0 0 12px">${e.custo&&!desp.some(m=>m.cat==='Aluguer de campo')?`<button class="btn cor" onclick="despCampo('${e.id}')">Registar aluguer (${kz(e.custo)})</button>`:''}
+    ${eq.valorEvento?`<button class="btn" onclick="cobrarEvento('${e.id}')">Cobrar ${kz(eq.valorEvento)} aos presentes</button>`:''}<button class="btn claro" onclick="formMov('desp','${e.id}')">+ Outra despesa</button></div>`:''}
+  ${!eq.valorEvento&&p.tes?'<p class="meta" style="margin-bottom:8px">Para cobrar por treino ou jogo, defina o valor por evento em Gestão › Equipa.</p>':''}
+  ${desp.map(m=>`<div class="card linha"><span>${esc(m.descricao)}<br><span class="meta">${esc(m.cat)}</span></span><b class="desp">−${kz(m.valor)}</b></div>`).join('')}
+  ${cob.map(c=>`<div class="card linha" style="padding:10px 12px"><span>${esc(jog(c.j).nome)}</span><span>${c.pago?`<span class="tag ok">Pago ${kz(c.valor)}</span>`:p.tes?`<button class="btn verde mini" onclick="receber('${c.id}')">Receber ${kz(c.valor)}</button>`:`<span class="tag mau">${kz(c.valor)}</span>`}</span></div>`).join('')}`;
+}
+function despCampo(id){const e=D.eventos.find(x=>x.id===id);D.movs.push({id:uid(),eq:e.eq,tipo:'desp',cat:'Aluguer de campo',data:e.data,descricao:'Aluguer do campo ('+e.tipo.toLowerCase()+' de '+dataPt(e.data)+')',valor:e.custo,j:'',resp:nomeResp(),metodo:'Dinheiro',comp:'',ev:e.id});gravar();tudo();refrescarFolha();toast('Despesa registada')}
+function cobrarEvento(id){const e=D.eventos.find(x=>x.id===id),eq=eqPor(e.eq);let n=0;
+  inscAct(eq).filter(i=>estadoP(e,i.j)==='pres').forEach(i=>{if(!D.cobrancas.some(c=>c.ref===e.id&&c.j===i.j)){D.cobrancas.push({id:uid(),eq:eq.id,j:i.j,descricao:e.tipo+' de '+dataPt(e.data),valor:eq.valorEvento,data:e.data,ref:e.id,pago:false});n++}});
+  gravar();tudo();refrescarFolha();toast(n?n+' cobrança(s) criada(s)':'Todos os presentes já foram cobrados')}
+const nomeResp=()=>D.eu==='admin'?'Administrador':jog(D.eu).nome;
+
+/* =========================================================
+   JOGOS E ESTATÍSTICAS
+   ========================================================= */
+let jgAba='res';
+function rJogos(){
+  const eq=eqA(),s=el('s-jogos');if(!eq){s.innerHTML='<div class="vazio">Crie primeiro uma equipa.</div>';return}
+  const jogos=evsEq(eq).filter(e=>(e.tipo==='Jogo'||e.tipo==='Torneio')&&e.res&&e.estado!=='cancelado').sort((a,b)=>b.data.localeCompare(a.data));
+  const v=jogos.filter(e=>resultadoLetra(e)==='V').length,em=jogos.filter(e=>resultadoLetra(e)==='E').length,d=jogos.filter(e=>resultadoLetra(e)==='D').length;
+  const gm=jogos.reduce((s,e)=>s+(+e.res.a),0),gs=jogos.reduce((s,e)=>s+(+e.res.b),0);
+  let corpo='';
+  if(jgAba==='res'){
+    corpo=`<div class="kpis"><div class="kpi"><b>${jogos.length}</b><span>Jogos</span></div><div class="kpi"><b><em style="font-style:normal;color:var(--ok)">${v}</em> · ${em} · <em style="font-style:normal;color:var(--mau)">${d}</em></b><span>Vitórias · Empates · Derrotas</span></div><div class="kpi"><b>${gm}:${gs}</b><span>Golos marcados : sofridos</span></div><div class="kpi"><b>${pct(v,jogos.length)}%</b><span>Taxa de vitórias</span></div></div>
+    ${jogos.length?`<div class="card"><div class="meta" style="margin-bottom:6px">Forma recente</div>${jogos.slice(0,10).reverse().map(e=>`<span class="vde ${resultadoLetra(e)}">${resultadoLetra(e)}</span>`).join('')}</div>`:''}
+    ${jogos.map(e=>`<div class="card click linha" onclick="abrirEvento('${e.id}')"><span><b>vs ${esc(e.adv)}</b><br><span class="meta">${dataPt(e.data)} · ${esc(e.local||'')}</span></span><span><span class="vde ${resultadoLetra(e)}">${resultadoLetra(e)}</span><b class="cond" style="font-size:22px">${e.res.a}-${e.res.b}</b></span></div>`).join('')||'<div class="vazio">Ainda não há jogos com resultado. Marque um jogo na Agenda e registe o resultado.</div>'}`;
+  }else{
+    const ord=jgAba==='golos'?'g':jgAba==='assid'?'assid':'a';
+    const l=jogadoresEq(eq).map(j=>({j,s:statsJog(eq,j.id)})).sort((a,b)=>b.s[ord]-a.s[ord]||b.s.g-a.s.g||b.s.pres-a.s.pres);
+    corpo=`<div class="card" style="padding:4px 8px;overflow-x:auto"><table><tr><th>#</th><th>Jogador</th><th class="n">Pres.</th><th class="n">Assid.</th><th class="n">⚽</th><th class="n">🅰️</th></tr>
+    ${l.map((x,i)=>`<tr onclick="abrirJogador('${x.j.id}')" style="cursor:pointer"><td>${i+1}${i<3&&x.s[ord]?' '+['🥇','🥈','🥉'][i]:''}</td><td><b>${esc(nomeCurto(x.j.nome))}</b><br><span class="meta">${POS_C[x.j.posicao]||''}</span></td><td class="n">${x.s.pres}/${x.s.total}</td><td class="n">${x.s.assid}%</td><td class="n"><b>${x.s.g}</b></td><td class="n">${x.s.a}</td></tr>`).join('')}</table></div>`;
+  }
+  s.innerHTML=`<div class="titulo"><h2>Jogos</h2>${P().coord||P().trein?`<button class="btn cor" onclick="formEvento()">+ Jogo</button>`:''}</div>
+  <div class="tabs">${[['res','Resultados'],['golos','Melhores marcadores'],['assist','Assistências'],['assid','Assiduidade']].map(([k,t])=>`<button class="${k===jgAba?'on':''}" onclick="jgAba='${k}';rJogos()">${t}</button>`).join('')}</div>${corpo}`;
+}
+
+/* =========================================================
+   TESOURARIA
+   ========================================================= */
+let tsAba='resumo';
+function rTesouraria(){
+  const eq=eqA(),s=el('s-tesouraria'),p=P();if(!eq){s.innerHTML='<div class="vazio">Crie primeiro uma equipa.</div>';return}
+  if(!p.verFin){
+    const dv=divida(eq,D.eu),cob=D.cobrancas.filter(c=>c.eq===eq.id&&c.j===D.eu).sort((a,b)=>b.data.localeCompare(a.data));
+    s.innerHTML=`<div class="titulo"><h2>Tesouraria</h2></div><div class="kpis"><div class="kpi"><b style="color:${dv?'var(--mau)':'var(--ok)'}">${nf(dv)}</b><span>A minha dívida (Kz)</span></div><div class="kpi"><b>${nf(saldoEq(eq))}</b><span>Saldo da equipa (Kz)</span></div></div>
+    <p class="meta" style="margin-bottom:10px">Os detalhes financeiros da equipa são vistos pelo tesoureiro e pela coordenação.</p>
+    ${cob.map(c=>`<div class="card linha"><span>${esc(c.descricao)}<br><span class="meta">${dataPt(c.data)}</span></span><span>${c.pago?'<span class="tag ok">Pago</span>':'<span class="tag mau">Em dívida</span>'}<br><b>${kz(c.valor)}</b></span></div>`).join('')||'<div class="vazio">Não tem cobranças. 👏</div>'}`;return}
+  const rec=D.movs.filter(m=>m.eq===eq.id&&m.tipo==='rec'),desp=D.movs.filter(m=>m.eq===eq.id&&m.tipo==='desp');
+  const mes=hoje().slice(0,7),recM=rec.filter(m=>m.data.startsWith(mes)).reduce((s,m)=>s+m.valor,0),despM=desp.filter(m=>m.data.startsWith(mes)).reduce((s,m)=>s+m.valor,0);
+  let corpo='';
+  if(tsAba==='resumo'){
+    const porCat=(l)=>{const g={};l.filter(m=>m.data.startsWith(mes)).forEach(m=>g[m.cat]=(g[m.cat]||0)+m.valor);return Object.entries(g).sort((a,b)=>b[1]-a[1])};
+    const cd=porCat(desp),mx=Math.max(1,...cd.map(x=>x[1]));
+    corpo=`<div class="kpis"><div class="kpi"><b>${nf(saldoEq(eq))}</b><span>Saldo de caixa (Kz)</span></div><div class="kpi"><b class="rec">${nf(recM)}</b><span>Receitas do mês</span></div><div class="kpi"><b class="desp">${nf(despM)}</b><span>Despesas do mês</span></div><div class="kpi"><b style="color:var(--mau)">${nf(divida(eq))}</b><span>Em dívida (Kz)</span></div></div>
+    ${p.tes?`<div class="acoes" style="margin:0 0 12px"><button class="btn verde" onclick="formMov('rec')">+ Receita</button><button class="btn perigo" onclick="formMov('desp')">+ Despesa</button>${eq.quotaValor?`<button class="btn claro" onclick="gerarQuotas()">Gerar quotas do mês</button>`:''}<button class="btn claro" onclick="formCobranca()">+ Cobrança</button></div>`:'<p class="meta" style="margin-bottom:10px">Modo de consulta. Só o tesoureiro regista movimentos.</p>'}
+    <div class="card"><b>Despesas de ${MESES[+mes.slice(5)-1]} por categoria</b>${cd.map(([c,v])=>`<div style="margin-top:8px"><div class="linha meta"><span>${esc(c)}</span><span>${kz(v)}</span></div><div style="height:8px;background:#eef2f7;border-radius:6px;overflow:hidden;margin-top:3px"><i style="display:block;height:100%;width:${v/mx*100}%;background:var(--cor)"></i></div></div>`).join('')||'<div class="vazio">Sem despesas este mês.</div>'}</div>`;
+  }else if(tsAba==='dividas'){
+    const l=jogadoresEq(eq).map(j=>({j,v:divida(eq,j.id),n:D.cobrancas.filter(c=>c.eq===eq.id&&c.j===j.id&&!c.pago).length})).filter(x=>x.v).sort((a,b)=>b.v-a.v);
+    corpo=`<div class="kpis"><div class="kpi"><b style="color:var(--mau)">${nf(divida(eq))}</b><span>Total em dívida (Kz)</span></div><div class="kpi"><b>${l.length}</b><span>Jogadores com dívida</span></div></div>
+    ${l.length&&p.tes?`<button class="btn wa largo" onclick="whatsapp(textoDividas())">Enviar resumo de dívidas ao grupo</button>`:''}
+    ${l.map(x=>`<div class="card click jrow" onclick="abrirJogador('${x.j.id}')">${avatar(x.j,1)}<div class="info"><b>${esc(x.j.nome)}</b><span class="meta">${x.n} pagamento(s) em atraso</span></div><b class="desp">${kz(x.v)}</b>${p.tes&&x.j.telefone?`<button class="btn wa mini" onclick="event.stopPropagation();lembrarDivida('${x.j.id}')">Lembrar</button>`:''}</div>`).join('')||'<div class="vazio">Ninguém em dívida. 👏</div>'}`;
+  }else{
+    const l=D.movs.filter(m=>m.eq===eq.id&&(tsAba==='movs'||m.tipo===(tsAba==='rec'?'rec':'desp'))).sort((a,b)=>b.data.localeCompare(a.data)||b.id.localeCompare(a.id));
+    corpo=`${p.tes?`<div class="acoes" style="margin:0 0 10px"><button class="btn verde mini" onclick="formMov('rec')">+ Receita</button><button class="btn perigo mini" onclick="formMov('desp')">+ Despesa</button></div>`:''}
+    ${l.map(m=>`<div class="card" style="padding:10px 12px" onclick="verMov('${m.id}')"><div class="linha"><span><b style="font-size:14px">${esc(m.descricao)}</b><br><span class="meta">${dataPt(m.data)} · ${esc(m.cat)}${m.j?' · '+esc(nomeCurto(jog(m.j).nome)):''} · ${esc(m.metodo||'')}${m.comp?' · 📎':''}</span></span><b class="${m.tipo}" style="white-space:nowrap">${m.tipo==='rec'?'+':'−'}${kz(m.valor)}</b></div></div>`).join('')||'<div class="vazio">Sem movimentos.</div>'}`;
+  }
+  s.innerHTML=`<div class="titulo"><h2>Tesouraria</h2></div>
+  <div class="tabs">${[['resumo','Resumo'],['dividas','Dívidas'],['movs','Movimentos'],['rec','Receitas'],['desp','Despesas']].map(([k,t])=>`<button class="${k===tsAba?'on':''}" onclick="tsAba='${k}';rTesouraria()">${t}</button>`).join('')}</div>${corpo}`;
+}
+function formMov(tipo,evId){
+  const p=P();if(!p.tes){toast('Só o tesoureiro regista movimentos');return}
+  const eq=eqA();
+  form(tipo==='rec'?'Nova receita':'Nova despesa',[{k:'cat',l:'Categoria',t:'sel',o:tipo==='rec'?CAT_REC:CAT_DESP},{k:'descricao',l:'Descrição',req:1},
+    {t:'row',c:[{k:'valor',l:'Valor (Kz)',t:'number'},{k:'data',l:'Data',t:'date',def:hoje()}]},
+    ...(tipo==='rec'?[{k:'j',l:'Jogador (se aplicável)',t:'sel',o:[['','· Nenhum ·'],...jogadoresEq(eq).map(j=>[j.id,j.nome])]}]:[]),
+    {k:'metodo',l:'Forma de pagamento',t:'sel',o:METODOS},{k:'comp',l:'Comprovativo (opcional)',t:'img',max:900}],{},o=>{
+    if(!o.valor){toast('Indique o valor');return false}
+    D.movs.push({id:uid(),eq:eq.id,tipo,j:'',...o,resp:nomeResp(),ev:evId||''});toast(tipo==='rec'?'Receita registada':'Despesa registada');setTimeout(refrescarFolha,50)});
+}
+function verMov(id){const m=D.movs.find(x=>x.id===id),p=P();
+  abrirModal(`<h3>${m.tipo==='rec'?'Receita':'Despesa'}</h3><div class="card"><b class="${m.tipo}" style="font-size:24px">${m.tipo==='rec'?'+':'−'}${kz(m.valor)}</b><div style="margin-top:6px">${esc(m.descricao)}</div>
+  <div class="meta" style="margin-top:6px">Data: ${dataPt(m.data)}<br>Categoria: ${esc(m.cat)}<br>${m.j?'Jogador: '+esc(jog(m.j).nome)+'<br>':''}Forma de pagamento: ${esc(m.metodo||'')}<br>Registado por: ${esc(m.resp||'')}</div>
+  ${m.comp?`<img src="${m.comp}" style="width:100%;border-radius:10px;margin-top:10px">`:'<div class="meta" style="margin-top:6px">Sem comprovativo.</div>'}</div>
+  <div class="acoes">${p.tes?`<button class="btn perigo" onclick="anularMov('${m.id}')">Anular movimento</button>`:''}<button class="btn claro" onclick="fecharModal()">Fechar</button></div>`)}
+function anularMov(id){confirmar('Anular este movimento? Se for um pagamento de cobrança, a dívida volta a ficar em aberto.',()=>{D.cobrancas.forEach(c=>{if(c.mov===id){c.pago=false;c.mov=''}});D.movs=D.movs.filter(m=>m.id!==id);gravar();tudo();toast('Movimento anulado')},'Anular')}
+function receber(cid){const c=D.cobrancas.find(x=>x.id===cid);
+  form('Receber pagamento',[{k:'info',l:'',t:'hidden'},{k:'metodo',l:'Forma de pagamento',t:'sel',o:METODOS},{k:'data',l:'Data',t:'date',def:hoje()},{k:'comp',l:'Comprovativo (opcional)',t:'img',max:900}],{},o=>{
+    const m={id:uid(),eq:c.eq,tipo:'rec',cat:c.ref&&c.ref.startsWith('quota')?'Quota':'Pagamento por treino/jogo',data:o.data,descricao:c.descricao,valor:c.valor,j:c.j,resp:nomeResp(),metodo:o.metodo,comp:o.comp};
+    D.movs.push(m);c.pago=true;c.mov=m.id;toast('Pagamento de '+kz(c.valor)+' registado');setTimeout(refrescarFolha,50)},
+  `<div class="card" style="margin-bottom:10px"><b>${esc(jog(c.j).nome)}</b><br>${esc(c.descricao)}<br><b style="font-size:20px">${kz(c.valor)}</b></div>`);
+}
+function gerarQuotas(){const eq=eqA(),ref='quota-'+hoje().slice(0,7),d=new Date();let n=0;
+  inscAct(eq).forEach(i=>{if(!D.cobrancas.some(c=>c.eq===eq.id&&c.j===i.j&&c.ref===ref)){D.cobrancas.push({id:uid(),eq:eq.id,j:i.j,descricao:'Quota de '+MESES[d.getMonth()]+' '+d.getFullYear(),valor:eq.quotaValor,data:hoje().slice(0,8)+'01',ref,pago:false});n++}});
+  gravar();tudo();toast(n?n+' quota(s) gerada(s)':'As quotas deste mês já foram geradas')}
+function formCobranca(){const eq=eqA();form('Nova cobrança',[{k:'j',l:'Jogador',t:'sel',o:[['todos','· Todos os jogadores ·'],...jogadoresEq(eq).map(j=>[j.id,j.nome])]},{k:'descricao',l:'Descrição',req:1,ph:'Ex.: Equipamento novo'},{t:'row',c:[{k:'valor',l:'Valor (Kz)',t:'number'},{k:'data',l:'Data',t:'date',def:hoje()}]}],{},o=>{
+  if(!o.valor){toast('Indique o valor');return false}const ref='man-'+uid();const l=o.j==='todos'?inscAct(eq).map(i=>i.j):[o.j];
+  l.forEach(j=>D.cobrancas.push({id:uid()+j,eq:eq.id,j,descricao:o.descricao,valor:o.valor,data:o.data,ref,pago:false}));toast(l.length+' cobrança(s) criada(s)')})}
+function textoDividas(){const eq=eqA();const l=jogadoresEq(eq).map(j=>({j,v:divida(eq,j.id)})).filter(x=>x.v).sort((a,b)=>b.v-a.v);
+  return `💰 *${eq.nome} · Situação de pagamentos*\n${dataPt(hoje())}\n\n${l.map(x=>`• ${nomeCurto(x.j.nome)}: ${kz(x.v)}`).join('\n')}\n\n*Total em aberto: ${kz(divida(eq))}*\nSaldo de caixa: ${kz(saldoEq(eq))}\n\nObrigado a todos os que já regularizaram! ⚽`}
+
+/* =========================================================
+   RELATÓRIOS
+   ========================================================= */
+let perK='mes',perIni='',perFim='',repEscopo='eq';
+function periodo(){const h=new Date(),y=h.getFullYear(),m=h.getMonth(),f=d=>iso(d);
+  switch(perK){
+    case'mes':return[f(new Date(y,m,1)),f(new Date(y,m+1,0)),MESES[m]+' de '+y];
+    case'ant':return[f(new Date(y,m-1,1)),f(new Date(y,m,0)),MESES[(m+11)%12]+' de '+(m?y:y-1)];
+    case'tri':return[f(new Date(y,m-2,1)),f(new Date(y,m+1,0)),'Últimos 3 meses'];
+    case'ano':return[`${y}-01-01`,`${y}-12-31`,'Ano de '+y];
+    case'tudo':return['','','Desde o início'];
+    default:return[perIni,perFim,'De '+dataPt(perIni)+' a '+dataPt(perFim)];
+  }}
+const REPS=[
+  ['mensal','📰','Resumo da equipa','Actividades, assiduidade, resultados e finanças do período.',0],
+  ['plantel','👥','Plantel e contactos','Lista de jogadores, números, posições e funções.',0],
+  ['presencas','✅','Mapa de presenças','Assiduidade por jogador e grelha de presenças por evento.',0],
+  ['calendario','📅','Calendário de actividades','Treinos e jogos do período, com local e presenças.',0],
+  ['resultados','🏆','Resultados dos jogos','Vitórias, empates, derrotas e golos.',0],
+  ['marcadores','⚽','Marcadores e assistências','Ranking de golos e assistências.',0],
+  ['convocatoria','📋','Convocatória e equipas','Para um evento: convocados e divisão das equipas.',0],
+  ['ficha','🪪','Ficha individual','Histórico de um jogador: presenças, golos e pagamentos.',0],
+  ['tesouraria','💰','Mapa de tesouraria','Receitas e despesas por categoria e saldo.',1],
+  ['extracto','🧾','Extracto de movimentos','Todos os movimentos do período, com saldo acumulado.',1],
+  ['dividas','⚠️','Mapa de dívidas','Quem deve, quanto e de quê.',1],
+  ['geral','🌍','Relatório consolidado','Todas as equipas lado a lado (administrador).',2]
+];
+function rRelatorios(){
+  const eq=eqA(),s=el('s-relatorios'),p=P();if(!eq){s.innerHTML='<div class="vazio">Crie primeiro uma equipa.</div>';return}
+  const[ini,fim,txt]=periodo();
+  s.innerHTML=`<div class="titulo"><h2>Relatórios</h2></div><p class="sub">Todos os relatórios levam o logótipo da equipa e podem ser guardados em PDF, em imagem ou em Excel, ou enviados pelo WhatsApp.</p>
+  <div class="card"><label style="margin:0">Período<select onchange="perK=this.value;rRelatorios()">${[['mes','Este mês'],['ant','Mês anterior'],['tri','Últimos 3 meses'],['ano','Este ano'],['tudo','Desde o início'],['pers','Personalizado']].map(([k,t])=>`<option value="${k}" ${perK===k?'selected':''}>${t}</option>`).join('')}</select></label>
+  ${perK==='pers'?`<div class="g2" style="margin-top:8px"><label>De<input type="date" value="${perIni}" onchange="perIni=this.value;rRelatorios()"></label><label>Até<input type="date" value="${perFim}" onchange="perFim=this.value;rRelatorios()"></label></div>`:''}
+  <div class="meta" style="margin-top:6px">📆 ${esc(txt)} · equipa ${esc(eq.nome)}</div></div>
+  ${REPS.filter(r=>r[4]===0||(r[4]===1&&p.verFin)||(r[4]===2&&p.admin)).map(([k,i,t,d])=>`<div class="card click jrow" onclick="relatorio('${k}')"><span class="av" style="background:#e8edf5;font-size:20px">${i}</span><div class="info"><b>${t}</b><span class="meta">${d}</span></div><span style="color:var(--suave)">›</span></div>`).join('')}
+  ${!p.verFin?'<p class="meta">Os relatórios financeiros estão disponíveis para o tesoureiro e a coordenação.</p>':''}`;
+}
+function cabDoc(eq,titulo,sub){
+  return `<div class="dcab"><img src="${logoEq(eq)}"><div><div class="eq">${esc(eq?eq.nome:'Todas as equipas')}</div><h1>${esc(titulo)}</h1><div class="per">${esc(sub||'')}</div></div><div class="app"><img src="icon-192.png">Futsal em Equipa</div></div>`;
+}
+function rodDoc(){const d=new Date();return `<div class="drod"><span>Futsal em Equipa · gestão desportiva</span><span>Emitido em ${dataPt(hoje())} às ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} por ${esc(nomeResp())}</span></div>`}
+const tab=(cab,linhas,rod,cls='')=>`<table class="${cls}"><thead><tr>${cab.map(c=>`<th${c.startsWith('>')?' style="text-align:right"':''}>${esc(c.replace(/^>/,''))}</th>`).join('')}</tr></thead><tbody>${linhas.map(l=>`<tr>${l.map((v,i)=>`<td${cab[i]&&cab[i].startsWith('>')?' style="text-align:right;white-space:nowrap"':''}>${v}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${cab.length}" style="text-align:center;color:#94a3b8">Sem registos no período.</td></tr>`}</tbody>${rod?`<tfoot><tr>${rod.map((v,i)=>`<td${cab[i]&&cab[i].startsWith('>')?' style="text-align:right;white-space:nowrap"':''}>${v}</td>`).join('')}</tr></tfoot>`:''}</table>`;
+const dk=itens=>`<div class="dk">${itens.map(([b,s])=>`<div><b>${b}</b><span>${esc(s)}</span></div>`).join('')}</div>`;
+const noPer=(d,ini,fim)=>(!ini||d>=ini)&&(!fim||d<=fim);
+
+function construir(tipo,o={}){
+  const eq=eqA(),[ini,fim,ptxt]=periodo();
+  const evsP=evsEq(eq).filter(e=>noPer(e.data,ini,fim)&&e.estado!=='cancelado').sort((a,b)=>a.data.localeCompare(b.data));
+  const realP=evsP.filter(realizado),jogs=jogadoresEq(eq);
+  const jogosP=realP.filter(e=>(e.tipo==='Jogo'||e.tipo==='Torneio')&&e.res);
+  let t='',h='',csv=null,wa=null;
+  if(tipo==='mensal'){
+    t='Resumo da equipa';let tp=0,tt=0;realP.forEach(e=>jogs.forEach(j=>{tt++;if(estadoP(e,j.id)==='pres')tp++}));
+    const v=jogosP.filter(e=>resultadoLetra(e)==='V').length,em=jogosP.filter(e=>resultadoLetra(e)==='E').length,d=jogosP.length-v-em;
+    const movP=D.movs.filter(m=>m.eq===eq.id&&noPer(m.data,ini,fim)),rec=movP.filter(m=>m.tipo==='rec').reduce((s,m)=>s+m.valor,0),desp=movP.filter(m=>m.tipo==='desp').reduce((s,m)=>s+m.valor,0);
+    const st=jogs.map(j=>({j,s:statsJog(eq,j.id,ini,fim)}));const top=[...st].sort((a,b)=>b.s.g-a.s.g)[0],ass=[...st].sort((a,b)=>b.s.assid-a.s.assid||b.s.pres-a.s.pres)[0];
+    h=`${dk([[jogs.length,'Jogadores activos'],[realP.length,'Actividades realizadas'],[pct(tp,tt)+'%','Assiduidade média'],[`${v}V ${em}E ${d}D`,'Resultados']])}
+    <h2>Desportivo</h2>${tab(['Data','Actividade','Presentes','>Resultado'],realP.map(e=>[dataPt(e.data),esc(e.tipo==='Jogo'?'Jogo vs '+e.adv:e.tipo),Object.values(e.pres||{}).filter(x=>x==='pres').length,e.res?`<b>${e.res.a}-${e.res.b}</b> <span class="${resultadoLetra(e)==='V'?'ok':resultadoLetra(e)==='D'?'mau':''}">${resultadoLetra(e)}</span>`:'']))}
+    <p class="nota">${top&&top.s.g?`Melhor marcador: <b>${esc(top.j.nome)}</b> com ${top.s.g} golo(s). `:''}${ass&&ass.s.total?`Mais assíduo: <b>${esc(ass.j.nome)}</b> (${ass.s.assid}%).`:''}</p>
+    ${P().verFin?`<h2>Financeiro</h2>${dk([[nf(rec),'Receitas (Kz)'],[nf(desp),'Despesas (Kz)'],[nf(rec-desp),'Resultado (Kz)'],[nf(saldoEq(eq,fim||undefined)),'Saldo no fim (Kz)']])}<p class="nota">Valores em dívida à data: ${kz(divida(eq))}.</p>`:''}`;
+    wa=`📰 *${eq.nome} · Resumo*\n${ptxt}\n\n🏃 ${realP.length} actividades realizadas\n✅ Assiduidade média: ${pct(tp,tt)}%\n🏆 Jogos: ${v}V ${em}E ${d}D\n${top&&top.s.g?`⚽ Melhor marcador: ${top.j.nome} (${top.s.g})\n`:''}${P().verFin?`\n💰 Receitas: ${kz(rec)}\n💸 Despesas: ${kz(desp)}\n🏦 Saldo: ${kz(saldoEq(eq))}`:''}`;
+  }
+  else if(tipo==='plantel'){
+    t='Plantel e contactos';const c=P().coord;
+    const linhas=jogs.map(j=>[j.insc.num||'',`<b>${esc(j.nome)}</b>`,esc(j.posicao),'★'.repeat(j.nivel||3),c?esc(j.telefone||''):'·',esc(j.insc.f.map(f=>FUNC[f]).join(', '))]);
+    h=`${dk([[jogs.length,'Jogadores'],...['Guarda-redes','Fixo','Ala'].map(p=>[jogs.filter(j=>j.posicao===p).length,p])])}${tab(['Nº','Nome','Posição','Nível','Telefone','Funções'],linhas)}
+    <p class="nota">Local habitual: ${esc(eq.local||'')} · ${esc(eq.diaHabitual||'')}.${!c?' Os contactos só aparecem para a coordenação.':''}</p>`;
+    csv=[['Nº','Nome','Posição','Nível','Telefone','Funções'],...jogs.map(j=>[j.insc.num||'',j.nome,j.posicao,j.nivel,c?j.telefone:'',j.insc.f.map(f=>FUNC[f]).join(', ')])];
+  }
+  else if(tipo==='presencas'){
+    t='Mapa de presenças';const st=jogs.map(j=>({j,s:statsJog(eq,j.id,ini,fim)})).sort((a,b)=>b.s.assid-a.s.assid);
+    const sim={pres:'<span class="ok">●</span>',just:'<span class="av">J</span>',injust:'<span class="mau">✕</span>',conf:'<span class="ok">●</span>',nconf:'<span class="mau">✕</span>'};
+    const ult=realP.slice(-12);
+    h=`${dk([[realP.length,'Actividades'],[pct(st.reduce((a,x)=>a+x.s.pres,0),st.reduce((a,x)=>a+x.s.total,0))+'%','Assiduidade média'],[st.filter(x=>x.s.assid>=75).length,'Jogadores ≥ 75%'],[st.filter(x=>x.s.total&&x.s.assid<50).length,'Jogadores < 50%']])}
+    <h2>Assiduidade por jogador</h2>${tab(['Jogador','>Presenças','>Justificadas','>Não justificadas','>Assiduidade'],st.map(x=>[esc(x.j.nome),x.s.pres,x.s.just,x.s.injust,`<b class="${x.s.assid>=75?'ok':x.s.assid>=50?'av':'mau'}">${x.s.assid}%</b>`]))}
+    ${ult.length?`<h2>Grelha ${realP.length>12?'(últimas 12 actividades)':''}</h2>${tab(['Jogador',...ult.map(e=>dataPt(e.data).slice(0,5)+(e.tipo==='Jogo'?' J':''))],jogs.map(j=>[esc(nomeCurto(j.nome)),...ult.map(e=>sim[estadoP(e,j.id)])]),null,'mx')}<p class="nota">● presente · J ausência justificada · ✕ ausência não justificada · "J" junto à data indica jogo.</p>`:''}`;
+    csv=[['Jogador','Presenças','Justificadas','Não justificadas','Total','Assiduidade %',...realP.map(e=>dataPt(e.data)+' '+e.tipo)],...st.map(x=>[x.j.nome,x.s.pres,x.s.just,x.s.injust,x.s.total,x.s.assid,...realP.map(e=>EST[estadoP(e,x.j.id)])])];
+  }
+  else if(tipo==='calendario'){
+    t='Calendário de actividades';
+    h=`${dk([[evsP.length,'Actividades'],[evsP.filter(e=>e.tipo==='Treino').length,'Treinos'],[evsP.filter(e=>e.tipo==='Jogo').length,'Jogos'],[evsP.filter(e=>!realizado(e)).length,'Por realizar']])}
+    ${tab(['Data','Hora','Actividade','Local','>Presenças'],evsP.map(e=>[`<b>${dataPt(e.data)}</b><br><span style="color:#64748b">${DIAS[new Date(e.data+'T12:00').getDay()]}</span>`,esc(e.hora+(e.fim?'–'+e.fim:'')),esc(e.tipo==='Jogo'?'Jogo vs '+e.adv:e.tipo),esc(e.local||''),realizado(e)?Object.values(e.pres||{}).filter(x=>x==='pres').length+' pres.':Object.values(e.pres||{}).filter(x=>x==='conf').length+' conf.']))}`;
+    csv=[['Data','Dia','Início','Fim','Tipo','Adversário','Local','Estado','Presentes/Confirmados'],...evsP.map(e=>[dataPt(e.data),DIAS[new Date(e.data+'T12:00').getDay()],e.hora,e.fim,e.tipo,e.adv,e.local,realizado(e)?'Realizado':'Agendado',Object.values(e.pres||{}).filter(x=>x===(realizado(e)?'pres':'conf')).length])];
+    wa=`📅 *${eq.nome} · Calendário*\n${ptxt}\n\n`+evsP.filter(e=>!realizado(e)).map(e=>`• ${dataPt(e.data)} ${e.hora} · ${e.tipo==='Jogo'?'Jogo vs '+e.adv:e.tipo} · ${e.local||''}`).join('\n');
+  }
+  else if(tipo==='resultados'){
+    t='Resultados dos jogos';const v=jogosP.filter(e=>resultadoLetra(e)==='V').length,em=jogosP.filter(e=>resultadoLetra(e)==='E').length,d=jogosP.length-v-em,gm=jogosP.reduce((s,e)=>s+(+e.res.a),0),gs=jogosP.reduce((s,e)=>s+(+e.res.b),0);
+    h=`${dk([[jogosP.length,'Jogos'],[`${v} · ${em} · ${d}`,'Vitórias · Empates · Derrotas'],[`${gm} : ${gs}`,'Golos marcados : sofridos'],[pct(v,jogosP.length)+'%','Taxa de vitórias']])}
+    ${tab(['Data','Adversário','Local','>Resultado','Marcadores'],jogosP.map(e=>[dataPt(e.data),`<b>${esc(e.adv)}</b>`,esc(e.local||''),`<b>${e.res.a} - ${e.res.b}</b> <span class="${resultadoLetra(e)==='V'?'ok':resultadoLetra(e)==='D'?'mau':''}">${resultadoLetra(e)}</span>`,Object.entries(e.marc||{}).filter(([,m])=>m.g).map(([j,m])=>esc(nomeCurto(jog(j).nome))+(m.g>1?' ('+m.g+')':'')).join(', ')]))}`;
+    csv=[['Data','Adversário','Local','Golos marcados','Golos sofridos','Resultado','Marcadores'],...jogosP.map(e=>[dataPt(e.data),e.adv,e.local,e.res.a,e.res.b,resultadoLetra(e),Object.entries(e.marc||{}).filter(([,m])=>m.g).map(([j,m])=>jog(j).nome+' '+m.g).join(', ')])];
+    wa=`🏆 *${eq.nome} · Resultados*\n${ptxt}\n\n${jogosP.map(e=>`${resultadoLetra(e)==='V'?'✅':resultadoLetra(e)==='D'?'❌':'➖'} ${dataPt(e.data)} vs ${e.adv}: *${e.res.a}-${e.res.b}*`).join('\n')}\n\nBalanço: ${v}V ${em}E ${d}D · Golos ${gm}:${gs}`;
+  }
+  else if(tipo==='marcadores'){
+    t='Marcadores e assistências';const st=jogs.map(j=>({j,s:statsJog(eq,j.id,ini,fim)})).sort((a,b)=>b.s.g-a.s.g||b.s.a-a.s.a);
+    h=`${dk([[st.reduce((a,x)=>a+x.s.g,0),'Golos registados'],[st.reduce((a,x)=>a+x.s.a,0),'Assistências'],[st[0]&&st[0].s.g?esc(nomeCurto(st[0].j.nome)):'·','Melhor marcador'],[st.filter(x=>x.s.g).length,'Jogadores que marcaram']])}
+    ${tab(['Pos.','Jogador','Posição','>Jogos','>Golos','>Assist.','>G+A'],st.map((x,i)=>[i+1+(i<3&&x.s.g?' '+['🥇','🥈','🥉'][i]:''),`<b>${esc(x.j.nome)}</b>`,esc(x.j.posicao),x.s.jogos,`<b>${x.s.g}</b>`,x.s.a,x.s.g+x.s.a]))}<p class="nota">Inclui golos registados em jogos e treinos.</p>`;
+    csv=[['Posição','Jogador','Posição em campo','Jogos','Golos','Assistências','G+A'],...st.map((x,i)=>[i+1,x.j.nome,x.j.posicao,x.s.jogos,x.s.g,x.s.a,x.s.g+x.s.a])];
+    wa=`⚽ *${eq.nome} · Melhores marcadores*\n${ptxt}\n\n${st.filter(x=>x.s.g).slice(0,10).map((x,i)=>`${i+1}. ${nomeCurto(x.j.nome)}: ${x.s.g} golo(s)${x.s.a?', '+x.s.a+' assist.':''}`).join('\n')}`;
+  }
+  else if(tipo==='convocatoria'){
+    const e=D.eventos.find(x=>x.id===o.ev);
+    if(!e)return{escolher:'ev'};
+    t=e.tipo==='Jogo'?'Convocatória · Jogo':'Convocatória · '+e.tipo;
+    const conv=(e.conv||[]).map(jog).sort((a,b)=>POS.indexOf(a.posicao)-POS.indexOf(b.posicao));
+    h=`<div style="font-size:15px;margin-bottom:10px">${e.tipo==='Jogo'?`<b style="font-size:20px">${esc(eq.nome)} vs ${esc(e.adv)}</b><br>`:''}📅 ${dataLonga(e.data)} · ${esc(e.hora)}${e.fim?' às '+esc(e.fim):''}<br>📍 ${esc(e.local||'Campo por confirmar')}</div>
+    ${conv.length?`<h2>Jogadores convocados (${conv.length})</h2>${tab(['Nº','Jogador','Posição'],conv.map(j=>[(eq.insc.find(i=>i.j===j.id)||{}).num||'',`<b>${esc(j.nome)}</b>`,esc(j.posicao)]))}`:''}
+    ${e.grupos?.length?`<h2>Divisão das equipas</h2><div class="gr">${e.grupos.map((g,i)=>`<div style="border-color:${CORES_GR[i]}"><b style="color:${CORES_GR[i]};font-size:15px">EQUIPA ${NOMES_GR[i].toUpperCase()}</b>${g.map(j=>`<div style="margin-top:5px">• ${esc(jog(j).nome)} <span style="color:#64748b">(${POS_C[jog(j).posicao]||''})</span></div>`).join('')}</div>`).join('')}</div>`:''}
+    ${!conv.length&&!e.grupos?.length?'<p class="nota">Ainda não há convocados nem divisão de equipas para este evento.</p>':''}
+    ${e.notas?`<p class="nota">${esc(e.notas)}</p>`:''}<div class="ass"><div>O Treinador</div><div>O Coordenador</div></div>`;
+    wa=e.grupos?.length?textoDiv(e.id):textoConv(e.id);
+    return{t,h:cabDoc(eq,t,dataPt(e.data))+h+rodDoc(),csv:null,wa,nome:t+' '+e.data};
+  }
+  else if(tipo==='ficha'){
+    const j=D.jogadores.find(x=>x.id===o.j);if(!j)return{escolher:'j'};
+    const ins=eq.insc.find(i=>i.j===j.id)||{f:[]},s=statsJog(eq,j.id,ini,fim);t='Ficha individual';
+    const evs=realP.map(e=>[dataPt(e.data),esc(e.tipo==='Jogo'?'Jogo vs '+e.adv:e.tipo),EST[estadoP(e,j.id)],((e.marc||{})[j.id]||{}).g||'',((e.marc||{})[j.id]||{}).a||'']);
+    const cob=D.cobrancas.filter(c=>c.eq===eq.id&&c.j===j.id&&noPer(c.data,ini,fim));const verF=P().verFin||j.id===D.eu;
+    h=`<div style="display:flex;gap:16px;align-items:center;margin-bottom:8px">${j.foto?`<img src="${j.foto}" style="width:90px;height:90px;border-radius:50%;object-fit:cover">`:''}<div><div style="font-size:22px;font-weight:700">${esc(j.nome)}</div><div style="color:#64748b">Nº ${ins.num||'·'} · ${esc(j.posicao)} · Nível ${'★'.repeat(j.nivel||3)} · ${esc(ins.f.map(f=>FUNC[f]).join(', '))}</div></div></div>
+    ${dk([[s.assid+'%','Assiduidade'],[s.pres+'/'+s.total,'Presenças'],[s.g,'Golos'],[s.a,'Assistências']])}
+    <h2>Actividades</h2>${tab(['Data','Actividade','Presença','>Golos','>Assist.'],evs)}
+    ${verF?`<h2>Pagamentos</h2>${tab(['Data','Descrição','Situação','>Valor'],cob.map(c=>[dataPt(c.data),esc(c.descricao),c.pago?'<span class="ok">Pago</span>':'<span class="mau">Em dívida</span>',kz(c.valor)]),['','','Em dívida (total)',`<span class="mau">${kz(divida(eq,j.id))}</span>`])}`:''}`;
+    return{t,h:cabDoc(eq,t+' · '+j.nome,ptxt)+h+rodDoc(),csv:null,wa:null,nome:'Ficha '+j.nome};
+  }
+  else if(tipo==='tesouraria'){
+    t='Mapa de tesouraria';const movP=D.movs.filter(m=>m.eq===eq.id&&noPer(m.data,ini,fim));
+    const sIni=ini?saldoEq(eq,addDias(-1,ini)):0,rec=movP.filter(m=>m.tipo==='rec'),desp=movP.filter(m=>m.tipo==='desp');
+    const tr=rec.reduce((s,m)=>s+m.valor,0),td=desp.reduce((s,m)=>s+m.valor,0);
+    const grp=l=>{const g={};l.forEach(m=>g[m.cat]=(g[m.cat]||0)+m.valor);return Object.entries(g).sort((a,b)=>b[1]-a[1])};
+    const met={};rec.forEach(m=>met[m.metodo||'Outro']=(met[m.metodo||'Outro']||0)+m.valor);
+    h=`${dk([[nf(sIni),'Saldo inicial (Kz)'],[nf(tr),'Receitas (Kz)'],[nf(td),'Despesas (Kz)'],[nf(sIni+tr-td),'Saldo final (Kz)']])}
+    <h2>Receitas por categoria</h2>${tab(['Categoria','>Movimentos','>Valor','>%'],grp(rec).map(([c,v])=>[esc(c),rec.filter(m=>m.cat===c).length,kz(v),pct(v,tr)+'%']),['Total',rec.length,kz(tr),'100%'])}
+    <h2>Despesas por categoria</h2>${tab(['Categoria','>Movimentos','>Valor','>%'],grp(desp).map(([c,v])=>[esc(c),desp.filter(m=>m.cat===c).length,kz(v),pct(v,td)+'%']),['Total',desp.length,kz(td),'100%'])}
+    <h2>Receitas por forma de pagamento</h2>${tab(['Forma','>Valor'],Object.entries(met).map(([k,v])=>[esc(k),kz(v)]))}
+    <p class="nota">Valores em dívida à data: <b>${kz(divida(eq))}</b>.</p><div class="ass"><div>O Tesoureiro</div><div>O Coordenador</div></div>`;
+    csv=[['Tipo','Categoria','Nº movimentos','Valor (Kz)'],...grp(rec).map(([c,v])=>['Receita',c,rec.filter(m=>m.cat===c).length,v]),...grp(desp).map(([c,v])=>['Despesa',c,desp.filter(m=>m.cat===c).length,v]),[],['Saldo inicial','','',sIni],['Total receitas','','',tr],['Total despesas','','',td],['Saldo final','','',sIni+tr-td]];
+    wa=`💰 *${eq.nome} · Tesouraria*\n${ptxt}\n\nSaldo inicial: ${kz(sIni)}\n➕ Receitas: ${kz(tr)}\n➖ Despesas: ${kz(td)}\n🏦 *Saldo final: ${kz(sIni+tr-td)}*\n\nPrincipais despesas:\n${grp(desp).slice(0,4).map(([c,v])=>`• ${c}: ${kz(v)}`).join('\n')}`;
+  }
+  else if(tipo==='extracto'){
+    t='Extracto de movimentos';const movP=D.movs.filter(m=>m.eq===eq.id&&noPer(m.data,ini,fim)).sort((a,b)=>a.data.localeCompare(b.data)||a.id.localeCompare(b.id));
+    let sl=ini?saldoEq(eq,addDias(-1,ini)):0;const s0=sl;
+    const linhas=movP.map(m=>{sl+=m.tipo==='rec'?m.valor:-m.valor;return[dataPt(m.data),esc(m.descricao)+(m.j?`<br><span style="color:#64748b">${esc(jog(m.j).nome)}</span>`:''),esc(m.cat),esc(m.metodo||''),m.tipo==='rec'?kz(m.valor):'',m.tipo==='desp'?kz(m.valor):'',`<b>${kz(sl)}</b>`]});
+    const tr=movP.filter(m=>m.tipo==='rec').reduce((s,m)=>s+m.valor,0),td=movP.filter(m=>m.tipo==='desp').reduce((s,m)=>s+m.valor,0);
+    h=`<p class="nota">Saldo inicial: <b>${kz(s0)}</b></p>${tab(['Data','Descrição','Categoria','Forma','>Entrada','>Saída','>Saldo'],linhas,['','Totais','','',kz(tr),kz(td),kz(sl)])}<div class="ass"><div>O Tesoureiro</div></div>`;
+    let s2=s0;csv=[['Data','Descrição','Categoria','Jogador','Forma de pagamento','Entrada','Saída','Saldo','Registado por'],...movP.map(m=>{s2+=m.tipo==='rec'?m.valor:-m.valor;return[dataPt(m.data),m.descricao,m.cat,m.j?jog(m.j).nome:'',m.metodo,m.tipo==='rec'?m.valor:'',m.tipo==='desp'?m.valor:'',s2,m.resp]})];
+  }
+  else if(tipo==='dividas'){
+    t='Mapa de dívidas';const l=jogs.map(j=>({j,c:D.cobrancas.filter(c=>c.eq===eq.id&&c.j===j.id&&!c.pago)})).filter(x=>x.c.length).map(x=>({...x,v:x.c.reduce((s,c)=>s+c.valor,0)})).sort((a,b)=>b.v-a.v);
+    const tot=l.reduce((s,x)=>s+x.v,0);
+    h=`${dk([[nf(tot),'Total em dívida (Kz)'],[l.length,'Jogadores com dívida'],[jogs.length-l.length,'Jogadores em dia'],[pct(jogs.length-l.length,jogs.length)+'%','Taxa de regularização']])}
+    ${tab(['Jogador','Detalhe','>Valor'],l.map(x=>[`<b>${esc(x.j.nome)}</b>`,x.c.map(c=>esc(c.descricao)+' ('+nf(c.valor)+')').join('<br>'),`<b class="mau">${kz(x.v)}</b>`]),['Total','',kz(tot)])}<p class="nota">Situação à data de emissão. Inclui quotas, pagamentos por treino ou jogo e outras cobranças.</p>`;
+    csv=[['Jogador','Telefone','Descrição','Data','Valor (Kz)'],...l.flatMap(x=>x.c.map(c=>[x.j.nome,x.j.telefone,c.descricao,dataPt(c.data),c.valor])),[],['Total','','','',tot]];
+    wa=textoDividas();
+  }
+  else if(tipo==='geral'){
+    t='Relatório consolidado';
+    const linhas=D.equipas.map(e=>{const evs=evsEq(e).filter(x=>noPer(x.data,ini,fim)&&realizado(x)&&x.estado!=='cancelado');const js=inscAct(e);let tp=0,tt=0;evs.forEach(x=>js.forEach(i=>{tt++;if(estadoP(x,i.j)==='pres')tp++}));
+      const mv=D.movs.filter(m=>m.eq===e.id&&noPer(m.data,ini,fim));const jg=evs.filter(x=>x.res);
+      return{e,r:[`<img src="${logoEq(e)}" style="width:22px;height:22px;border-radius:50%;vertical-align:middle"> <b>${esc(e.nome)}</b>`,js.length,evs.length,pct(tp,tt)+'%',`${jg.filter(x=>resultadoLetra(x)==='V').length}V ${jg.filter(x=>resultadoLetra(x)==='E').length}E ${jg.filter(x=>resultadoLetra(x)==='D').length}D`,kz(mv.filter(m=>m.tipo==='rec').reduce((s,m)=>s+m.valor,0)),kz(mv.filter(m=>m.tipo==='desp').reduce((s,m)=>s+m.valor,0)),kz(saldoEq(e)),kz(divida(e))],
+        c:[e.nome,js.length,evs.length,pct(tp,tt),jg.filter(x=>resultadoLetra(x)==='V').length,jg.filter(x=>resultadoLetra(x)==='E').length,jg.filter(x=>resultadoLetra(x)==='D').length,mv.filter(m=>m.tipo==='rec').reduce((s,m)=>s+m.valor,0),mv.filter(m=>m.tipo==='desp').reduce((s,m)=>s+m.valor,0),saldoEq(e),divida(e)]}});
+    const unicos=new Set(D.equipas.flatMap(e=>inscAct(e).map(i=>i.j))).size;
+    h=`${dk([[D.equipas.length,'Equipas'],[unicos,'Jogadores (sem duplicados)'],[kz(D.equipas.reduce((s,e)=>s+saldoEq(e),0)),'Saldo somado'],[kz(D.equipas.reduce((s,e)=>s+divida(e),0)),'Dívida somada']])}
+    ${tab(['Equipa','>Jog.','>Activ.','>Assid.','Jogos','>Receitas','>Despesas','>Saldo','>Dívida'],linhas.map(x=>x.r))}<p class="nota">Cada equipa tem a sua tesouraria própria. Os valores somados são apenas indicativos e não se misturam entre equipas.</p>`;
+    csv=[['Equipa','Jogadores','Actividades','Assiduidade %','Vitórias','Empates','Derrotas','Receitas','Despesas','Saldo','Dívida'],...linhas.map(x=>x.c)];
+    return{t,h:cabDoc(null,t,ptxt)+h+rodDoc(),csv,wa:null,nome:t};
+  }
+  return{t,h:cabDoc(eq,t,ptxt)+h+rodDoc(),csv,wa,nome:t};
+}
+let repAtual=null;
+function relatorio(tipo,o={}){
+  const r=construir(tipo,o);
+  if(r.escolher==='ev'){const eq=eqA();const l=evsEq(eq).filter(e=>e.estado!=='cancelado').sort((a,b)=>b.data.localeCompare(a.data)).slice(0,20);
+    abrirModal(`<h3>Escolha o evento</h3>${l.map(e=>`<div class="card click" onclick="fecharModal();relatorio('convocatoria',{ev:'${e.id}'})"><b>${esc(e.tipo==='Jogo'?'Jogo vs '+e.adv:e.tipo)}</b><div class="meta">${dataPt(e.data)} · ${(e.conv||[]).length} convocados${e.grupos?.length?' · equipas divididas':''}</div></div>`).join('')||'<div class="vazio">Sem eventos.</div>'}`);return}
+  if(r.escolher==='j'){const l=P().coord||P().verFin?jogadoresEq(eqA()):jogadoresEq(eqA()).filter(j=>j.id===D.eu);
+    abrirModal(`<h3>Escolha o jogador</h3>${l.map(j=>`<div class="card click jrow" onclick="fecharModal();relatorio('ficha',{j:'${j.id}'})">${avatar(j,1)}<div class="info"><b>${esc(j.nome)}</b></div></div>`).join('')}`);return}
+  repAtual={tipo,o,...r};
+  const eq=tipo==='geral'?null:eqA();
+  abrirFolha(()=>`${cabFolha(esc(r.t))}
+  <div class="acoes" style="margin:0 0 10px"><button class="btn cor" onclick="exportarRep('pdf')">📄 PDF</button><button class="btn" onclick="exportarRep('png')">🖼️ Imagem</button>${r.csv?`<button class="btn verde" onclick="exportarRep('csv')">📊 Excel</button>`:''}${r.wa?`<button class="btn wa" onclick="whatsapp(repAtual.wa)">WhatsApp</button>`:''}</div>
+  <div class="prev" id="prev"><div class="doc" style="--dcor:${eq?.cor||'#f97316'}">${r.h}</div></div>`);
+  ajustarPrev();
+}
+function ajustarPrev(){const p=el('prev');if(!p)return;const w=p.clientWidth-16;const d=p.querySelector('.doc');d.style.zoom=Math.min(1,w/794)}
+window.addEventListener('resize',ajustarPrev);
+async function exportarRep(fmt){
+  const r=repAtual;if(!r)return;const base=nomeFich((r.nome||r.t)+' '+(r.tipo==='geral'?'':eqA().nome))+'-'+hoje();
+  if(fmt==='csv'){const txt='﻿'+r.csv.map(l=>l.map(v=>{v=v==null?'':String(v);return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(';')).join('\r\n');salvarB64(base+'.csv',b64utf8(txt),'text/csv');return}
+  if(!window.html2canvas||!window.jspdf){toast('Componente de exportação não carregou');return}
+  el('ldr').classList.add('on');
+  try{
+    const eq=r.tipo==='geral'?null:eqA();const box=el('render');box.innerHTML=`<div class="doc" style="--dcor:${eq?.cor||'#f97316'}">${r.h}</div>`;
+    const doc=box.firstChild;await Promise.all([...doc.querySelectorAll('img')].map(i=>i.complete?1:new Promise(ok=>{i.onload=i.onerror=ok})));
+    await new Promise(ok=>setTimeout(ok,60));
+    const esc_=2;const cv=await html2canvas(doc,{scale:esc_,backgroundColor:'#ffffff',useCORS:true,logging:false});
+    if(fmt==='png'){salvarB64(base+'.png',cv.toDataURL('image/png').split(',')[1],'image/png')}
+    else{
+      const {jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:'p',unit:'mm',format:'a4',compress:true});
+      const W=794,pageH=Math.floor(W*297/210),top=doc.getBoundingClientRect().top;
+      const cortes=[...doc.querySelectorAll('tr,.dk,h2,.ass,.gr,.dcab,p')].map(n=>n.getBoundingClientRect().bottom-top).sort((a,b)=>a-b);
+      const total=doc.offsetHeight;let ini=0,pg=0;
+      while(ini<total-2){let lim=ini+pageH-20,fim=lim>=total?total:Math.max(...cortes.filter(c=>c>ini+200&&c<=lim),0)||lim;
+        const sl=document.createElement('canvas');sl.width=cv.width;sl.height=Math.round((fim-ini)*esc_);
+        const sx=sl.getContext('2d');sx.fillStyle='#fff';sx.fillRect(0,0,sl.width,sl.height);sx.drawImage(cv,0,Math.round(ini*esc_),cv.width,sl.height,0,0,cv.width,sl.height);
+        if(pg)pdf.addPage();pdf.addImage(sl.toDataURL('image/jpeg',.82),'JPEG',0,0,210,(fim-ini)*210/W);
+        pdf.setFontSize(8);pdf.setTextColor(150);pdf.text('Página '+(pg+1),200,292,{align:'right'});
+        ini=fim;pg++;}
+      salvarB64(base+'.pdf',pdf.output('datauristring').split(',')[1],'application/pdf');
+    }
+    box.innerHTML='';
+  }catch(e){console.error(e);toast('Não foi possível gerar o ficheiro')}
+  el('ldr').classList.remove('on');
+}
+
+/* =========================================================
+   GESTÃO
+   ========================================================= */
+function rGestao(){
+  const s=el('s-gestao'),p=P(),eq=eqA();
+  const outras=D.eu!=='admin'?D.equipas.filter(e=>!e.insc.some(i=>i.j===D.eu)):[];
+  const pedi=D.eu!=='admin'?D.equipas.filter(e=>e.insc.some(i=>i.j===D.eu&&i.estado==='pendente')):[];
+  let tam=0;try{tam=(localStorage.getItem(CHAVE)||'').length}catch(e){}
+  s.innerHTML=`<div class="titulo"><h2>Gestão</h2></div>
+  ${eq?`<div class="card"><div class="jrow"><img class="av" src="${logoEq(eq)}" style="width:60px;height:60px"><div class="info"><b style="font-size:18px">${esc(eq.nome)}</b><span class="meta">${esc(eq.tipo)} · ${esc(eq.local||'')}<br>Quota: ${eq.quotaValor?kz(eq.quotaValor)+'/mês':'sem quota'} · Por treino/jogo: ${eq.valorEvento?kz(eq.valorEvento):'não cobra'}</span></div></div>
+   ${p.coord?`<div class="acoes"><button class="btn cor" onclick="formEquipa('${eq.id}')">Editar identidade e regras</button>${p.admin?`<button class="btn perigo" onclick="apagarEquipa('${eq.id}')">Apagar equipa</button>`:''}</div>`:''}</div>`:''}
+  ${p.coord&&eq?`<div class="card"><b>Funções na equipa</b><p class="meta" style="margin:4px 0 8px">Quem coordena, quem trata das finanças e quem treina. Toque num nome para alterar.</p>
+   ${jogadoresEq(eq).filter(j=>j.insc.f.some(f=>f!=='jog')).map(j=>`<div class="jrow" style="margin-top:8px;cursor:pointer" onclick="formFuncoes('${j.id}')">${avatar(j,1)}<div class="info"><b>${esc(j.nome)}</b><span class="meta">${j.insc.f.filter(f=>f!=='jog').map(f=>FUNC[f]).join(', ')}</span></div><span>›</span></div>`).join('')||'<div class="meta">Ainda sem funções atribuídas.</div>'}
+   <button class="btn claro mini" style="margin-top:10px" onclick="ir('jogadores')">Atribuir a outro jogador</button></div>`:''}
+  ${p.coord&&eq?`<div class="card"><b>Avisos à equipa</b><p class="meta" style="margin:4px 0 8px">Ficam no painel de todos e podem seguir pelo WhatsApp.</p><button class="btn cor mini" onclick="formAviso()">+ Novo aviso</button>
+   ${D.avisos.filter(a=>a.eq===eq.id).sort((a,b)=>b.data.localeCompare(a.data)).slice(0,5).map(a=>`<div style="margin-top:10px;border-top:1px solid var(--linha);padding-top:8px"><span class="meta">${dataPt(a.data)}</span><div>${esc(a.texto)}</div><div class="acoes" style="margin-top:4px"><button class="btn wa mini" onclick="whatsapp('📢 *${esc(eq.nome)}*\\n\\n'+D.avisos.find(x=>x.id==='${a.id}').texto)">WhatsApp</button><button class="btn perigo mini" onclick="D.avisos=D.avisos.filter(x=>x.id!=='${a.id}');gravar();tudo()">Apagar</button></div></div>`).join('')}</div>`:''}
+  <div class="card"><b>Todas as equipas</b>${D.equipas.map(e=>`<div class="jrow" style="margin-top:10px"><img class="av p" src="${logoEq(e)}"><div class="info"><b>${esc(e.nome)}</b><span class="meta">${inscAct(e).length} jogadores · ${esc(e.tipo)}</span></div>
+    ${minhasEquipas().includes(e)?`<button class="btn claro mini" onclick="D.eqAct='${e.id}';gravar();tudo()">${e.id===eq?.id?'Actual':'Abrir'}</button>`:pedi.includes(e)?'<span class="tag am">Pedido enviado</span>':`<button class="btn cor mini" onclick="pedirInscricao('${e.id}')">Pedir inscrição</button>`}</div>`).join('')||'<div class="vazio">Sem equipas.</div>'}
+   ${p.admin?`<button class="btn cor largo" style="margin-top:12px" onclick="formEquipa()">+ Criar equipa</button>`:''}</div>
+  <div class="card"><b>Cópia de segurança</b><p class="meta" style="margin:4px 0 8px">Os dados ficam neste telemóvel. Guarde uma cópia regularmente e envie-a para o e-mail ou o Drive. Também serve para passar tudo para outro telemóvel.</p>
+   <div class="acoes"><button class="btn" onclick="salvarB64('futsal-em-equipa-copia-'+hoje()+'.json',b64utf8(JSON.stringify(D)),'application/json')">Guardar cópia</button><button class="btn claro" onclick="formRestaurar()">Restaurar cópia</button></div>
+   <div class="meta" style="margin-top:8px">Espaço usado: ${(tam/1024).toFixed(0)} KB de cerca de 5000 KB.</div>
+   ${p.admin?`<div class="acoes"><button class="btn perigo mini" onclick="confirmar('Carregar os dados de exemplo? Os dados actuais serão substituídos.',()=>{D=demo();gravar();tudo();toast('Dados de exemplo carregados')})">Carregar exemplo</button><button class="btn perigo mini" onclick="confirmar('Apagar todos os dados deste telemóvel?',()=>{try{localStorage.removeItem(CHAVE)}catch(e){};location.reload()},'Apagar tudo')">Apagar tudo</button></div>`:''}</div>
+  <div class="card"><b>Regras de funcionamento</b><ul style="padding-left:18px;font-size:13.5px;margin-top:6px;color:var(--suave)">
+   <li>Os jogadores entram por convite da coordenação ou pedem inscrição e aguardam aprovação.</li><li>O administrador e os coordenadores registam jogadores. Um jogador pode estar em várias equipas sem duplicar o cadastro.</li>
+   <li>Cada equipa tem a sua tesouraria. O tesoureiro regista pagamentos em dinheiro e digitais (Multicaixa Express, transferência), com comprovativo opcional.</li><li>Depois de cada evento, o responsável confirma presenças e faltas.</li></ul></div>
+  <p class="meta" style="text-align:center">Futsal em Equipa · versão 1.0</p>`;
+}
+function formEquipa(id){
+  const e=D.equipas.find(x=>x.id===id)||{};
+  form(id?'Identidade e regras':'Nova equipa',[{k:'nome',l:'Nome da equipa',req:1},{t:'row',c:[{k:'sigla',l:'Sigla (até 3 letras)'},{k:'cor',l:'Cor principal',t:'color',def:'#f97316'}]},
+    {k:'logo',l:'Logótipo (opcional; sem logótipo usa-se um emblema com a sigla)',t:'img',max:320,mime:'image/png'},{k:'tipo',l:'Tipo de grupo',t:'sel',o:TIPOS_EQ},
+    {k:'local',l:'Campo habitual'},{k:'diaHabitual',l:'Dia e hora habituais',ph:'Ex.: Sábado 16h00'},
+    {t:'row',c:[{k:'quotaValor',l:'Quota mensal (Kz, 0 = sem quota)',t:'number',def:0},{k:'valorEvento',l:'Valor por treino/jogo (Kz)',t:'number',def:0}]}],e,o=>{
+    o.quotaValor=+o.quotaValor||0;o.valorEvento=+o.valorEvento||0;o.quotaPeriodo=o.quotaValor?'mensal':'nenhuma';o.sigla=(o.sigla||'').toUpperCase().slice(0,3);
+    if(id)Object.assign(e,o);else{const n={id:uid(),insc:[],criado:hoje(),...o};if(D.eu!=='admin')n.insc.push({j:D.eu,f:['coord','jog'],num:1,estado:'activo',desde:hoje()});D.equipas.push(n);D.eqAct=n.id}
+    toast('Equipa guardada');
+  });
+}
+function apagarEquipa(id){const e=eqPor(id);confirmar(`Apagar a equipa ${e.nome} com todos os eventos, movimentos e cobranças? Os jogadores continuam registados nas outras equipas.`,()=>{
+  D.equipas=D.equipas.filter(x=>x.id!==id);D.eventos=D.eventos.filter(x=>x.eq!==id);D.movs=D.movs.filter(x=>x.eq!==id);D.cobrancas=D.cobrancas.filter(x=>x.eq!==id);D.avisos=D.avisos.filter(x=>x.eq!==id);
+  D.eqAct=(D.equipas[0]||{}).id||'';gravar();tudo();toast('Equipa apagada')},'Apagar equipa')}
+function pedirInscricao(id){const e=eqPor(id);e.insc.push({j:D.eu,f:['jog'],num:0,estado:'pendente',desde:hoje()});gravar();tudo();toast('Pedido enviado à coordenação da '+e.nome)}
+function formAviso(){const eq=eqA();form('Novo aviso',[{k:'texto',l:'Mensagem',t:'area',req:1}],{},o=>{const a={id:uid(),eq:eq.id,data:hoje(),texto:o.texto};D.avisos.push(a);setTimeout(()=>confirmar('Enviar também para o grupo de WhatsApp?',()=>whatsapp('📢 *'+eq.nome+'*\n\n'+a.texto),'Enviar'),100)})}
+function formRestaurar(){
+  abrirModal(`<h3>Restaurar cópia</h3><p class="meta" style="margin-bottom:12px">Escolha o ficheiro .json guardado antes. Os dados deste telemóvel serão substituídos.</p><label>Ficheiro<input type="file" id="impf" accept=".json,application/json,text/plain,*/*"></label><div class="acoes"><button class="btn cor" id="impok">Restaurar</button><button class="btn claro" onclick="fecharModal()">Cancelar</button></div>`);
+  let txt='';el('impf').onchange=ev=>{const f=ev.target.files[0];if(f)f.text().then(t=>{txt=t;toast('Ficheiro lido. Toque em Restaurar.')})};
+  el('impok').onclick=()=>{try{const o=JSON.parse(txt);if(!o.equipas||!o.jogadores)throw 0;D=Object.assign(vazio(),o);gravar();fecharModal();tudo();toast('Dados restaurados')}catch(e){toast('Este ficheiro não é uma cópia válida')}};
+}
+
+/* =========================================================
+   PRIMEIRA UTILIZAÇÃO
+   ========================================================= */
+function boasVindas(){
+  abrirModal(`<div style="text-align:center"><img src="icon-192.png" style="width:84px;border-radius:20px"><h3 style="margin:10px 0 2px;font-size:26px">FUTSAL EM EQUIPA</h3><p class="meta" style="margin-bottom:16px">Gestão de equipas, treinos, jogos e finanças desportivas.</p></div>
+  <label>Nome da sua primeira equipa<input id="bv-eq" placeholder="Ex.: Família Castelo FC"></label>
+  <label>Tipo de grupo<select id="bv-tipo">${TIPOS_EQ.map(t=>`<option>${t}</option>`).join('')}</select></label>
+  <button class="btn cor largo" id="bv-novo">Criar a equipa e começar</button>
+  <button class="btn claro largo" id="bv-demo">Ver primeiro com dados de exemplo</button>
+  <button class="btn claro largo" onclick="formRestaurar()">Restaurar uma cópia de segurança</button>`,true);
+  el('bv-novo').onclick=()=>{const n=el('bv-eq').value.trim();if(!n){toast('Escreva o nome da equipa');return}
+    D=vazio();const e={id:uid(),nome:n,sigla:iniciais(n).slice(0,3),cor:'#f97316',logo:'',tipo:el('bv-tipo').value,local:'',diaHabitual:'',quotaValor:0,quotaPeriodo:'nenhuma',valorEvento:0,insc:[],criado:hoje()};
+    D.equipas.push(e);D.eqAct=e.id;gravar();fecharModal();tudo();ir('gestao');setTimeout(()=>formEquipa(e.id),150);toast('Equipa criada. Complete a identidade e adicione o logótipo.')};
+  el('bv-demo').onclick=()=>{D=demo();gravar();fecharModal();tudo();toast('Exemplo carregado. Toque em 👤 no topo para ver a app como jogador ou tesoureiro.')};
+}
+
+/* =========================================================
+   ARRANQUE
+   ========================================================= */
+function render(k){({painel:rPainel,jogadores:rJogadores,agenda:rAgenda,jogos:rJogos,tesouraria:rTesouraria,relatorios:rRelatorios,gestao:rGestao})[k]()}
+function tudo(){if(D.equipas.length&&!D.equipas.some(e=>e.id===D.eqAct))D.eqAct=D.equipas[0].id;rCab();render(aba);refrescarFolha()}
+const h0=location.hash.slice(1);
+rCab();ir(SECS.some(s=>s[0]===h0)?h0:'painel');
+if(!guardado)boasVindas();
+if('serviceWorker' in navigator&&!ANDROID&&location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+</script>
+</body>
+</html>
