@@ -3094,7 +3094,7 @@ function initStore() {
 }
 
 /* ============ estado de UI ============ */
-const ui = { view: "home", evId: null, tab: "resumo", msgTipo: "convocatoria", msgNucleo: "", msgValores: true, msgObs: "", msgResp: "", cronoVista: "fase", cronoOcultar: false, despVista: "itens", despPend: false, pdf: { saidas: true, membros: true, valoresInd: false, lista: false, rubricas: true, cronograma: true, foco: "completo" }, filtro: "" };
+const ui = { view: "home", evId: null, tab: "resumo", msgTipo: "convocatoria", msgNucleo: "", msgValores: true, msgObs: "", msgResp: "", cronoVista: "fase", cronoOcultar: false, despVista: "itens", despPend: false, doteConf: false, pdf: { saidas: true, membros: true, valoresInd: false, lista: false, rubricas: true, cronograma: true, foco: "completo" }, filtro: "" };
 const cur = () => store.events[ui.evId];
 
 /* ============ toast & sheet ============ */
@@ -3153,7 +3153,7 @@ function renderHome() {
   <p class="small muted" style="margin-top:8px">Os dados ficam guardados neste aparelho. Exporte uma cópia de vez em quando e restaure-a para continuar noutro aparelho.</p>`;
 }
 
-const TABS = [["resumo","Resumo"],["noivos","Noivos"],["convite","Convite"],["nucleos","Núcleos e membros"],["contrib","Contribuições"],["orcamento","Orçamento"],["despesas","Despesas"],["crono","Cronograma"],["mensagens","Mensagens"],["pdf","PDF e imagem"],["config","Definições"]];
+const TABS = [["resumo","Resumo"],["noivos","Noivos"],["convite","Convite"],["nucleos","Núcleos e membros"],["contrib","Contribuições"],["orcamento","Orçamento"],["despesas","Despesas"],["dote","Dote"],["crono","Cronograma"],["mensagens","Mensagens"],["pdf","Relatórios"],["config","Definições"]];
 function renderEvento(ev) {
   const k = calc(ev), dp = daysTo(ev.prazo), d = daysTo(ev.data);
   const prazoTxt = ev.prazo ? (dp < 0 ? "Prazo terminou a " + dShort(ev.prazo) : dp === 0 ? "Prazo termina hoje" : "Prazo: " + dShort(ev.prazo) + " (" + dp + " dias)") : "Sem prazo";
@@ -3166,8 +3166,8 @@ function renderEvento(ev) {
     <div class="bar lg"><i style="width:${Math.min(100, k.p)}%"></i></div>
     <div class="meta num"><span>${k.p}% recolhido</span>${k.act.total ? `<span>${k.act.feitas} de ${k.act.total} actividades feitas${k.act.atrasadas ? ", " + k.act.atrasadas + " atrasada" + (k.act.atrasadas > 1 ? "s" : "") : ""}</span>` : ""}<span>${k.excedente > 0 ? "Excedente: " + money(k.excedente, ev.moeda) : "Falta: " + money(k.falta, ev.moeda)}</span></div>
   </section>
-  <nav class="tabs" role="tablist">${TABS.map(([id, t]) => `<button class="tab" role="tab" aria-selected="${ui.tab === id}" data-tab="${id}">${id === "noivos" ? rotPerfil(ev) : t}</button>`).join("")}</nav>
-  <section id="tabBody">${({ resumo: tResumo, noivos: tNoivos, convite: tConvite, nucleos: tNucleos, contrib: tContrib, orcamento: tOrc, despesas: tDesp, crono: tCrono, mensagens: tMsg, pdf: tPdf, config: tConfig })[ui.tab](ev, k)}</section>`;
+  <nav class="tabs" role="tablist">${TABS.filter(([id]) => id !== "dote" || ehCasal(ev)).map(([id, t]) => `<button class="tab" role="tab" aria-selected="${ui.tab === id}" data-tab="${id}">${id === "noivos" ? rotPerfil(ev) : t}</button>`).join("")}</nav>
+  <section id="tabBody">${(ui.tab === "dote" && !ehCasal(ev) ? (ui.tab = "resumo", 0) : 0, "")}${({ resumo: tResumo, dote: tDote, noivos: tNoivos, convite: tConvite, nucleos: tNucleos, contrib: tContrib, orcamento: tOrc, despesas: tDesp, crono: tCrono, mensagens: tMsg, pdf: tPdf, config: tConfig })[ui.tab](ev, k)}</section>`;
 }
 function estadoChip(x) { return x.estado === "ok" ? `<span class="chip ok">Completo</span>` : x.estado === "parcial" ? `<span class="chip warn">${x.p}%</span>` : `<span class="chip bad">Por contribuir</span>`; }
 
@@ -4104,6 +4104,317 @@ async function ementaExport(ev, pdf) {
   else c.toBlob(b => ofertaFicheiro("Ementa pronta", "Ementa_" + slug(ev.nome) + ".png", b, prev), "image/png");
 }
 
+/* ============ anexos (fotos e PDF guardados no aparelho) ============ */
+const IDB = {
+  _db: null,
+  abrir() { if (!this._db) this._db = new Promise((res, rej) => { try { const r = indexedDB.open("mbongo-anexos", 1); r.onupgradeneeded = () => r.result.createObjectStore("anexos"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } }); return this._db; },
+  async op(modo, fn) { const db = await this.abrir(); return new Promise((res, rej) => { const t = db.transaction("anexos", modo), st = t.objectStore("anexos"), rq = fn(st); t.oncomplete = () => res(rq && rq.result); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error); }); },
+  put(id, blob) { return this.op("readwrite", st => st.put(blob, id)); },
+  get(id) { return this.op("readonly", st => st.get(id)); },
+  del(id) { return this.op("readwrite", st => st.delete(id)); }
+};
+function dataURLparaBlob(u) { const [h, b] = String(u).split(","), mime = (h.match(/data:([^;]+)/) || [])[1] || "application/octet-stream", bin = atob(b || ""), a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return new Blob([a], { type: mime }); }
+function blobParaDataURL(blob) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); }); }
+function tamanhoTxt(b) { return b > 1048576 ? (b / 1048576).toFixed(1).replace(".", ",") + " MB" : Math.max(1, Math.round(b / 1024)) + " KB"; }
+
+/* ============ lista do dote (alambamento / pedido) ============ */
+const DOTE_CATS = ["Para o pai da noiva", "Para a mãe da noiva", "Para os avós", "Para os tios", "Para os irmãos", "Bebidas", "Animais e alimentos", "Dinheiro", "Outros"];
+const DOTE_UN = ["un", "par", "peça", "conjunto", "grade", "caixa", "garrafa", "garrafão", "envelope", "saco", "kg"];
+const DOTE_MODELO = [
+  ["Para o pai da noiva", "Fato completo", 1, "un", "", 1], ["Para o pai da noiva", "Camisa", 2, "un", "", 1], ["Para o pai da noiva", "Gravata", 1, "un", "", 1], ["Para o pai da noiva", "Sapatos", 1, "par", "", 1], ["Para o pai da noiva", "Chapéu", 1, "un", "", 1], ["Para o pai da noiva", "Cinto", 1, "un", "", 0],
+  ["Para a mãe da noiva", "Panos africanos", 3, "peça", "", 1], ["Para a mãe da noiva", "Lenço de cabeça", 2, "un", "", 1], ["Para a mãe da noiva", "Sapatos ou sandálias", 1, "par", "", 1], ["Para a mãe da noiva", "Mala de mão", 1, "un", "", 1],
+  ["Para os avós", "Manta", 2, "un", "", 1], ["Para os avós", "Pano", 2, "peça", "", 1], ["Para os avós", "Bengala para o avô", 1, "un", "", 0],
+  ["Para os tios", "Fato ou camisa para o tio materno", 1, "un", "", 1],
+  ["Bebidas", "Grades de cerveja", 5, "grade", "", 1], ["Bebidas", "Caixas de gasosa", 5, "caixa", "", 1], ["Bebidas", "Garrafões de vinho", 2, "garrafão", "", 1], ["Bebidas", "Garrafas de whisky", 2, "garrafa", "", 1], ["Bebidas", "Garrafas de espumante", 2, "garrafa", "", 0],
+  ["Animais e alimentos", "Cabrito", 1, "un", "vivo", 1], ["Animais e alimentos", "Galinhas", 2, "un", "vivas", 0], ["Animais e alimentos", "Saco de fuba", 1, "saco", "", 0],
+  ["Dinheiro", "Envelope em dinheiro para a família", 1, "envelope", "valor a combinar entre as famílias", 1]
+];
+const EST_DOTE = { pendente: ["Por entregar", ""], entregue: ["Entregue", "ok"], parcial: ["Entregue em parte", "warn"], falta: ["Em falta", "bad"], substituido: ["Substituído", "gold"] };
+function dote(ev) {
+  if (ev.dote && Array.isArray(ev.dote.itens)) return ev.dote;
+  const P = perfil(ev), noiva = P.pessoas.find(p => p.sexo === "F"), noivo = P.pessoas.find(p => p.sexo === "M");
+  const apelido = n => { const w = String(n || "").trim().split(/\s+/); return w.length > 1 ? "Família " + w[w.length - 1] : ""; };
+  return { papel: "noiva", titulo: /alambamento/i.test(ev.tipo || "") ? "Lista do alambamento" : "Lista do dote", familiaNoiva: apelido(noiva && noiva.nome), familiaNoivo: apelido(noivo && noivo.nome), data: ev.data || "", local: ev.local || "", intro: "", repNoiva: "", repNoivo: "", itens: [], anexos: [] };
+}
+function guardaDote(ev, D) { ev.dote = D; return persist(ev); }
+function estadoDote(i) { return (i.entrega && i.entrega.estado) || "pendente"; }
+function doteStats(D) {
+  const L = D.itens, st = L.map(estadoDote);
+  return { total: L.length, entregues: st.filter(s => s === "entregue" || s === "substituido").length, parciais: st.filter(s => s === "parcial").length, faltas: st.filter(s => s === "falta").length, pendentes: st.filter(s => s === "pendente").length, valor: sum(L, i => i.valor), adquiridos: L.filter(i => i.adquirido).length };
+}
+function doteGrupos(D) { const cats = [...new Set(D.itens.map(i => i.categoria || "Outros"))].sort((a, b) => (DOTE_CATS.indexOf(a) + 1 || 99) - (DOTE_CATS.indexOf(b) + 1 || 99)); return cats.map(c => ({ cat: c, itens: D.itens.filter(i => (i.categoria || "Outros") === c) })); }
+const DOTE_PL = { par: "pares", "peça": "peças", conjunto: "conjuntos", grade: "grades", caixa: "caixas", garrafa: "garrafas", "garrafão": "garrafões", envelope: "envelopes", saco: "sacos" };
+function qtdDote(i) { const q = Number(i.qtd) || 1, u = i.unidade && i.unidade !== "un" ? (q > 1 && DOTE_PL[i.unidade] ? DOTE_PL[i.unidade] : i.unidade) : ""; return fmtQtd(q) + (u ? " " + u : ""); }
+function introDote(ev, D) {
+  if (D.intro) return D.intro;
+  const P = perfil(ev), noiva = P.pessoas.find(p => p.sexo === "F"), noivo = P.pessoas.find(p => p.sexo === "M");
+  return `A ${D.familiaNoiva || "família da noiva"}, reunida em conselho de família, apresenta à ${D.familiaNoivo || "família do noivo"} a lista para o ${/alambamento/i.test(D.titulo) ? "alambamento" : "pedido"} da nossa filha${noiva && noiva.nome ? " " + noiva.nome : ""}${noivo && noivo.nome ? ", pedida em casamento por " + noivo.nome : ""}. Recebemos este momento com alegria e com o respeito pelos costumes dos nossos mais velhos.`;
+}
+function tDote(ev, k) {
+  const D = dote(ev), s = doteStats(D), nossa = D.papel === "noiva", c = ev.moeda, conf = ui.doteConf;
+  const papeis = [["noiva", "A noiva é da nossa família"], ["noivo", "O noivo é da nossa família"]];
+  const head = `<div class="panel stack"><div class="panel-head" style="margin:0"><div><h2>${esc(D.titulo)}</h2><p class="small muted" style="margin:2px 0 0">${nossa ? "Somos nós a elaborar a lista e a entregá-la à família do noivo." : "A lista é feita pela família da noiva. Guardamos aqui o que recebemos e preparamos a entrega."}</p></div><button class="btn sm" data-act="doteDados">Dados e famílias</button></div>
+    <div class="seg" role="group" aria-label="De que lado é a nossa família">${papeis.map(([v, t]) => `<button type="button" data-dotepapel="${v}" aria-pressed="${D.papel === v}">${t}</button>`).join("")}</div>
+    <div class="figs small muted" style="display:flex;flex-wrap:wrap;gap:4px 16px"><span>Família da noiva: <b style="color:var(--ink)">${esc(D.familiaNoiva || "por indicar")}</b></span><span>Família do noivo: <b style="color:var(--ink)">${esc(D.familiaNoivo || "por indicar")}</b></span><span>Entrega: <b style="color:var(--ink)">${D.data ? esc(dLong(D.data)) : "data por definir"}${D.local ? ", " + esc(D.local) : ""}</b></span></div>
+    ${s.total ? `<div class="kpis num">
+      <div class="kpi"><div class="eyebrow">Itens na lista</div><div class="v">${s.total}</div></div>
+      <div class="kpi pos"><div class="eyebrow">Entregues</div><div class="v">${s.entregues}</div></div>
+      <div class="kpi ${s.parciais ? "" : ""}"><div class="eyebrow">Em parte</div><div class="v">${s.parciais}</div></div>
+      <div class="kpi ${s.faltas ? "neg" : ""}"><div class="eyebrow">Em falta</div><div class="v">${s.faltas}</div></div>
+      ${nossa ? `<div class="kpi"><div class="eyebrow">Por entregar</div><div class="v">${s.pendentes}</div></div>` : `<div class="kpi"><div class="eyebrow">Custo previsto</div><div class="v">${moneyShort(s.valor, c)}</div></div>`}
+    </div><div class="bar ok"><i style="width:${pct(s.entregues + s.parciais * 0.5, s.total)}%"></i></div>` : ""}
+    <div class="row">${nossa ? `<button class="btn" data-act="doteModelo">Carregar modelo</button>` : `<label class="btn" for="doteFile">Anexar a lista recebida<input type="file" id="doteFile" class="vh" accept="image/*,application/pdf" multiple></label>`}<button class="btn" data-act="doteColar">Colar lista</button><button class="btn primary" data-act="doteItem">+ Item</button>${!nossa && s.total ? `<button class="btn" data-act="doteDespesas">Passar para as despesas</button>` : ""}</div>
+    ${s.total ? `<div class="row">${nossa ? `<button class="btn gold" data-act="dotePdf">Emitir a lista (PDF)</button><button class="btn" data-act="doteImg">Imagem</button><button class="btn" data-act="doteMsg">Mensagem</button>` : ""}<button class="btn ${conf ? "primary" : ""}" data-act="doteConf">${conf ? "Sair da conferência" : "Conferir a entrega no acto"}</button><button class="btn" data-act="doteAutoPdf">Auto de entrega (PDF)</button><button class="btn" data-act="doteAutoImg">Auto em imagem</button>${s.entregues + s.parciais + s.faltas ? `<button class="btn" data-act="doteMsgAuto">Mensagem do resultado</button>` : ""}</div>` : ""}
+  </div>`;
+  const anexos = `<div class="panel"><div class="panel-head"><div><h2>Documentos anexados</h2><p class="small muted" style="margin:2px 0 0">${nossa ? "Por exemplo, a foto da lista assinada ou da carta recebida." : "A foto ou o PDF da lista entregue pela família da noiva, e a carta, se houver."}</p></div>${nossa ? `<label class="btn sm" for="doteFile">+ Anexar<input type="file" id="doteFile" class="vh" accept="image/*,application/pdf" multiple></label>` : ""}</div>
+    ${D.anexos.length ? `<div class="nlist">${D.anexos.map(a => `<div class="mrow"><span><b>${esc(a.nome)}</b><br><span class="small muted">${a.tipo === "pdf" ? "PDF" : "Imagem"} · ${tamanhoTxt(a.tamanho || 0)} · ${dShort(a.data)}</span></span><span class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn sm" data-anexover="${a.id}">Abrir</button><button class="icon-btn" data-anexorm="${a.id}">Remover</button></span></div>`).join("")}</div>`
+      : `<p class="small muted" style="margin:0">Ainda sem documentos.${nossa ? "" : " Toque em Anexar a lista recebida para guardar a foto ou o PDF que vos entregaram."}</p>`}</div>`;
+  let lista;
+  if (!s.total) lista = `<div class="empty"><h2>${nossa ? "Comece pela lista" : "Registe os itens pedidos"}</h2><p class="muted" style="margin:0;max-width:62ch">${nossa ? "Carregue o modelo com os itens mais comuns (fato para o pai, panos para a mãe, bebidas, cabrito, envelope) e ajuste aos costumes da vossa família. Também pode colar uma lista já escrita." : "Anexe a foto ou o PDF da lista que receberam e passe os itens para aqui, um a um ou colando o texto. Assim controla quem compra cada coisa, quanto custa e o que foi entregue."}</p></div>`;
+  else if (conf) lista = `<div class="panel"><div class="panel-head"><div><h2>Conferência da entrega</h2><p class="small muted" style="margin:2px 0 0">Toque no estado de cada item à medida que vai sendo apresentado.</p></div></div>${doteGrupos(D).map(g => `<div class="group-h"><h3>${esc(g.cat)}</h3></div><div class="nlist">${g.itens.map(i => { const e = estadoDote(i); return `<div class="nrow"><div class="top"><span class="name">${esc(i.desc)} <span class="muted small">(${esc(qtdDote(i))})</span></span><span class="chip ${EST_DOTE[e][1]}">${EST_DOTE[e][0]}${e === "parcial" && i.entrega && i.entrega.qtd != null ? ": " + fmtQtd(i.entrega.qtd) : ""}</span></div>${i.obs ? `<div class="small muted">${esc(i.obs)}</div>` : ""}<div class="seg">${[["entregue", "Entregue"], ["parcial", "Em parte"], ["falta", "Em falta"], ["substituido", "Substituído"]].map(([v, t]) => `<button type="button" data-doteest="${i.id}|${v}" aria-pressed="${e === v}">${t}</button>`).join("")}<button type="button" data-doteedit="${i.id}">Nota</button></div>${i.entrega && i.entrega.nota ? `<div class="small">${esc(i.entrega.nota)}</div>` : ""}</div>`; }).join("")}</div>`).join("")}</div>`;
+  else lista = `<div class="panel">${doteGrupos(D).map(g => `<div class="group-h"><h3>${esc(g.cat)}</h3><span class="small muted">${g.itens.length} ${g.itens.length === 1 ? "item" : "itens"}${!nossa && sum(g.itens, i => i.valor) ? " · " + moneyShort(sum(g.itens, i => i.valor), c) : ""}</span></div><div class="nlist">${g.itens.map(i => { const e = estadoDote(i); return `<div class="nrow"><div class="top"><span class="name">${esc(i.desc)}</span><span class="chip ${EST_DOTE[e][1]}">${EST_DOTE[e][0]}</span></div>
+    <div class="figs small num"><span>Quantidade <b>${esc(qtdDote(i))}</b></span>${i.obs ? `<span>${esc(i.obs)}</span>` : ""}${!nossa && i.responsavel ? `<span>Quem compra <b>${esc(i.responsavel)}</b></span>` : ""}${!nossa && i.valor ? `<span>Custo <b>${moneyShort(i.valor, c)}</b></span>` : ""}${!nossa && i.adquirido ? `<span class="chip ok">Já adquirido</span>` : ""}${i.despesaId ? `<span class="chip">Nas despesas</span>` : ""}</div>
+    <div class="row"><button class="btn sm" data-doteedit="${i.id}">Editar</button></div></div>`; }).join("")}</div>`).join("")}</div>`;
+  return `<div class="stack">${head}${lista}${anexos}</div>`;
+}
+function formDoteDados(ev) {
+  const D = dote(ev), inp = (n, l, ph, t) => `<div class="field"><label for="dd_${n}">${l}</label><input id="dd_${n}" name="${n}" ${t ? `type="${t}"` : ""} value="${esc(D[n])}" placeholder="${ph || ""}"></div>`;
+  sheet("Dados da lista", `<div class="fgrid">${inp("titulo", "Título do documento", "Ex.: Lista do alambamento")}
+    <div class="fgrid two">${inp("familiaNoiva", "Família da noiva", "Ex.: Família Lumbamba")}${inp("familiaNoivo", "Família do noivo", "Ex.: Família Sebastião")}${inp("data", "Data da entrega", "", "date")}${inp("local", "Local", "Ex.: Bairro Popular")}</div>
+    <div class="field"><label for="dd_intro">Texto de abertura</label><textarea id="dd_intro" name="intro" style="min-height:110px" placeholder="Deixe vazio para usar o texto automático">${esc(D.intro)}</textarea><span class="small muted">Texto automático: ${esc(introDote(ev, Object.assign({}, D, { intro: "" })))}</span></div>
+    <div class="fgrid two"><div class="field"><label for="dd_rn">Representantes da família da noiva</label><textarea id="dd_rn" name="repNoiva" style="min-height:70px" placeholder="Um por linha">${esc(D.repNoiva)}</textarea></div><div class="field"><label for="dd_ro">Representantes da família do noivo</label><textarea id="dd_ro" name="repNoivo" style="min-height:70px" placeholder="Um por linha">${esc(D.repNoivo)}</textarea></div></div>
+  </div>`, { onSubmit: f => { ["titulo", "familiaNoiva", "familiaNoivo", "data", "local", "intro", "repNoiva", "repNoivo"].forEach(n => { D[n] = val(f, n); }); if (!D.titulo) D.titulo = "Lista do dote"; guardaDote(ev, D); toast("Dados guardados."); } });
+}
+function formDoteItem(ev, id, modo) {
+  const D = dote(ev), isNew = !id, nossa = D.papel === "noiva";
+  const i = isNew ? { id: uid("d"), categoria: DOTE_CATS[0], desc: "", qtd: 1, unidade: "un", obs: "", responsavel: "", valor: 0, adquirido: false, entrega: { estado: "pendente", qtd: null, nota: "" } } : D.itens.find(x => x.id === id);
+  if (!i) return; i.entrega = i.entrega || { estado: "pendente", qtd: null, nota: "" };
+  const form = sheet(isNew ? "Novo item da lista" : "Editar item", `<div class="fgrid">
+    <div class="field"><label for="di_d">Item</label><input id="di_d" name="desc" value="${esc(i.desc)}" placeholder="Ex.: Fato completo"></div>
+    <div class="fgrid two"><div class="field"><label for="di_c">Para quem ou grupo</label><input id="di_c" name="categoria" list="doteCats" value="${esc(i.categoria)}"></div>
+    <div class="field"><label for="di_o">Observações</label><input id="di_o" name="obs" value="${esc(i.obs)}" placeholder="Cor, tamanho, marca..."></div>
+    <div class="field"><label for="di_q">Quantidade</label><input id="di_q" name="qtd" inputmode="decimal" value="${fmtQtd(i.qtd)}"></div>
+    <div class="field"><label for="di_u">Unidade</label><input id="di_u" name="unidade" list="doteUn" value="${esc(i.unidade)}"></div>
+    ${nossa ? "" : `<div class="field"><label for="di_r">Quem compra</label><input id="di_r" name="responsavel" list="pessoasDote" value="${esc(i.responsavel)}"></div><div class="field"><label for="di_v">Custo previsto (${esc(ev.moeda)})</label><input id="di_v" name="valor" inputmode="decimal" value="${i.valor ? money(i.valor, false) : ""}" placeholder="0,00"></div>`}</div>
+    ${nossa ? "" : `<label class="check"><input type="checkbox" name="adquirido" ${i.adquirido ? "checked" : ""}> Já foi comprado</label>`}
+    <datalist id="doteCats">${DOTE_CATS.map(x => `<option value="${esc(x)}"></option>`).join("")}</datalist><datalist id="doteUn">${DOTE_UN.map(x => `<option value="${x}"></option>`).join("")}</datalist><datalist id="pessoasDote">${pessoasTodas(ev).map(p => `<option value="${esc(p)}"></option>`).join("")}</datalist>
+    <div class="sep"></div><div class="eyebrow">No acto da entrega</div>
+    <div class="fgrid two"><div class="field"><label for="di_e">Situação</label><select id="di_e" name="estado">${Object.entries(EST_DOTE).map(([v, t]) => `<option value="${v}" ${(modo || estadoDote(i)) === v ? "selected" : ""}>${t[0]}</option>`).join("")}</select></div>
+    <div class="field"><label for="di_eq">Quantidade entregue</label><input id="di_eq" name="qtdEntregue" inputmode="decimal" value="${i.entrega.qtd != null ? fmtQtd(i.entrega.qtd) : ""}" placeholder="Só se for em parte"></div></div>
+    <div class="field"><label for="di_n">Nota da entrega</label><input id="di_n" name="nota" value="${esc(i.entrega.nota)}" placeholder="Ex.: trocado por outro modelo; fica para entregar depois"></div>
+  </div>`, {
+    extra: isNew ? "" : `<button type="button" class="btn danger" id="delDI" style="margin-right:auto">Eliminar</button>`,
+    submit: isNew ? "Adicionar" : "Guardar",
+    onSubmit: f => {
+      const d = val(f, "desc"); if (!d) { toast("Indique o item."); return false; }
+      Object.assign(i, { desc: d, categoria: val(f, "categoria") || "Outros", obs: val(f, "obs"), qtd: parseMoney(val(f, "qtd")) || 1, unidade: val(f, "unidade") || "un" });
+      if (!nossa) Object.assign(i, { responsavel: val(f, "responsavel"), valor: parseMoney(val(f, "valor")), adquirido: f.elements.adquirido.checked });
+      const qe = val(f, "qtdEntregue"); i.entrega = { estado: val(f, "estado"), qtd: qe ? parseMoney(qe) : null, nota: val(f, "nota") };
+      if (isNew) D.itens.push(i); guardaDote(ev, D); toast(isNew ? "Item adicionado." : "Item guardado.");
+    }
+  });
+  if (modo === "parcial") setTimeout(() => { const q = $("#di_eq"); if (q) { q.focus(); q.scrollIntoView({ block: "center" }); } }, 60);
+  const del = $("#delDI"); if (del) del.onclick = () => confirmSheet("Eliminar item?", i.desc, "Eliminar", () => { D.itens = D.itens.filter(x => x.id !== i.id); guardaDote(ev, D); toast("Item eliminado."); });
+}
+function formDoteModelo(ev) {
+  const D = dote(ev), existe = new Set(D.itens.map(i => semAcentos(i.desc)));
+  const cats = [...new Set(DOTE_MODELO.map(x => x[0]))];
+  sheet("Modelo da lista", `<p class="note" style="margin:0">É um ponto de partida comum em Luanda. Os costumes variam muito de família para família e de região para região, por isso desmarque o que não se aplica e acerte as quantidades depois.</p>
+    ${cats.map(c => `<div><div class="eyebrow" style="margin-top:6px">${esc(c)}</div><div class="stack" style="gap:8px;margin-top:6px">${DOTE_MODELO.map((x, n) => x[0] !== c ? "" : `<label class="check"><input type="checkbox" name="m" value="${n}" ${x[5] && !existe.has(semAcentos(x[1])) ? "checked" : ""}><span>${esc(x[1])} <span class="small muted">(${fmtQtd(x[2])}${x[3] !== "un" ? " " + x[3] : ""}${x[4] ? ", " + esc(x[4]) : ""})${existe.has(semAcentos(x[1])) ? " · já existe" : ""}</span></span></label>`).join("")}</div></div>`).join("")}`,
+    { submit: "Acrescentar à lista", onSubmit: f => { const sel = [...f.querySelectorAll('input[name="m"]:checked')].map(x => DOTE_MODELO[Number(x.value)]); if (!sel.length) { toast("Escolha pelo menos um item."); return false; }
+      sel.forEach(x => D.itens.push({ id: uid("d"), categoria: x[0], desc: x[1], qtd: x[2], unidade: x[3], obs: x[4], responsavel: "", valor: 0, adquirido: false, entrega: { estado: "pendente", qtd: null, nota: "" } }));
+      guardaDote(ev, D); toast(sel.length + " itens acrescentados."); } });
+}
+function parseLinhaDote(l) {
+  let t = l.replace(/^[\s•*·]+/, "").replace(/^\d+\s*[.)º°-]\s+/, "").trim(); if (!t) return null;
+  let qtd = 1, un = "un", obs = "";
+  const o = t.match(/\(([^)]*)\)\s*$/); if (o && !/^\s*\d+([.,]\d+)?\s*$/.test(o[1])) { obs = o[1].trim(); t = t.slice(0, o.index).trim(); }
+  const UN = "(pares?|peças?|conjuntos?|grades?|caixas?|cx|garrafas?|garrafões?|garrafoes?|envelopes?|sacos?|kg|un|unidades?)";
+  let m = t.match(new RegExp("^(\\d+(?:[.,]\\d+)?)\\s*" + UN + "?\\s+(?:de\\s+)?(.+)$", "i"));
+  if (m) { qtd = parseMoney(m[1]); un = m[2] ? normDoteUn(m[2]) : "un"; t = m[3]; }
+  else { m = t.match(new RegExp("^(.+?)\\s*(?:[-–:x×]|\\()\\s*(\\d+(?:[.,]\\d+)?)\\s*" + UN + "?\\)?\\s*$", "i")); if (m) { t = m[1]; qtd = parseMoney(m[2]); un = m[3] ? normDoteUn(m[3]) : "un"; } }
+  t = t.replace(/[\s:–-]+$/, "").trim(); if (!t) return null;
+  return { desc: t.charAt(0).toUpperCase() + t.slice(1), qtd: qtd || 1, unidade: un, obs };
+}
+function normDoteUn(u) { u = semAcentos(u); if (/^par/.test(u)) return "par"; if (/^peca/.test(u)) return "peça"; if (/^conjunto/.test(u)) return "conjunto"; if (/^grade/.test(u)) return "grade"; if (/^(cx|caixa)/.test(u)) return "caixa"; if (/^garraf(ao|oe)/.test(u)) return "garrafão"; if (/^garrafa/.test(u)) return "garrafa"; if (/^envelope/.test(u)) return "envelope"; if (/^saco/.test(u)) return "saco"; if (u === "kg") return "kg"; return "un"; }
+function lerListaDote(txt) {
+  let cat = ""; const out = [];
+  String(txt || "").split("\n").forEach(raw => { const l = raw.trim(); if (!l) return;
+    const h = l.match(/^#+\s*(.+)$/) || (!/\d/.test(l) && l.match(/^(.+):$/)); if (h) { cat = h[1].trim(); return; }
+    const p = parseLinhaDote(l); if (p) out.push(Object.assign(p, { categoria: cat || "Outros" })); });
+  return out;
+}
+function formDoteColar(ev) {
+  const D = dote(ev);
+  const form = sheet("Colar a lista", `<p class="small muted" style="margin:0">Escreva ou cole um item por linha. Linhas terminadas em dois pontos (ex.: <b>Para o pai da noiva:</b>) agrupam os itens seguintes. A quantidade pode vir antes ou depois do nome, e as observações entre parênteses.</p>
+    <div class="field"><label for="dc_t">Lista</label><textarea id="dc_t" name="txt" style="min-height:200px" placeholder="Para o pai da noiva:\n1 fato completo (cinzento, tamanho 52)\n2 camisas\n1 par de sapatos\n\nBebidas:\n5 grades de cerveja\nGarrafões de vinho - 2"></textarea></div>
+    <div id="dc_p" class="small muted"></div>`, { submit: "Acrescentar à lista", onSubmit: f => { const L = lerListaDote(val(f, "txt")); if (!L.length) { toast("Não reconheci nenhum item."); return false; }
+      L.forEach(x => D.itens.push(Object.assign({ id: uid("d"), responsavel: "", valor: 0, adquirido: false, entrega: { estado: "pendente", qtd: null, nota: "" } }, x))); guardaDote(ev, D); toast(L.length + " itens acrescentados."); } });
+  const ta = $("#dc_t", form), pv = $("#dc_p", form);
+  ta.addEventListener("input", () => { const L = lerListaDote(ta.value); pv.innerHTML = L.length ? `<b>${L.length}</b> itens: ` + L.slice(0, 12).map(x => esc(x.desc) + " (" + esc(qtdDote(x)) + ")").join(" · ") + (L.length > 12 ? "…" : "") : ""; });
+}
+async function anexarDote(ev, files) {
+  const D = dote(ev); let n = 0;
+  for (const f of [...files]) {
+    try {
+      let blob, tipo;
+      if (/pdf/i.test(f.type) || /\.pdf$/i.test(f.name)) { if (f.size > 12 * 1048576) { toast("O PDF " + f.name + " tem mais de 12 MB."); continue; } blob = f; tipo = "pdf"; }
+      else { blob = dataURLparaBlob(await lerFoto(f, 1800, 0.82, false)); tipo = "img"; }
+      const id = uid("ax"); await IDB.put(id, blob);
+      D.anexos.push({ id, nome: f.name || (tipo === "pdf" ? "documento.pdf" : "foto.jpg"), tipo, tamanho: blob.size, data: todayISO() }); n++;
+    } catch (e) { toast("Não foi possível guardar " + (f.name || "o ficheiro") + "."); }
+  }
+  if (n) { guardaDote(ev, D); toast(n === 1 ? "Documento anexado." : n + " documentos anexados."); render(); }
+}
+async function verAnexo(ev, id) {
+  const D = dote(ev), a = D.anexos.find(x => x.id === id); if (!a) return;
+  let blob; try { blob = await IDB.get(id); } catch {}
+  if (!blob) return toast("Este documento não está neste aparelho. Os anexos ficam no telemóvel onde foram guardados, e vão nas cópias de segurança.");
+  if (a.tipo === "pdf") return ofertaFicheiro("Documento anexado", a.nome.replace(/\.pdf$/i, "") + ".pdf", blob, `<p style="margin:0"><b>${esc(a.nome)}</b></p>`);
+  const url = URL.createObjectURL(blob);
+  sheet(a.nome, `<img src="${url}" alt="${esc(a.nome)}" style="width:100%;border-radius:10px;border:1px solid var(--line)"><p class="small muted" style="margin:0">Pode ampliar com dois dedos. Use esta imagem para passar os itens para a lista.</p>`, { extra: `<button type="button" class="btn" id="axShare">Guardar ou partilhar</button>` });
+  $("#axShare").onclick = () => baixar(a.nome.replace(/\.[^.]+$/, "") + ".jpg", blob);
+}
+function msgDote(ev) {
+  const D = dote(ev); let t = `*${D.titulo}*\n${D.familiaNoiva ? "Da " + D.familiaNoiva : ""}${D.familiaNoivo ? " para a " + D.familiaNoivo : ""}\n\n${introDote(ev, D)}\n`;
+  let n = 0; doteGrupos(D).forEach(g => { t += `\n*${g.cat}*\n` + g.itens.map(i => `${++n}. ${i.desc}: ${qtdDote(i)}${i.obs ? " (" + i.obs + ")" : ""}`).join("\n") + "\n"; });
+  if (D.data || D.local) t += `\nEntrega${D.data ? " no dia *" + dLong(D.data) + "*" : ""}${D.local ? ", em " + D.local : ""}.\n`;
+  return t + `\nCom estima e consideração,\n${D.familiaNoiva || "A família da noiva"}`;
+}
+function msgAutoDote(ev) {
+  const D = dote(ev), s = doteStats(D), falta = D.itens.filter(i => ["falta", "parcial", "pendente"].includes(estadoDote(i)));
+  let t = `*${D.titulo}: entrega${D.data ? " de " + dLong(D.data) : ""}*\n\nForam entregues *${s.entregues} de ${s.total}* itens${s.parciais ? ", e " + s.parciais + " em parte" : ""}.`;
+  if (falta.length) t += `\n\n*Ficou por entregar:*\n` + falta.map(i => `• ${i.desc}: ${qtdDote(i)}${estadoDote(i) === "parcial" && i.entrega.qtd != null ? " (entregue " + fmtQtd(i.entrega.qtd) + ")" : ""}${i.entrega && i.entrega.nota ? "; " + i.entrega.nota : ""}`).join("\n");
+  else t += "\n\nA lista foi cumprida na totalidade. Muito obrigado!";
+  return t;
+}
+function doteParaDespesas(ev) {
+  const D = dote(ev); let n = 0; ev.itens = ev.itens || [];
+  D.itens.forEach(i => { if (i.despesaId && ev.itens.some(x => x.id === i.despesaId)) return; const id = uid("i"); ev.itens.push({ id, categoria: "Dote e presentes", descricao: i.desc + (i.obs ? " (" + i.obs + ")" : ""), tipo: "compra", qtd: i.qtd || 1, unidade: i.unidade || "un", preco: Math.round((Number(i.valor) || 0) / (i.qtd || 1) * 100) / 100, fornecedor: "", contacto: "", actividadeId: "", concluido: !!i.adquirido, ofertaPor: "", notas: "Da lista do dote" }); i.despesaId = id; n++; });
+  ev.dote = D; persist(ev); toast(n ? n + " itens passaram para as despesas, na categoria Dote e presentes." : "Todos os itens já estão nas despesas."); render();
+}
+function buildPdfDote(ev, auto) {
+  const { jsPDF } = window.jspdf, doc = new jsPDF({ unit: "mm", format: "a4" }), D = dote(ev), TT = tema(ev), W = 210, M = 16;
+  const G = hex(TT.p), GOLD = hex(TT.d), CL = hex(TT.c), INK = hex("#17221D"), MUT = hex("#5B6862"), LINE = hex("#D7DDD6"), OK = hex("#2B7A4B"), WARN = hex("#A8670F"), BAD = hex("#B03F2B");
+  doc.setFillColor(...G); doc.rect(0, 0, W, 38, "F"); doc.setFillColor(...GOLD); doc.rect(0, 38, W, 1.6, "F");
+  doc.setTextColor(...GOLD); doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.text(auto ? "AUTO DE ENTREGA" : "DOCUMENTO DA FAMÍLIA", M, 13);
+  doc.setTextColor(255, 255, 255); doc.setFontSize(20); doc.text(doc.splitTextToSize(D.titulo, W - 2 * M)[0], M, 24);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.text([D.familiaNoiva && "Família da noiva: " + D.familiaNoiva.replace(/^Família\s+/i, ""), D.familiaNoivo && "Família do noivo: " + D.familiaNoivo.replace(/^Família\s+/i, "")].filter(Boolean).join("   |   "), M, 32);
+  let y = 50; const ensure = h => { if (y + h > 275) { doc.addPage(); y = 20; } };
+  doc.setTextColor(...INK);
+  if (!auto) { doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); const t = doc.splitTextToSize(introDote(ev, D), W - 2 * M); doc.text(t, M, y, { lineHeightFactor: 1.45 }); y += t.length * 5.4 + 6; }
+  else { const s = doteStats(D); doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); const t = doc.splitTextToSize(`No dia ${D.data ? dLong(D.data) : dLong(todayISO())}${D.local ? ", em " + D.local : ""}, na presença das duas famílias, procedeu-se à entrega dos itens da lista, com o resultado seguinte: ${s.entregues} de ${s.total} itens entregues${s.parciais ? ", " + s.parciais + (s.parciais === 1 ? " entregue" : " entregues") + " em parte" : ""}${s.faltas ? ", " + s.faltas + " em falta" : ""}${s.pendentes ? ", " + s.pendentes + " ainda por conferir" : ""}.`, W - 2 * M); doc.text(t, M, y, { lineHeightFactor: 1.45 }); y += t.length * 5.4 + 6; }
+  const rows = []; let n = 0; const cat = { fillColor: CL, textColor: INK, fontStyle: "bold", fontSize: 8.5 };
+  doteGrupos(D).forEach(g => { rows.push([{ content: g.cat.toUpperCase(), colSpan: auto ? 5 : 4, styles: cat }]);
+    g.itens.forEach(i => { n++; const e = estadoDote(i); rows.push(auto ? [String(n), i.desc + (i.obs ? "\n" + i.obs : ""), qtdDote(i), e === "parcial" && i.entrega.qtd != null ? fmtQtd(i.entrega.qtd) : e === "entregue" || e === "substituido" ? qtdDote(i) : e === "falta" ? "0" : "-", EST_DOTE[e][0] + (i.entrega && i.entrega.nota ? "\n" + i.entrega.nota : "")] : [String(n), i.desc, qtdDote(i), i.obs || ""]); }); });
+  doc.autoTable({ startY: y, margin: { left: M, right: M }, head: [auto ? ["Nº", "Item", "Pedido", "Entregue", "Situação"] : ["Nº", "Item", "Quantidade", "Observações"]], body: rows,
+    styles: { font: "helvetica", fontSize: 9.5, cellPadding: 2.2, textColor: INK, lineColor: LINE, lineWidth: 0.1, valign: "middle" }, headStyles: { fillColor: G, textColor: 255, fontStyle: "bold" },
+    columnStyles: auto ? { 0: { cellWidth: 10, halign: "center" }, 2: { cellWidth: 24 }, 3: { cellWidth: 22 }, 4: { cellWidth: 44 } } : { 0: { cellWidth: 10, halign: "center" }, 2: { cellWidth: 30 }, 3: { cellWidth: 60 } },
+    didParseCell: d => { if (!auto || d.section !== "body" || d.column.index !== 4 || typeof d.cell.raw !== "string") return; const t = d.cell.raw; d.cell.styles.fontStyle = "bold"; d.cell.styles.textColor = /^Entregue$|^Entregue\n|Substitu/.test(t) ? OK : /em parte/.test(t) ? WARN : /falta/i.test(t) ? BAD : INK; } });
+  y = doc.lastAutoTable.finalY + 10;
+  ensure(16); doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...MUT);
+  doc.text((D.local ? D.local + ", " : "") + dLong(auto ? (D.data || todayISO()) : todayISO()) + ".", M, y); y += 14;
+  const reps = (txt, rot) => ({ rot, nomes: String(txt || "").split("\n").map(x => x.trim()).filter(Boolean) });
+  const lados = auto ? [reps(D.repNoiva, "Pela família da noiva"), reps(D.repNoivo, "Pela família do noivo")] : [reps(D.repNoiva, "Pela família da noiva")];
+  const colW = (W - 2 * M - 10) / lados.length, linhas = Math.max(2, ...lados.map(l => l.nomes.length || 2));
+  ensure(14 + linhas * 16);
+  lados.forEach((l, k2) => { const x = M + k2 * (colW + 10); doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(...INK); doc.text(l.rot, x, y);
+    for (let r = 0; r < linhas; r++) { const yy = y + 14 + r * 16; doc.setDrawColor(...LINE); doc.line(x, yy, x + colW, yy); doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(...MUT); if (l.nomes[r]) doc.text(l.nomes[r], x, yy + 4); } });
+  const pages = doc.getNumberOfPages();
+  for (let i = 1; i <= pages; i++) { doc.setPage(i); doc.setDrawColor(...LINE); doc.line(M, 287, W - M, 287); doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(...MUT); doc.text(ev.nome || "", M, 291.5); doc.text("Página " + i + " de " + pages, W - M, 291.5, { align: "right" }); }
+  return doc;
+}
+function doteHTML(ev, auto) {
+  const D = dote(ev), s = doteStats(D), DS = "'Bricolage Grotesque',Arial,sans-serif";
+  const td = (t, st) => `<td style="padding:7px 8px;border-bottom:1px solid #E3E8E2;vertical-align:top;${st || ""}">${t}</td>`;
+  const cor = { ok: "#2B7A4B", warn: "#A8670F", bad: "#B03F2B", gold: "#C99A3B" }; let n = 0;
+  return `<div style="width:720px;background:#fff;color:#17221D;font-family:Figtree,Arial,sans-serif;font-size:14.5px;line-height:1.45">
+  <div style="background:#14412F;color:#fff;padding:26px 30px 22px;border-bottom:5px solid #C99A3B">
+    <div style="color:#C99A3B;font-weight:700;font-size:12px;letter-spacing:.12em">${auto ? "AUTO DE ENTREGA" : "DOCUMENTO DA FAMÍLIA"}</div>
+    <div style="font-family:${DS};font-weight:800;font-size:32px;margin:4px 0">${esc(D.titulo)}</div>
+    <div style="opacity:.9;font-size:14px">${esc([D.familiaNoiva && "Família da noiva: " + D.familiaNoiva.replace(/^Família\s+/i, ""), D.familiaNoivo && "Família do noivo: " + D.familiaNoivo.replace(/^Família\s+/i, "")].filter(Boolean).join("  ·  "))}</div></div>
+  <div style="padding:20px 30px 26px">
+    <p style="margin:0 0 16px">${auto ? `Entrega de ${esc(D.data ? dLong(D.data) : dLong(todayISO()))}${D.local ? ", em " + esc(D.local) : ""}: <b>${s.entregues} de ${s.total}</b> itens entregues${s.parciais ? ", " + s.parciais + " em parte" : ""}${s.faltas ? ", " + s.faltas + " em falta" : ""}.` : esc(introDote(ev, D))}</p>
+    <table style="width:100%;border-collapse:collapse;font-size:13.5px"><tr>${(auto ? ["Nº", "Item", "Pedido", "Situação"] : ["Nº", "Item", "Quantidade", "Observações"]).map(h => `<th style="text-align:left;padding:7px 8px;background:#14412F;color:#fff;font-size:12px">${h}</th>`).join("")}</tr>
+      ${doteGrupos(D).map(g => `<tr><td colspan="4" style="padding:6px 8px;background:#F4E7C8;font-weight:700;font-size:11px;letter-spacing:.06em">${esc(g.cat.toUpperCase())}</td></tr>` + g.itens.map(i => { n++; const e = estadoDote(i); return `<tr>${td(n, "width:30px;color:#5B6862")}${td(esc(i.desc))}${td(esc(qtdDote(i)), "white-space:nowrap")}${auto ? td(esc(EST_DOTE[e][0]) + (e === "parcial" && i.entrega.qtd != null ? " (" + fmtQtd(i.entrega.qtd) + ")" : "") + (i.entrega && i.entrega.nota ? `<br><span style="font-weight:400;color:#5B6862;font-size:12px">${esc(i.entrega.nota)}</span>` : ""), "font-weight:700;color:" + (cor[EST_DOTE[e][1]] || "#17221D")) : td(esc(i.obs || ""), "color:#5B6862")}</tr>`; }).join("")).join("")}
+    </table>
+    <div style="margin-top:18px;color:#5B6862">${esc((D.local ? D.local + ", " : "") + dLong(auto ? (D.data || todayISO()) : todayISO()))}.</div>
+    <div style="margin-top:8px;font-weight:600">${esc(D.familiaNoiva || "A família da noiva")}</div>
+  </div></div>`;
+}
+
+/* ============ Excel ============ */
+const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(b) { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC_T[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function zipStore(files, mime) {
+  const enc = new TextEncoder(), parts = [], central = []; let off = 0;
+  files.forEach(f => { const nm = enc.encode(f.name), d = typeof f.data === "string" ? enc.encode(f.data) : f.data, crc = crc32(d);
+    const lh = new DataView(new ArrayBuffer(30)); lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(12, 0x21, true); lh.setUint32(14, crc, true); lh.setUint32(18, d.length, true); lh.setUint32(22, d.length, true); lh.setUint16(26, nm.length, true);
+    parts.push(new Uint8Array(lh.buffer), nm, d);
+    const ch = new DataView(new ArrayBuffer(46)); ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(14, 0x21, true); ch.setUint32(16, crc, true); ch.setUint32(20, d.length, true); ch.setUint32(24, d.length, true); ch.setUint16(28, nm.length, true); ch.setUint32(42, off, true);
+    central.push(new Uint8Array(ch.buffer), nm); off += 30 + nm.length + d.length; });
+  const cs = central.reduce((a, b) => a + b.length, 0), end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true); end.setUint32(12, cs, true); end.setUint32(16, off, true);
+  return new Blob([...parts, ...central, new Uint8Array(end.buffer)], { type: mime });
+}
+function xlsxBlob(sheets) {
+  const x = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "");
+  const col = n => { let s = ""; n++; while (n) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; };
+  const ws = sh => `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0">${sh.rows.length > 1 ? '<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>' : ""}</sheetView></sheetViews><cols>${sh.rows[0].map((h, i) => `<col min="${i + 1}" max="${i + 1}" width="${(sh.widths && sh.widths[i]) || Math.min(45, Math.max(10, String(h).length + 4))}" customWidth="1"/>`).join("")}</cols><sheetData>${sh.rows.map((r, ri) => `<row r="${ri + 1}">${r.map((v, ci) => { const ref = col(ci) + (ri + 1); if (ri === 0) return `<c r="${ref}" t="inlineStr" s="1"><is><t>${x(v)}</t></is></c>`; if (v == null || v === "") return ""; if (typeof v === "number" && isFinite(v)) return `<c r="${ref}" s="${sh.money && sh.money.includes(ci) ? 2 : 0}"><v>${v}</v></c>`; return `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${x(v)}</t></is></c>`; }).join("")}</row>`).join("")}</sheetData></worksheet>`;
+  const nome = s => String(s).replace(/[\[\]:*?/\\]/g, " ").slice(0, 31);
+  const files = [
+    { name: "[Content_Types].xml", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((s, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")}</Types>` },
+    { name: "_rels/.rels", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>` },
+    { name: "xl/workbook.xml", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheets.map((s, i) => `<sheet name="${x(nome(s.name))}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("")}</sheets></workbook>` },
+    { name: "xl/_rels/workbook.xml.rels", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((s, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("")}<Relationship Id="rId${sheets.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>` },
+    { name: "xl/styles.xml", data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.00"/></numFmts><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF14412F"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>` }
+  ].concat(sheets.map((s, i) => ({ name: `xl/worksheets/sheet${i + 1}.xml`, data: ws(s) })));
+  return zipStore(files, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+}
+function exportarExcel(ev) {
+  const k = calc(ev), c = ev.moeda, D = dote(ev), dd = iso => iso ? dShort(iso) : "";
+  const sheets = [
+    { name: "Resumo", rows: [["Indicador", "Valor"], ["Evento", ev.nome], ["Tipo", ev.tipo], ["Data", dd(ev.data)], ["Local", ev.local || ""], ["Moeda", c], ["Orçamento (meta)", k.orc], ["Soma das quotas", k.quotas], ["Contribuído", k.total], ["Falta recolher", k.falta], ["Despesas previstas", k.orcRub], ["Gasto confirmado", k.gasto], ["Em caixa", k.saldo], ["Com pessoas, por justificar", k.porJustificar], ["Falta comprar ou pagar", k.porPagar], ["Actividades concluídas", k.act.feitas + " de " + k.act.total], ["Gerado em", dShort(todayISO())]], widths: [30, 34], money: [1] },
+    { name: "Núcleos", rows: [["Núcleo", "Cabeça", "Telefone", "Quota", "Contribuído", "Falta", "%"]].concat(k.nuc.map(x => [x.n.nome, x.n.cabeca || "", x.n.telefone || "", x.q, x.c, x.falta, x.p])), widths: [34, 22, 16, 14, 14, 14, 8], money: [3, 4, 5] },
+    { name: "Membros", rows: [["Núcleo", "Membro", "Telefone", "Quota", "Contribuído"]].concat([].concat(...ev.nucleos.map(n => (n.membros || []).map(m => [n.nome, m.nome, m.telefone || "", Number(m.quota) || 0, contribM(ev, m.id)])))), widths: [34, 28, 16, 14, 14], money: [3, 4] },
+    { name: "Contribuições", rows: [["Data", "Quem", "Núcleo", "Forma", "Referência", "Valor", "Nota"]].concat(ev.contribuicoes.slice().sort((a, b) => (a.data || "").localeCompare(b.data || "")).map(x => { const n = nucleoById(ev, x.nucleoId); return [dd(x.data), nomeContrib(ev, x), n ? n.nome : "Avulsa", x.forma || "", x.ref || "", Number(x.valor) || 0, x.nota || ""]; })), widths: [12, 26, 30, 18, 16, 14, 26], money: [5] },
+    { name: "Despesas", rows: [["Categoria", "Item", "Tipo", "Qtd", "Unidade", "Preço unit.", "Previsto", "Gasto", "Estado", "Fornecedor", "Oferecido por"]].concat((ev.itens || []).map(i => [i.categoria || "Outros", i.descricao, i.tipo === "servico" ? "Serviço" : "Compra", Number(i.qtd) || 0, i.unidade || "", Number(i.preco) || 0, i.ofertaPor ? 0 : itemEst(i), itemPago(ev, i.id), rotItem(ev, i)[0], i.fornecedor || "", i.ofertaPor || ""])), widths: [20, 34, 10, 8, 10, 13, 13, 13, 18, 18, 16], money: [5, 6, 7] },
+    { name: "Dinheiro entregue", rows: [["Data", "Pessoa", "Tipo", "Para quê", "Entregue", "Gasto", "Troco", "Reembolso", "Situação", "Comprovativos"]].concat((ev.saidas || []).map(s => [dd(s.data), s.pessoa, s.tipo === "pagamento" ? "Pagamento" : "Adiantamento", s.finalidade || itensTxt(ev, s), Number(s.valor) || 0, saidaGasto(s), saidaDev(s), Number(s.reembolso) || 0, estadoSaida(s, c)[0], (s.prestacao && s.prestacao.comprovativos) || ""])), widths: [12, 22, 14, 32, 13, 13, 12, 12, 22, 20], money: [4, 5, 6, 7] },
+    { name: "Cronograma", rows: [["Data", "Hora", "Actividade", "Responsável", "Telefone", "Orçado", "Gasto", "Estado", "Fase"]].concat((ev.actividades || []).slice().sort(porData).map(a => [dd(a.data), a.hora || "", a.titulo, a.responsavel || "", a.telefone || telDe(ev, a.responsavel) || "", actOrcEf(ev, a), actGastoEf(ev, a), EST_ACT[estadoAct(a)][0], faseDe(ev, a)])), widths: [12, 8, 40, 22, 16, 13, 13, 14, 18], money: [5, 6] }
+  ];
+  if (D.itens.length) sheets.push({ name: "Dote", rows: [["Grupo", "Item", "Qtd", "Unidade", "Observações", "Quem compra", "Custo previsto", "Situação na entrega", "Qtd entregue", "Nota"]].concat(D.itens.map(i => [i.categoria || "Outros", i.desc, Number(i.qtd) || 1, i.unidade || "", i.obs || "", i.responsavel || "", Number(i.valor) || 0, EST_DOTE[estadoDote(i)][0], i.entrega && i.entrega.qtd != null ? i.entrega.qtd : "", (i.entrega && i.entrega.nota) || ""])), widths: [22, 32, 8, 10, 24, 18, 14, 18, 12, 24], money: [6] });
+  const blob = xlsxBlob(sheets);
+  ofertaFicheiro("Excel pronto", "Mbongo_" + slug(ev.nome) + "_" + todayISO() + ".xlsx", blob, `<p style="margin:0">Um ficheiro com ${sheets.length} folhas: ${sheets.map(s => s.name).join(", ")}. Abre no Excel, no Google Sheets e no WPS.</p>`);
+}
+
+/* ============ central de relatórios ============ */
+const RELATORIOS = [
+  ["mapa", "Mapa geral do evento", "Contribuições por núcleo, despesas, cronograma e IBAN, com as opções escolhidas abaixo.", { foco: "completo" }, ["pdf", "img"]],
+  ["nucleos", "Situação por núcleo", "Para o grupo da família: quotas, quanto entrou e quanto falta, sem expor valores individuais.", { foco: "contrib", membros: false, lista: false, rubricas: false }, ["pdf", "img"]],
+  ["detalhe", "Contribuições detalhadas", "Para uso interno: cada contribuição, de quem, quando e quanto, e os membros de cada núcleo.", { foco: "contrib", membros: true, valoresInd: true, lista: true, rubricas: false }, ["pdf", "img"]],
+  ["orcamento", "Orçamento detalhado", "Item a item, com quantidade, preço, previsto, gasto e estado. Inclui a ementa.", { foco: "orcamento" }, ["pdf", "img"]],
+  ["despesas", "Despesas e prestação de contas", "Arrecadado, gasto por categoria, dinheiro entregue a cada pessoa e o que falta comprar.", { foco: "despesas" }, ["pdf", "img"]],
+  ["crono", "Cronograma e responsáveis", "Actividades por fase, quem faz o quê, estado e resumo por responsável.", { foco: "crono" }, ["pdf", "img"]],
+  ["dote", "Lista do dote", "O documento da lista, pronto a entregar à outra família.", { foco: "dote" }, ["pdf", "img"], true],
+  ["auto", "Auto de entrega do dote", "O que foi entregue no acto, item a item, com espaço para as assinaturas das duas famílias.", { foco: "doteAuto" }, ["pdf", "img"], true],
+  ["noivos", "Apresentação dos noivos", "Fotos, filiação, a história e os sonhos.", { foco: "noivos" }, ["pdf", "img"]],
+  ["ementa", "Ementa", "Cartão com os pratos, nas cores da decoração.", null, ["pdf", "img"]],
+  ["excel", "Tudo em Excel", "Um ficheiro com folhas para o resumo, núcleos, membros, contribuições, despesas, dinheiro entregue, cronograma e dote.", null, ["xlsx"]]
+];
+function painelRelatorios(ev) {
+  const casal = ehCasal(ev);
+  return `<div class="panel"><div class="panel-head"><div><h2>Relatórios</h2><p class="small muted" style="margin:2px 0 0">Escolha o relatório e o formato. No telemóvel, depois de gerar, pode partilhar logo no WhatsApp.</p></div></div>
+    <div class="nlist">${RELATORIOS.filter(r => !r[5] || casal).map(([id, nome, desc, , fmts]) => `<div class="mrow" style="align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)"><span style="min-width:0"><b>${esc(id === "noivos" && !casal ? "Apresentação do homenageado" : nome)}</b><br><span class="small muted">${esc(desc)}</span></span><span class="row" style="gap:6px;flex-wrap:nowrap">${fmts.map(f => `<button class="btn sm ${f === "pdf" ? "gold" : f === "xlsx" ? "primary" : ""}" data-rel="${id}|${f}">${f === "pdf" ? "PDF" : f === "img" ? "Imagem" : "Excel"}</button>`).join("")}</span></div>`).join("")}</div></div>`;
+}
+function gerarRelatorio(ev, id, fmt) {
+  if (id === "excel") return exportarExcel(ev);
+  if (id === "ementa") return ementaExport(ev, fmt === "pdf");
+  const r = RELATORIOS.find(x => x[0] === id); if (!r) return;
+  if ((id === "dote" || id === "auto") && !dote(ev).itens.length) return toast("A lista do dote ainda está vazia.");
+  const antes = Object.assign({}, ui.pdf); Object.assign(ui.pdf, r[3]);
+  return Promise.resolve(fmt === "pdf" ? gerarPdf() : gerarImagem()).finally(() => { ui.pdf = antes; });
+}
+
 /* ============ despesas e compras: cálculos ============ */
 const CATS = ["Alimentação", "Bebidas", "Cocktail e salgados", "Bolo e doces", "Decoração", "Aluguer de material", "Cozinha e catering", "Som e animação", "Fotografia e vídeo", "Transporte", "Trajes", "Descartáveis", "Dote e presentes", "Outros"];
 const UNIDADES = ["un", "kg", "g", "L", "garrafa", "grade", "caixa", "saco", "pacote", "dúzia", "serviço", "vb"];
@@ -4896,8 +5207,8 @@ function tPdf(ev, k) {
   const focos = [["completo", "Completo"], ["contrib", "Só contribuições"], ["crono", "Só cronograma"], ["despesas", "Só despesas"], ["orcamento", "Orçamento detalhado"], ["noivos", ehCasal(ev) ? "Apresentação dos noivos" : "Homenageado"]];
   const comCrono = f === "crono" || (f === "completo" && o.cronograma), comSaidas = f === "despesas" || (f === "completo" && o.saidas);
   const nS = (ev.saidas || []).length;
-  return `<div class="grid2"><div class="panel stack">
-    <div><h2>Relatório em PDF ou imagem</h2><p class="small muted" style="margin:2px 0 0">O mesmo mapa em dois formatos. A imagem aparece logo na conversa do WhatsApp, sem ser preciso abrir ficheiro. As opções abaixo valem para os dois.</p></div>
+  return painelRelatorios(ev) + `<div class="grid2" style="margin-top:16px"><div class="panel stack">
+    <div><h2>Relatório à medida</h2><p class="small muted" style="margin:2px 0 0">O mesmo mapa em dois formatos. A imagem aparece logo na conversa do WhatsApp, sem ser preciso abrir ficheiro. As opções abaixo valem para os dois.</p></div>
     <div class="seg" role="group" aria-label="Conteúdo do relatório">${focos.map(([v, t]) => `<button type="button" data-pdffoco="${v}" aria-pressed="${f === v}">${t}</button>`).join("")}</div>
     ${cont ? `
     <label class="check"><input type="checkbox" data-pdf="membros" ${o.membros ? "checked" : ""}> Listar os membros de cada núcleo</label>
@@ -4930,6 +5241,7 @@ function tPdf(ev, k) {
 function hex(h) { h = h.replace("#",""); return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)]; }
 function buildPdf(ev) {
   if (ui.pdf.foco === "orcamento") return buildPdfOrcamento(ev);
+  if (ui.pdf.foco === "dote" || ui.pdf.foco === "doteAuto") return buildPdfDote(ev, ui.pdf.foco === "doteAuto");
   const { jsPDF } = window.jspdf; const doc = new jsPDF({ unit: "mm", format: "a4" });
   const o = ui.pdf, k = calc(ev), c = ev.moeda; const W = 210, M = 14;
   const TT = tema(ev), G = hex(TT.p), GOLD = hex(TT.d), INK = hex("#17221D"), MUT = hex("#5B6862"), LINE = hex("#D7DDD6"), OK = hex("#2B7A4B"), WARN = hex("#A8670F"), BAD = hex("#B03F2B");
@@ -5090,7 +5402,7 @@ function ofertaFicheiro(titulo, nome, blob, previewHTML) {
   if (share) $("#fShare").onclick = async () => { try { await navigator.share({ files: [file], title: titulo }); } catch (e) { if (!e || e.name !== "AbortError") toast("Não foi possível partilhar. Use Descarregar."); } };
   $("#fDown").onclick = () => { baixar(nome, blob); toast("Ficheiro descarregado."); };
 }
-function prefixo() { if (ui.pdf.foco === "orcamento") return "Orcamento_"; if (ui.pdf.foco === "noivos") return ehCasal(cur()) ? "Noivos_" : "Homenagem_"; return ui.pdf.foco === "crono" ? "Cronograma_" : ui.pdf.foco === "despesas" ? "Despesas_" : "Contribuicoes_"; }
+function prefixo() { if (ui.pdf.foco === "dote") return "Lista_dote_"; if (ui.pdf.foco === "doteAuto") return "Auto_entrega_dote_"; if (ui.pdf.foco === "orcamento") return "Orcamento_"; if (ui.pdf.foco === "noivos") return ehCasal(cur()) ? "Noivos_" : "Homenagem_"; return ui.pdf.foco === "crono" ? "Cronograma_" : ui.pdf.foco === "despesas" ? "Despesas_" : "Contribuicoes_"; }
 async function gerarPdf() {
   const ev = cur(); if (!ev) return;
   if (ui.pdf.foco === "noivos") return gerarPdfImagem(ev);
@@ -5098,7 +5410,7 @@ async function gerarPdf() {
   try { blob = buildPdf(ev).output("blob"); } catch (e) { console.error(e); toast("Erro ao montar o PDF: " + (e && e.message || "")); return; }
   const k = calc(ev);
   ofertaFicheiro("PDF pronto", prefixo() + slug(ev.nome) + "_" + todayISO() + ".pdf", blob,
-    `<div class="note"><b>${esc(ev.nome)}</b><br>${ui.pdf.foco === "crono" ? k.act.total + " actividades · " + k.act.feitas + " concluídas" : ui.pdf.foco === "orcamento" ? "Orçamento detalhado · previsto " + money(k.orcRub, ev.moeda) : ui.pdf.foco === "despesas" ? "Gasto " + money(k.gasto, ev.moeda) + " · em caixa " + money(k.saldo, ev.moeda) : money(k.total, ev.moeda) + " de " + money(k.orc, ev.moeda) + " (" + k.p + "%) · " + ev.nucleos.length + " núcleos"}</div>`);
+    `<div class="note"><b>${esc(ev.nome)}</b><br>${ui.pdf.foco === "dote" || ui.pdf.foco === "doteAuto" ? esc(dote(ev).titulo) + " · " + dote(ev).itens.length + " itens" : ui.pdf.foco === "crono" ? k.act.total + " actividades · " + k.act.feitas + " concluídas" : ui.pdf.foco === "orcamento" ? "Orçamento detalhado · previsto " + money(k.orcRub, ev.moeda) : ui.pdf.foco === "despesas" ? "Gasto " + money(k.gasto, ev.moeda) + " · em caixa " + money(k.saldo, ev.moeda) : money(k.total, ev.moeda) + " de " + money(k.orc, ev.moeda) + " (" + k.p + "%) · " + ev.nucleos.length + " núcleos"}</div>`);
 }
 
 /* ============ relatório em imagem ============ */
@@ -5157,6 +5469,7 @@ function pendentesImg(ev, k) {
 function reportHTML(ev) {
   if (ui.pdf.foco === "noivos") return apresentacaoHTML(ev);
   if (ui.pdf.foco === "orcamento") return orcamentoHTML(ev);
+  if (ui.pdf.foco === "dote" || ui.pdf.foco === "doteAuto") return doteHTML(ev, ui.pdf.foco === "doteAuto");
   const k = calc(ev), c = ev.moeda, b = ev.banco || {}, o = ui.pdf, crono = o.foco === "crono", desp = o.foco === "despesas", s = k.act;
   const fotosHdr = !crono && !desp ? fotosCabecalho(ev) : "";
   const est = x => x.estado === "ok" ? ["Completo", "#2B7A4B"] : x.estado === "parcial" ? ["Em curso", "#A8670F"] : ["Por contribuir", "#B03F2B"];
@@ -5193,8 +5506,8 @@ async function gerarImagem() {
   try { canvas = await window.html2canvas(box.firstElementChild, { scale: 2, backgroundColor: "#ffffff", logging: false }); }
   catch (e) { box.remove(); toast("Não foi possível criar a imagem."); return; }
   box.remove();
-  const url = canvas.toDataURL("image/png");
-  canvas.toBlob(blob => ofertaFicheiro("Imagem pronta", prefixo() + slug(ev.nome) + "_" + todayISO() + ".png", blob,
+  const url = canvas.toDataURL("image/png"), pre = prefixo();
+  canvas.toBlob(blob => ofertaFicheiro("Imagem pronta", pre + slug(ev.nome) + "_" + todayISO() + ".png", blob,
     `<img src="${url}" alt="Mapa de contribuições de ${esc(ev.nome)}" style="width:100%;border:1px solid var(--line);border-radius:10px">`), "image/png");
 }
 
@@ -5384,7 +5697,9 @@ function formImportar(pre) {
 /* ============ cópias ============ */
 async function exportar(evs, nome) {
   if (!evs.length) { toast("Ainda não há eventos para exportar."); return; }
-  const data = JSON.stringify({ app: "mbongo", versao: 1, exportadoEm: new Date().toISOString(), eventos: evs }, null, 2);
+  const anexos = {};
+  for (const e of evs) for (const a of ((e.dote && e.dote.anexos) || [])) { try { const b = await IDB.get(a.id); if (b) anexos[a.id] = await blobParaDataURL(b); } catch {} }
+  const data = JSON.stringify({ app: "mbongo", versao: 1, exportadoEm: new Date().toISOString(), eventos: evs, anexos }, null, 2);
   const blob = new Blob([data], { type: "application/json" });
   if (evs.length === Object.keys(store.events).length) lsSet("backup", new Date().toISOString());
   setPill();
@@ -5392,7 +5707,7 @@ async function exportar(evs, nome) {
 }
 function restaurar() {
   const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".json,application/json";
-  inp.onchange = () => { const f = inp.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { const j = JSON.parse(r.result); const evs = Array.isArray(j.eventos) ? j.eventos : Array.isArray(j) ? j : [j]; let n = 0; evs.forEach(e => { if (e && Array.isArray(e.nucleos)) { const ev = novoEvento(e); normAll({ x: ev }); persist(ev); n++; } }); toast(n + " evento(s) restaurado(s)."); render(); } catch { toast("O ficheiro não é uma cópia válida."); } }; r.readAsText(f); };
+  inp.onchange = () => { const f = inp.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { const j = JSON.parse(r.result); const evs = Array.isArray(j.eventos) ? j.eventos : Array.isArray(j) ? j : [j]; let n = 0; evs.forEach(e => { if (e && Array.isArray(e.nucleos)) { const ev = novoEvento(e); normAll({ x: ev }); persist(ev); n++; } }); if (j.anexos && typeof j.anexos === "object") Object.entries(j.anexos).forEach(([id, u]) => { try { IDB.put(id, dataURLparaBlob(u)).catch(() => {}); } catch {} }); toast(n + " evento(s) restaurado(s)."); render(); } catch { toast("O ficheiro não é uma cópia válida."); } }; r.readAsText(f); };
   inp.click();
 }
 
@@ -5408,6 +5723,7 @@ function afterEvento() {
   const mr = $("#msgResp"); if (mr) mr.onchange = () => { ui.msgResp = mr.value; render(); };
   const co = $("#cronoOcultar"); if (co) co.onchange = () => { ui.cronoOcultar = co.checked; render(); };
   const gfl = $("#galFile"); if (gfl) gfl.onchange = () => addFotosGaleria(ev, gfl.files);
+  const dfl = $("#doteFile"); if (dfl) dfl.onchange = () => anexarDote(ev, dfl.files);
   if ($("#convCanvas")) ligarConvite(ev);
   const dpd = $("#despPend"); if (dpd) dpd.onchange = () => { ui.despPend = dpd.checked; render(); };
   document.querySelectorAll("[data-pdf]").forEach(el => el.onchange = () => { ui.pdf[el.dataset.pdf] = el.checked; render(); });
@@ -5446,6 +5762,12 @@ document.addEventListener("click", e => {
   if (d.edita && ev) return formAct(ev, ev.actividades.find(x => x.id === d.edita));
   if (d.crvista) { ui.cronoVista = d.crvista; render(); return; }
   if (d.pdffoco) { ui.pdf.foco = d.pdffoco; render(); return; }
+  if (d.rel && ev) { const [rid, fmt] = d.rel.split("|"); gerarRelatorio(ev, rid, fmt); return; }
+  if (d.dotepapel && ev) { const D = dote(ev); D.papel = d.dotepapel; guardaDote(ev, D); render(); return; }
+  if (d.doteedit && ev) return formDoteItem(ev, d.doteedit);
+  if (d.doteest && ev) { const [iid, est] = d.doteest.split("|"), D = dote(ev), i = D.itens.find(x => x.id === iid); if (!i) return; if (est === "parcial") return formDoteItem(ev, iid, "parcial"); i.entrega = Object.assign({ qtd: null, nota: "" }, i.entrega, { estado: est }); if (est !== "parcial") i.entrega.qtd = null; guardaDote(ev, D); render(); return; }
+  if (d.anexover && ev) { verAnexo(ev, d.anexover); return; }
+  if (d.anexorm && ev) { const D = dote(ev), a = D.anexos.find(x => x.id === d.anexorm); if (a) confirmSheet("Remover documento?", a.nome, "Remover", () => { D.anexos = D.anexos.filter(x => x.id !== a.id); IDB.del(a.id).catch(() => {}); guardaDote(ev, D); toast("Documento removido."); }); return; }
   if (d.pessoa !== undefined && ev) return formPessoa(ev, Number(d.pessoa));
   if (d.galrm && ev) { const P = perfil(ev); P.galeria = (P.galeria || []).filter(g => g.id !== d.galrm); ev.perfil = P; persist(ev); render(); return; }
   if (d.galleg && ev) return formLegenda(ev, d.galleg);
@@ -5481,6 +5803,17 @@ document.addEventListener("click", e => {
     case "orcImg": ui.pdf.foco = "orcamento"; gerarImagem(); break;
     case "ementaPdf": ementaExport(ev, true); break;
     case "ementaImg": ementaExport(ev, false); break;
+    case "doteDados": formDoteDados(ev); break;
+    case "doteModelo": formDoteModelo(ev); break;
+    case "doteColar": formDoteColar(ev); break;
+    case "doteItem": formDoteItem(ev); break;
+    case "doteDespesas": doteParaDespesas(ev); break;
+    case "doteConf": ui.doteConf = !ui.doteConf; render(); break;
+    case "dotePdf": gerarRelatorio(ev, "dote", "pdf"); break;
+    case "doteImg": gerarRelatorio(ev, "dote", "img"); break;
+    case "doteAutoPdf": gerarRelatorio(ev, "auto", "pdf"); break;
+    case "doteAutoImg": gerarRelatorio(ev, "auto", "img"); break;
+    case "doteMsg": case "doteMsgAuto": { const txt = d.act === "doteMsg" ? msgDote(ev) : msgAutoDote(ev); sheet("Mensagem para a outra família", `<textarea class="msg-box" id="msgOut" aria-label="Mensagem">${esc(txt)}</textarea>`, { extra: `<button type="button" class="btn" data-act="copiarMsg">Copiar</button><a class="btn primary" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(txt)}">Abrir no WhatsApp</a>` }); break; }
     case "editEmenta": formEmenta(ev); break;
     case "editHistoria": formHistoria(ev); break;
     case "addPessoa": { const P = perfil(ev); P.pessoas.push(novaPessoa("Homenageado", "")); ev.perfil = P; persist(ev); render(); break; }
