@@ -321,6 +321,8 @@ function demo(){
     mkEq('e3','Amigos de Quinta','ADQ','Amigos','#16a34a','Arena Talatona',1500,1500,[[9,['coord','tes','jog']],[1,['jog']],[4,['jog']],[11,['jog']],[14,['jog']],[16,['jog']],[5,['jog']],[13,['jog']]])
   ];
   equipas[1].insc.push({j:J(2),f:['jog'],num:11,estado:'pendente',desde:addDias(-2)});
+  equipas[0].grupo='https://chat.whatsapp.com/ExemploFamiliaCastelo2026';equipas[0].grupoNome='Família Castelo FC ⚽';
+  equipas[0].insc.forEach((i,k)=>{i.grupo=k<8?'sim':k<10?'convidado':'';if(i.grupo==='convidado')i.convData=addDias(-3)});jogadores[10].semWa=true;
   const eventos=[],movs=[],cobr=[];
   const advs=['Estrela do Cazenga','Unidos do Rangel','Leões de Viana','Académica da Maianga','Juventude do Kilamba','Real Benfica'];
   equipas.forEach((eq,ei)=>{
@@ -502,7 +504,7 @@ function rJogadoresLista(){
       <span class="meta">${esc(j.posicao)} · <span class="estrelas">${'★'.repeat(j.nivel||0)}${'☆'.repeat(5-(j.nivel||0))}</span></span>
       <div>${fs.map(f=>`<span class="tag">${FUNC[f]}</span>`).join('')}<span class="tag ${st.assid>=75?'ok':st.assid>=50?'am':'mau'}">${st.assid}% assid.</span>${st.g?`<span class="tag">⚽ ${st.g}</span>`:''}${(p.verFin||j.id===D.eu)&&dv?`<span class="tag mau">${kz(dv)}</span>`:''}</div></div></div>`}).join('')||'<div class="vazio">Nenhum jogador encontrado.</div>';
 }
-function decidirPedido(jid,ok){const eq=eqA();const i=eq.insc.find(x=>x.j===jid&&x.estado==='pendente');if(ok){i.estado='activo';i.f=['jog'];i.num=Math.max(0,...inscAct(eq).map(x=>x.num||0))+1}else eq.insc=eq.insc.filter(x=>x!==i);gravar();tudo();toast(ok?'Jogador aprovado':'Pedido recusado')}
+function decidirPedido(jid,ok){const eq=eqA();const i=eq.insc.find(x=>x.j===jid&&x.estado==='pendente');if(ok){i.estado='activo';i.f=['jog'];i.num=Math.max(0,...inscAct(eq).map(x=>x.num||0))+1}else eq.insc=eq.insc.filter(x=>x!==i);gravar();tudo();toast(ok?'Jogador aprovado':'Pedido recusado');if(ok)posInscricao([jid])}
 function adicionarJogador(){
   const eq=eqA();const fora=D.jogadores.filter(j=>!eq.insc.some(i=>i.j===j.id)).sort((a,b)=>a.nome.localeCompare(b.nome));
   abrirModal(`<h3>Adicionar à ${esc(eq.nome)}</h3>
@@ -530,24 +532,24 @@ function cpLista(){const eq=eqA(),de=eqPor(el('cp-de').value);
 function cpMarcar(v){document.querySelectorAll('[name=cp]:not(:disabled)').forEach(x=>x.checked=v)}
 function cpExecutar(){const eq=eqA(),de=eqPor(el('cp-de').value);const ids=[...document.querySelectorAll('[name=cp]:checked')].map(x=>x.value);
   if(!ids.length){toast('Seleccione pelo menos um jogador');return}
-  const n=copiarPara(eq,de,ids,el('cp-num').checked,el('cp-fun').checked);gravar();fecharModal();tudo();toast(n+' jogador(es) copiado(s) da '+de.nome)}
+  const n=copiarPara(eq,de,ids,el('cp-num').checked,el('cp-fun').checked);gravar();fecharModal();tudo();toast(n+' jogador(es) copiado(s) da '+de.nome);if(n)posInscricao(ids.filter(j=>eq.insc.some(i=>i.j===j&&i.convData!==hoje()&&i.grupo!=='sim')))}
 function copiarPara(eq,de,ids,manterNum,comFuncoes){let n=0;
   ids.forEach(j=>{const o=de.insc.find(i=>i.j===j&&i.estado==='activo');if(!o)return;const ex=eq.insc.find(i=>i.j===j);if(ex&&ex.estado==='activo')return;
     const usados=new Set(inscAct(eq).map(i=>+i.num));const num=manterNum&&o.num&&!usados.has(+o.num)?o.num:Math.max(0,...inscAct(eq).map(x=>+x.num||0))+1;
     const f=comFuncoes?[...o.f]:['jog'];
     if(ex)Object.assign(ex,{estado:'activo',f,num,desde:hoje()});else eq.insc.push({j,f,num,estado:'activo',desde:hoje()});n++});
   return n}
-function inscrever(jid){const eq=eqA();eq.insc.push({j:jid,f:['jog'],num:Math.max(0,...inscAct(eq).map(x=>x.num||0))+1,estado:'activo',desde:hoje()});gravar();fecharModal();tudo();toast(jog(jid).nome+' inscrito na equipa')}
+function inscrever(jid){const eq=eqA();eq.insc.push({j:jid,f:['jog'],num:Math.max(0,...inscAct(eq).map(x=>x.num||0))+1,estado:'activo',desde:hoje()});gravar();fecharModal();tudo();toast(jog(jid).nome+' inscrito na equipa');posInscricao([jid])}
 function formJogador(id){
   const j=D.jogadores.find(x=>x.id===id)||{};const eq=eqA();const ins=id?eq.insc.find(i=>i.j===id):null;
-  const campos=[{k:'nome',l:'Nome completo',req:1},{k:'alcunha',l:'Alcunha (como é conhecido)',ph:'Ex.: Kito, Mano Zé'},{k:'telefone',l:'Telefone (WhatsApp)',t:'tel',ph:'923 000 000'},
+  const campos=[{k:'nome',l:'Nome completo',req:1},{k:'alcunha',l:'Alcunha (como é conhecido)',ph:'Ex.: Kito, Mano Zé'},{k:'telefone',l:'Telefone (WhatsApp)',t:'tel',ph:'923 000 000'},{k:'semWa',l:'Este número não tem WhatsApp (avisar por SMS)',t:'chk'},
     {k:'posicao',l:'Posição',t:'sel',o:POS},{k:'nivel',l:'Nível técnico',t:'sel',o:[[1,'★ Iniciante'],[2,'★★ Básico'],[3,'★★★ Médio'],[4,'★★★★ Bom'],[5,'★★★★★ Muito bom']],def:3},
     {k:'nascimento',l:'Data de nascimento (opcional; pode indicar só o ano)',t:'nasc'},{k:'foto',l:'Fotografia (opcional)',t:'img',max:220}];
   if(P().coord)campos.push({k:'num',l:'Número da camisola nesta equipa',t:'number'});
   form(id?'Editar jogador':'Novo jogador',campos,{...j,num:ins?.num},o=>{
     o.nivel=+o.nivel||3;const num=o.num;delete o.num;
     if(id){Object.assign(j,o);if(ins&&num!=='')ins.num=num}
-    else{const n={id:uid(),...o};D.jogadores.push(n);eq.insc.push({j:n.id,f:['jog'],num:num||Math.max(0,...inscAct(eq).map(x=>x.num||0))+1,estado:'activo',desde:hoje()})}
+    else{const n={id:uid(),...o};D.jogadores.push(n);eq.insc.push({j:n.id,f:['jog'],num:num||Math.max(0,...inscAct(eq).map(x=>x.num||0))+1,estado:'activo',desde:hoje()});setTimeout(()=>posInscricao([n.id]),120)}
     toast('Jogador guardado');setTimeout(refrescarFolha,50);
   });
 }
@@ -561,11 +563,11 @@ function fichaJogador(jid){
   return `${cabFolha('Ficha do jogador')}
   <div class="card" style="text-align:center">${j.foto?`<img src="${j.foto}" style="width:96px;height:96px;border-radius:50%;object-fit:cover">`:avatar(j).replace('class="av"','class="av" style="width:84px;height:84px;font-size:28px"')}
    <h3 style="margin:8px 0 0">${nomeH(j)}</h3><div class="meta">#${ins.num||'·'} · ${esc(j.posicao)} · <span class="estrelas">${'★'.repeat(j.nivel||0)}</span>${idade(j)?' · '+idade(j)+' anos':''}</div>
-   <div>${ins.f.map(f=>`<span class="tag">${FUNC[f]}</span>`).join('')}</div>
+   <div>${ins.f.map(f=>`<span class="tag">${FUNC[f]}</span>`).join('')}${j.semWa?'<span class="tag mau">Sem WhatsApp</span>':ins.grupo==='sim'?'<span class="tag ok">No grupo</span>':ins.grupo==='convidado'?'<span class="tag am">Convidado para o grupo</span>':''}</div>
    ${outras.length?`<div class="meta" style="margin-top:6px">Também joga em: ${outras.map(e=>esc(e.nome)).join(', ')}</div>`:''}
    <div class="acoes" style="justify-content:center">
-    ${(p.coord||eu)&&j.telefone?`<button class="btn wa mini" onclick="whatsapp('Olá ${esc(j.nome.split(' ')[0])}!',jog('${jid}').telefone)">WhatsApp</button><a class="btn claro mini" href="tel:${esc(telIntl(j.telefone))}">Ligar</a>`:''}
-    ${p.coord||eu?`<button class="btn claro mini" onclick="formJogador('${jid}')">Editar</button>`:''}
+    ${(p.coord||eu)&&j.telefone?`<button class="btn ${j.semWa?'':'wa'} mini" onclick="contactar(jog('${jid}'),'Olá '+chamado(jog('${jid}'))+'!')">${j.semWa?'SMS':'WhatsApp'}</button><a class="btn claro mini" href="tel:${esc(telIntl(j.telefone))}">Ligar</a>`:''}
+    ${p.coord||eu?`<button class="btn claro mini" onclick="formJogador('${jid}')">Editar</button>`:''}${p.coord&&j.telefone&&ins.grupo!=='sim'?`<button class="btn ${j.semWa?'':'wa'} mini" onclick="convidar('${jid}')">${j.semWa?'SMS de boas-vindas':'Convidar para o grupo'}</button>`:''}
     ${p.coord?`<button class="btn claro mini" onclick="formFuncoes('${jid}')">Funções</button><button class="btn perigo mini" onclick="removerDaEquipa('${jid}')">Retirar da equipa</button>`:''}
    </div></div>
   <div class="kpis"><div class="kpi"><b>${st.assid}%</b><span>Assiduidade (${st.pres}/${st.total})</span></div><div class="kpi"><b>${st.jogos}</b><span>Jogos disputados</span></div><div class="kpi"><b>${st.g}</b><span>Golos</span></div><div class="kpi"><b>${st.a}</b><span>Assistências</span></div></div>
@@ -581,7 +583,7 @@ function formFuncoes(jid){
 }
 function removerDaEquipa(jid){const eq=eqA();confirmar(`Retirar ${jog(jid).nome} da ${eq.nome}? O histórico (presenças, golos e pagamentos) fica guardado.`,()=>{eq.insc=eq.insc.filter(i=>i.j!==jid);if(!D.equipas.some(e=>e.insc.some(i=>i.j===jid))&&!D.cobrancas.some(c=>c.j===jid)&&!D.movs.some(m=>m.j===jid)){}gravar();fecharFolha();tudo();toast('Jogador retirado da equipa')},'Retirar')}
 function lembrarDivida(jid){const eq=eqA(),j=jog(jid),l=D.cobrancas.filter(c=>c.eq===eq.id&&c.j===jid&&!c.pago);
-  whatsapp(`Olá ${j.nome.split(' ')[0]}! 👋\nLembrete amigável da tesouraria da *${eq.nome}*:\n\n${l.map(c=>`• ${c.descricao}: ${kz(c.valor)}`).join('\n')}\n\n*Total em aberto: ${kz(divida(eq,jid))}*\n\nPode pagar em dinheiro ou por Multicaixa Express. Obrigado! ⚽`,j.telefone)}
+  contactar(j,`Olá ${j.nome.split(' ')[0]}! 👋\nLembrete amigável da tesouraria da *${eq.nome}*:\n\n${l.map(c=>`• ${c.descricao}: ${kz(c.valor)}`).join('\n')}\n\n*Total em aberto: ${kz(divida(eq,jid))}*\n\nPode pagar em dinheiro ou por Multicaixa Express. Obrigado! ⚽`.replace('Olá '+j.nome.split(' ')[0],'Olá '+chamado(j)))}
 
 /* =========================================================
    AGENDA E EVENTOS
@@ -632,14 +634,14 @@ function fichaEvento(id){
   <div class="card"><div class="meta">📅 ${dataLonga(e.data)} · ${esc(e.hora)}${e.fim?' às '+esc(e.fim):''}<br>📍 ${esc(e.local||'Campo por confirmar')}${e.custo?' · Campo: '+kz(e.custo):''}</div>
   ${e.notas?`<div style="margin-top:6px;font-size:14px">${esc(e.notas)}</div>`:''}
   <div style="margin-top:6px">${e.estado==='cancelado'?'<span class="tag mau">Cancelado</span>':passou?'<span class="tag ok">Realizado</span>':'<span class="tag cor">Agendado</span>'}</div>
-  ${p.coord||p.trein?`<div class="acoes"><button class="btn claro mini" onclick="formEvento('${e.id}')">Editar</button><button class="btn wa mini" onclick="whatsapp(textoEvento('${e.id}'))">Avisar no WhatsApp</button>
+  ${p.coord||p.trein?`<div class="acoes"><button class="btn claro mini" onclick="formEvento('${e.id}')">Editar</button><button class="btn wa mini" onclick="paraGrupo(textoEvento('${e.id}'))">Avisar no WhatsApp</button>
    ${e.estado!=='cancelado'?`<button class="btn perigo mini" onclick="confirmar('Cancelar esta actividade?',()=>{const x=D.eventos.find(y=>y.id==='${e.id}');x.estado='cancelado';gravar();tudo();refrescarFolha()},'Cancelar actividade')">Cancelar</button>`:`<button class="btn claro mini" onclick="const x=D.eventos.find(y=>y.id==='${e.id}');x.estado='agendado';gravar();tudo();refrescarFolha()">Reactivar</button>`}
    <button class="btn perigo mini" onclick="confirmar('Apagar definitivamente esta actividade e o seu registo de presenças?',()=>{D.eventos=D.eventos.filter(y=>y.id!=='${e.id}');gravar();fecharFolha();tudo()},'Apagar')">🗑</button></div>`:''}</div>
   <div class="tabs">${abas.map(([k,t])=>`<button class="${k===evAba?'on':''}" onclick="evAba='${k}';refrescarFolha()">${t}</button>`).join('')}</div>
   ${corpo}`;
 }
 function textoEvento(id){const e=D.eventos.find(x=>x.id===id),eq=eqPor(e.eq);
-  return `⚽ *${eq.nome}*\n\n${e.tipo==='Jogo'?'*JOGO* contra *'+e.adv+'*':'*'+e.tipo.toUpperCase()+'*'}\n📅 ${dataLonga(e.data)}\n🕒 ${e.hora}${e.fim?' às '+e.fim:''}\n📍 ${e.local||'Campo por confirmar'}\n${e.notas?'\n'+e.notas+'\n':''}\nConfirmem a presença na app *Futsal em Equipa* ou respondam a esta mensagem. 💪`}
+  return `⚽ *${eq.nome}*\n\n${e.tipo==='Jogo'?'*JOGO* contra *'+e.adv+'*':'*'+e.tipo.toUpperCase()+'*'}\n📅 ${dataLonga(e.data)}\n🕒 ${e.hora}${e.fim?' às '+e.fim:''}\n📍 ${e.local||'Campo por confirmar'}\n${e.notas?'\n'+e.notas+'\n':''}\nConfirmem a presença respondendo *✅ vou* ou *❌ não posso*. 💪`}
 
 function blocoPresencas(e,eq,p,passou){
   const l=jogadoresEq(eq),c={};Object.keys(EST).forEach(k=>c[k]=0);l.forEach(j=>c[estadoP(e,j.id)]++);
@@ -660,12 +662,12 @@ function blocoConvocatoria(e,eq,p){
   return `<p class="meta" style="margin-bottom:8px">Seleccione os jogadores convocados. Os confirmados aparecem primeiro.</p>
   <div class="acoes" style="margin:0 0 10px"><button class="btn claro mini" onclick="convTodos('${e.id}','conf')">Convocar confirmados</button><button class="btn claro mini" onclick="convTodos('${e.id}','')">Limpar</button></div>
   ${[...l].sort((a,b)=>(estadoP(e,a.id)==='conf'?0:1)-(estadoP(e,b.id)==='conf'?0:1)).map(j=>{const s=estadoP(e,j.id);return `<label class="card chk" style="padding:10px 12px;margin-bottom:6px"><input type="checkbox" ${conv.has(j.id)?'checked':''} onchange="togConv('${e.id}','${j.id}',this.checked)">${avatar(j,1)}<span style="flex:1"><b>${nomeH(j)}</b><br><span class="meta">${esc(j.posicao)}</span></span><span class="tag ${s==='conf'||s==='pres'?'ok':s==='nconf'?'':'mau'}">${EST[s]}</span></label>`}).join('')}
-  <div class="acoes"><button class="btn wa" onclick="whatsapp(textoConv('${e.id}'))">Enviar convocatória</button><button class="btn claro" onclick="relatorio('convocatoria',{ev:'${e.id}'})">📄 PDF / imagem</button></div>`;
+  <div class="acoes"><button class="btn wa" onclick="paraGrupo(textoConv('${e.id}'))">👥 Enviar ao grupo</button><button class="btn wa" onclick="enviarConvocados('${e.id}')">📲 Enviar a cada convocado${(e.convEnv||[]).length?' ('+(e.convEnv||[]).filter(j=>(e.conv||[]).includes(j)).length+'/'+(e.conv||[]).length+')':''}</button><button class="btn claro" onclick="relatorio('convocatoria',{ev:'${e.id}'})">📄 PDF / imagem</button></div>`;
 }
 function togConv(ev,j,v){const e=D.eventos.find(x=>x.id===ev);e.conv=e.conv||[];if(v&&!e.conv.includes(j))e.conv.push(j);if(!v)e.conv=e.conv.filter(x=>x!==j);gravar();rAgenda()}
 function convTodos(ev,k){const e=D.eventos.find(x=>x.id===ev),eq=eqPor(e.eq);e.conv=k?inscAct(eq).map(i=>i.j).filter(j=>['conf','pres'].includes(estadoP(e,j))):[];gravar();refrescarFolha();rAgenda()}
 function textoConv(ev){const e=D.eventos.find(x=>x.id===ev),eq=eqPor(e.eq);const l=(e.conv||[]).map(j=>jog(j)).sort((a,b)=>POS.indexOf(a.posicao)-POS.indexOf(b.posicao));
-  return `📋 *CONVOCATÓRIA · ${eq.nome}*\n${e.tipo==='Jogo'?'Jogo contra *'+e.adv+'*':e.tipo}\n📅 ${dataLonga(e.data)} · ${e.hora}\n📍 ${e.local||'Campo por confirmar'}\n\n${l.map((j,i)=>`${i+1}. ${nomeAlc(j)} (${POS_C[j.posicao]||''})`).join('\n')||'(sem convocados)'}\n\nChegar 15 minutos antes. Bom jogo! ⚽`}
+  return `📋 *CONVOCATÓRIA · ${eq.nome}*\n${e.tipo==='Jogo'?'Jogo contra *'+e.adv+'*':e.tipo}\n📅 ${dataLonga(e.data)} · ${e.hora}\n📍 ${e.local||'Campo por confirmar'}\n\n${l.map((j,i)=>`${i+1}. ${nomeAlc(j)} (${POS_C[j.posicao]||''})`).join('\n')||'(sem convocados)'}\n\nConfirmem respondendo *✅* ou *❌*. Chegar 15 minutos antes. Bom jogo! ⚽`}
 
 /* ---------- divisão de equipas ---------- */
 let divN=2,divModo='equilibrado',divBase='conf';
@@ -699,7 +701,7 @@ function blocoDivisao(e,eq,p){
   return ctrl+`<div class="grupos">${G.map((g,gi)=>`<div class="grupo" style="border-color:${CORES_GR[gi]}"><h5><span style="color:${CORES_GR[gi]}">Equipa ${NOMES_GR[gi]}</span><span class="meta">${g.length} jog. · nível ${nv(g)}</span></h5>
     ${g.map(jid=>{const j=jog(jid);return `<div class="jrow" style="margin-top:7px">${avatar(j,1)}<div class="info"><b style="font-size:14px">${nomeH(j)}</b><span class="meta">${POS_C[j.posicao]||''} · ${'★'.repeat(j.nivel||3)}</span></div>
       ${p.trein?`<div class="mover">${G.map((_,k)=>k===gi?'':`<button style="background:${CORES_GR[k]}" onclick="moverDiv('${e.id}','${jid}',${k})">${NOMES_GR[k][0]}</button>`).join('')}</div>`:''}</div>`}).join('')}</div>`).join('')}</div>
-  <div class="acoes"><button class="btn wa" onclick="whatsapp(textoDiv('${e.id}'))">Partilhar no WhatsApp</button><button class="btn claro" onclick="relatorio('convocatoria',{ev:'${e.id}'})">📄 PDF / imagem</button></div>`;
+  <div class="acoes"><button class="btn wa" onclick="paraGrupo(textoDiv('${e.id}'))">Partilhar no WhatsApp</button><button class="btn claro" onclick="relatorio('convocatoria',{ev:'${e.id}'})">📄 PDF / imagem</button></div>`;
 }
 function textoDiv(ev){const e=D.eventos.find(x=>x.id===ev),eq=eqPor(e.eq);return `🔀 *EQUIPAS · ${eq.nome}*\n${e.tipo} de ${dataPt(e.data)}\n\n`+e.grupos.map((g,i)=>`*Equipa ${NOMES_GR[i]}*\n${g.map(j=>'• '+chamado(jog(j))+' ('+(POS_C[jog(j).posicao]||'')+')').join('\n')}`).join('\n\n')+`\n\nBom jogo a todos! ⚽`}
 
@@ -785,7 +787,7 @@ function rTesouraria(){
   }else if(tsAba==='dividas'){
     const l=jogadoresEq(eq).map(j=>({j,v:divida(eq,j.id),n:D.cobrancas.filter(c=>c.eq===eq.id&&c.j===j.id&&!c.pago).length})).filter(x=>x.v).sort((a,b)=>b.v-a.v);
     corpo=`<div class="kpis"><div class="kpi"><b style="color:var(--mau)">${nf(divida(eq))}</b><span>Total em dívida (Kz)</span></div><div class="kpi"><b>${l.length}</b><span>Jogadores com dívida</span></div></div>
-    ${l.length&&p.tes?`<button class="btn wa largo" onclick="whatsapp(textoDividas())">Enviar resumo de dívidas ao grupo</button>`:''}
+    ${l.length&&p.tes?`<button class="btn wa largo" onclick="paraGrupo(textoDividas())">Enviar resumo de dívidas ao grupo</button>`:''}
     ${l.map(x=>`<div class="card click jrow" onclick="abrirJogador('${x.j.id}')">${avatar(x.j,1)}<div class="info"><b>${nomeH(x.j)}</b><span class="meta">${x.n} pagamento(s) em atraso</span></div><b class="desp">${kz(x.v)}</b>${p.tes&&x.j.telefone?`<button class="btn wa mini" onclick="event.stopPropagation();lembrarDivida('${x.j.id}')">Lembrar</button>`:''}</div>`).join('')||'<div class="vazio">Ninguém em dívida. 👏</div>'}`;
   }else{
     const l=D.movs.filter(m=>m.eq===eq.id&&(tsAba==='movs'||m.tipo===(tsAba==='rec'?'rec':'desp'))).sort((a,b)=>b.data.localeCompare(a.data)||b.id.localeCompare(a.id));
@@ -826,6 +828,93 @@ function formCobranca(){const eq=eqA();form('Nova cobrança',[{k:'j',l:'Jogador'
 function textoDividas(){const eq=eqA();const l=jogadoresEq(eq).map(j=>({j,v:divida(eq,j.id)})).filter(x=>x.v).sort((a,b)=>b.v-a.v);
   return `💰 *${eq.nome} · Situação de pagamentos*\n${dataPt(hoje())}\n\n${l.map(x=>`• ${chamado(x.j)}: ${kz(x.v)}`).join('\n')}\n\n*Total em aberto: ${kz(divida(eq))}*\nSaldo de caixa: ${kz(saldoEq(eq))}\n\nObrigado a todos os que já regularizaram! ⚽`}
 
+
+
+/* =========================================================
+   WHATSAPP: grupo da equipa, convites e envio directo
+   O WhatsApp não deixa outras apps criar grupos nem adicionar pessoas.
+   A app faz o resto: guarda o link do grupo, envia convites com o link,
+   exporta os contactos para criar o grupo e envia mensagens já escritas.
+   ========================================================= */
+const linkGrupoOk=u=>/^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9]{10,}/.test(String(u||'').trim());
+function abrirLink(url){if(ANDROID)location.href=url;else window.open(url,'_blank')}
+const smsLink=(tel,t)=>'sms:+'+telIntl(tel)+'?body='+encodeURIComponent(t.replace(/\*/g,''));
+function contactar(j,texto){
+  if(!j.telefone){toast(chamado(j)+' não tem telefone registado');return false}
+  if(j.semWa){abrirLink(smsLink(j.telefone,texto));toast('Sem WhatsApp: a abrir SMS');return true}
+  whatsapp(texto,j.telefone);return true;
+}
+let _txtGrupo='';
+function paraGrupo(texto,eq){
+  eq=eq||eqA();_txtGrupo=texto;
+  if(!eq||!linkGrupoOk(eq.grupo)){whatsapp(texto);return}
+  abrirModal(`<h3>Enviar para o WhatsApp</h3>
+  <button class="btn wa largo" onclick="fecharModal();whatsapp(_txtGrupo)">👥 Escolher o grupo (mensagem já escrita)</button>
+  <p class="meta" style="margin:-2px 0 12px">Abre o WhatsApp com a mensagem pronta. Escolha o grupo «${esc(eq.grupoNome||eq.nome)}» e toque em enviar.</p>
+  <button class="btn largo" onclick="enviarPeloLink()">🔗 Abrir directamente o grupo</button>
+  <p class="meta" style="margin:-2px 0 12px">A mensagem fica copiada. No grupo, toque na caixa de texto e escolha Colar.</p>
+  <button class="btn claro largo" onclick="fecharModal()">Cancelar</button>`);
+}
+function enviarPeloLink(){const eq=eqA();copiar(_txtGrupo,'Mensagem copiada. Cole no grupo.');fecharModal();setTimeout(()=>abrirLink(eq.grupo.trim()),400)}
+function textoConvite(eq,j){const g=linkGrupoOk(eq.grupo)&&!j.semWa;
+  return `Olá ${chamado(j)}! 👋\nFoste inscrito na equipa *${eq.nome}*.${g?`\n\nEntra no nosso grupo do WhatsApp para receberes as convocatórias e os avisos:\n${eq.grupo.trim()}`:''}${eq.diaHabitual?`\n\n⚽ Jogamos ${eq.diaHabitual}${eq.local?', em '+eq.local:''}.`:''}${j.semWa?'\n\nComo não tens WhatsApp, vamos avisar-te por SMS.':''}\n\nBem-vindo! 💪`}
+function marcarConvidado(eq,jid){const i=eq.insc.find(x=>x.j===jid);if(i&&i.grupo!=='sim'){i.grupo=jog(jid).semWa?'sms':'convidado';i.convData=hoje();gravar()}}
+function convidar(jid){const eq=eqA(),j=jog(jid);if(contactar(j,textoConvite(eq,j))){marcarConvidado(eq,jid);setTimeout(()=>{rGestao();refrescarFolha()},400)}}
+function posInscricao(ids){
+  const eq=eqA();if(!pode('coord'))return;const l=ids.map(jog).filter(j=>j.telefone);
+  if(!l.length)return;
+  if(l.length>1){setTimeout(()=>filaConvites(l.map(j=>j.id)),250);return}
+  const j=l[0],g=linkGrupoOk(eq.grupo);
+  setTimeout(()=>abrirModal(`<h3>Convidar ${esc(chamado(j))}</h3>
+   <p style="margin-bottom:12px">${j.semWa?'Este número não tem WhatsApp. Pode enviar as boas-vindas por SMS.':g?'Enviar a mensagem de boas-vindas com o link do grupo de WhatsApp da equipa?':'Ainda não ligou o grupo de WhatsApp da equipa. Pode enviar só as boas-vindas agora, ou ligar o grupo em Gestão e convidar depois.'}</p>
+   <button class="btn ${j.semWa?'':'wa'} largo" onclick="fecharModal();convidar('${j.id}')">${j.semWa?'Enviar SMS':g?'Enviar convite do grupo':'Enviar boas-vindas'}</button>
+   ${!g&&!j.semWa?`<button class="btn largo" onclick="fecharModal();ir('gestao');formGrupo()">Ligar o grupo primeiro</button>`:''}
+   <button class="btn claro largo" onclick="fecharModal()">Agora não</button>`),250);
+}
+/* envio um a um: cada toque abre o WhatsApp (ou SMS) da pessoa com a mensagem pronta */
+let _fila=null;
+function abrirFila(titulo,ids,textoFn,aoEnviar,nota){_fila={titulo,ids,textoFn,aoEnviar,nota,feitos:new Set()};desenharFila()}
+function desenharFila(){const f=_fila;if(!f)return;
+  const l=f.ids.map(jog);const sem=l.filter(j=>!j.telefone);
+  abrirModal(`<h3>${esc(f.titulo)}</h3><p class="meta" style="margin-bottom:10px">${f.nota||''} Toque em cada nome: o WhatsApp abre com a mensagem pronta; envie e volte à app para o seguinte. Quem não tem WhatsApp recebe por SMS.</p>
+  <div class="meta" style="margin-bottom:8px"><b>${f.feitos.size}</b> de ${l.length-sem.length} enviados</div>
+  ${l.map(j=>{const ok=f.feitos.has(j.id);return `<div class="card jrow" style="padding:9px 12px;${ok?'opacity:.55':''}">${avatar(j,1)}<div class="info"><b>${nomeH(j)}</b><span class="meta">${j.telefone?esc(j.telefone):'sem telefone'}${j.semWa?' · sem WhatsApp':''}</span></div>
+   ${!j.telefone?'<span class="tag mau">Sem nº</span>':ok?`<span class="tag ok">✓ Enviado</span>`:`<button class="btn ${j.semWa?'':'wa'} mini" onclick="enviarFila('${j.id}')">${j.semWa?'SMS':'WhatsApp'}</button>`}</div>`}).join('')}
+  <button class="btn claro largo" onclick="_fila=null;fecharModal();tudo()">Concluir</button>`);
+}
+function enviarFila(jid){const f=_fila,j=jog(jid);if(contactar(j,f.textoFn(j))){f.feitos.add(jid);f.aoEnviar&&f.aoEnviar(j);gravar();setTimeout(desenharFila,300)}}
+function filaConvites(ids){const eq=eqA();
+  abrirFila('Convidar para o grupo',ids,j=>textoConvite(eq,j),j=>marcarConvidado(eq,j.id),linkGrupoOk(eq.grupo)?'A mensagem leva o link do grupo.':'Atenção: ainda não ligou o grupo; a mensagem segue sem o link.')}
+function convidarQuemFalta(){const eq=eqA();const ids=inscAct(eq).filter(i=>!i.grupo||i.grupo==='').map(i=>i.j).filter(j=>jog(j).telefone);
+  if(!ids.length){toast('Todos já foram convidados');return}filaConvites(ids)}
+function textoConvIndividual(e,j){const eq=eqPor(e.eq);
+  return `Olá ${chamado(j)}! ⚽\nEstás *convocado* pela *${eq.nome}*:\n\n${e.tipo==='Jogo'?'Jogo contra *'+e.adv+'*':e.tipo}\n📅 ${dataLonga(e.data)}\n🕒 ${e.hora}${e.fim?' às '+e.fim:''}\n📍 ${e.local||'Campo por confirmar'}\n\nResponde *✅* se confirmas ou *❌* se não podes. Chega 15 minutos antes. 💪`}
+function enviarConvocados(evId){const e=D.eventos.find(x=>x.id===evId);if(!(e.conv||[]).length){toast('Seleccione primeiro os convocados');return}
+  e.convEnv=e.convEnv||[];abrirFila('Enviar a cada convocado',e.conv,j=>textoConvIndividual(e,j),j=>{if(!e.convEnv.includes(j.id))e.convEnv.push(j.id)});
+  e.convEnv.forEach(id=>_fila.feitos.add(id));desenharFila()}
+function formGrupo(){const eq=eqA();
+  form('Grupo de WhatsApp da equipa',[{k:'grupoNome',l:'Nome do grupo no WhatsApp',def:eq.nome},{k:'grupo',l:'Link de convite do grupo',ph:'https://chat.whatsapp.com/…'}],eq,o=>{
+    if(o.grupo&&!linkGrupoOk(o.grupo)){toast('O link deve começar por https://chat.whatsapp.com/');return false}
+    eq.grupoNome=o.grupoNome;eq.grupo=o.grupo.trim();toast(o.grupo?'Grupo ligado à equipa':'Link removido')},
+  `<div class="aviso-box" style="font-size:13px">Onde encontrar o link: no WhatsApp, abra o grupo › toque no nome do grupo › <b>Convidar via link</b> (ou "Convidar para o grupo via link") › <b>Copiar link</b>. Depois cole aqui.</div>`)}
+function exportarContactos(){const eq=eqA();const l=jogadoresEq(eq).filter(j=>j.telefone);
+  if(!l.length){toast('Nenhum jogador tem telefone registado');return}
+  const v=x=>String(x).replace(/\\/g,'\\\\').replace(/([,;])/g,'\\$1');
+  const t=l.map(j=>{const nome=(j.alcunha?j.alcunha+' · ':'')+j.nome;return['BEGIN:VCARD','VERSION:3.0','N:'+v(j.nome)+';;;;','FN:'+v(nome+' ('+(eq.sigla||eq.nome)+')'),'TEL;TYPE=CELL:+'+telIntl(j.telefone),'ORG:'+v(eq.nome),'NOTE:'+v(j.posicao||''),'END:VCARD'].join('\r\n')}).join('\r\n');
+  salvarB64('contactos-'+nomeFich(eq.nome)+'.vcf',b64utf8(t),'text/x-vcard');
+  setTimeout(()=>toast('Abra o ficheiro com a app Contactos para os importar de uma vez.'),800)}
+function estadoGrupo(eq){const c={sim:0,convidado:0,falta:0,sms:0,semtel:0};inscAct(eq).forEach(i=>{const j=jog(i.j);if(!j.telefone)c.semtel++;else if(j.semWa)c.sms++;else if(i.grupo==='sim')c.sim++;else if(i.grupo==='convidado')c.convidado++;else c.falta++});return c}
+function listaGrupo(){const eq=eqA();
+  abrirFolha(()=>`${cabFolha('Grupo de WhatsApp')}
+  <p class="meta" style="margin-bottom:10px">Marque quem já entrou no grupo. A app não consegue ver o grupo, por isso esta lista é actualizada por si.</p>
+  ${jogadoresEq(eq).map(j=>{const i=j.insc,st=!j.telefone?'semtel':j.semWa?'sms':i.grupo||'';
+   return `<div class="card" style="padding:10px 12px"><div class="jrow">${avatar(j,1)}<div class="info"><b>${nomeH(j)}</b><span class="meta">${j.telefone?esc(j.telefone):'sem telefone'}${i.convData&&st==='convidado'?' · convidado a '+dataPt(i.convData):''}</span></div>
+    <span class="tag ${st==='sim'?'ok':st==='convidado'?'am':st==='sms'||st==='semtel'?'mau':''}">${{sim:'No grupo',convidado:'Convidado',sms:'Sem WhatsApp',semtel:'Sem telefone','':'Por convidar'}[st]}</span></div>
+    ${j.telefone?`<div class="acoes">${!j.semWa&&st!=='sim'?`<button class="btn verde mini" onclick="setGrupo('${j.id}','sim')">Já está no grupo</button>`:''}${st==='sim'?`<button class="btn claro mini" onclick="setGrupo('${j.id}','')">Saiu do grupo</button>`:''}
+     ${st!=='sim'?`<button class="btn ${j.semWa?'':'wa'} mini" onclick="convidar('${j.id}')">${j.semWa?'SMS de boas-vindas':st==='convidado'?'Reenviar convite':'Convidar'}</button>`:''}
+     <button class="btn claro mini" onclick="togSemWa('${j.id}')">${j.semWa?'Afinal tem WhatsApp':'Não tem WhatsApp'}</button></div>`:''}</div>`}).join('')}`)}
+function setGrupo(jid,v){const i=eqA().insc.find(x=>x.j===jid);i.grupo=v;gravar();refrescarFolha();rGestao()}
+function togSemWa(jid){const j=jog(jid);j.semWa=!j.semWa;gravar();refrescarFolha();rGestao();toast(j.semWa?chamado(j)+' passa a receber por SMS':chamado(j)+' passa a receber por WhatsApp')}
 
 /* =========================================================
    MATERIAL: equipamentos, bolas e outros meios
@@ -949,7 +1038,7 @@ function abaterMat(id){
     m.qtd-=o.qtd;logMat(m,'Abate de '+o.qtd+' unidade(s): '+o.motivo+(o.nota?'. '+o.nota:''),o.data);toast('Registado. Ficam '+m.qtd+' unidade(s).');setTimeout(refrescarFolha,50)});
 }
 function lembrarMat(id,eid){const m=D.material.find(x=>x.id===id),e=m.entregas.find(x=>x.id===eid),j=jog(e.j),eq=eqPor(m.eq);
-  whatsapp(`Olá ${chamado(j)}! 👋\nLembrete do material da *${eq.nome}*:\n\n${ICO_MAT[m.cat]||'📦'} ${e.qtd} × ${m.nome}\nEmprestado a ${dataPt(e.data)}${e.prev?', para devolver até '+dataPt(e.prev):''}.\n\nTraz no próximo treino, por favor. Obrigado! ⚽`,j.telefone)}
+  contactar(j,`Olá ${chamado(j)}! 👋\nLembrete do material da *${eq.nome}*:\n\n${ICO_MAT[m.cat]||'📦'} ${e.qtd} × ${m.nome}\nEmprestado a ${dataPt(e.data)}${e.prev?', para devolver até '+dataPt(e.prev):''}.\n\nTraz no próximo treino, por favor. Obrigado! ⚽`)}
 
 /* =========================================================
    RELATÓRIOS
@@ -1141,7 +1230,7 @@ function relatorio(tipo,o={}){
   repAtual={tipo,o,...r};
   const eq=tipo==='geral'?null:eqA();
   abrirFolha(()=>`${cabFolha(esc(r.t))}
-  <div class="acoes" style="margin:0 0 10px"><button class="btn cor" onclick="exportarRep('pdf')">📄 PDF</button><button class="btn" onclick="exportarRep('png')">🖼️ Imagem</button>${r.csv?`<button class="btn verde" onclick="exportarRep('csv')">📊 Excel</button>`:''}${r.wa?`<button class="btn wa" onclick="whatsapp(repAtual.wa)">WhatsApp</button>`:''}</div>
+  <div class="acoes" style="margin:0 0 10px"><button class="btn cor" onclick="exportarRep('pdf')">📄 PDF</button><button class="btn" onclick="exportarRep('png')">🖼️ Imagem</button>${r.csv?`<button class="btn verde" onclick="exportarRep('csv')">📊 Excel</button>`:''}${r.wa?`<button class="btn wa" onclick="paraGrupo(repAtual.wa)">WhatsApp</button>`:''}</div>
   <div class="prev" id="prev"><div class="doc" style="--dcor:${eq?.cor||'#f97316'}">${r.h}</div></div>`);
   ajustarPrev();
 }
@@ -1191,7 +1280,17 @@ function rGestao(){
    ${jogadoresEq(eq).filter(j=>j.insc.f.some(f=>f!=='jog')).map(j=>`<div class="jrow" style="margin-top:8px;cursor:pointer" onclick="formFuncoes('${j.id}')">${avatar(j,1)}<div class="info"><b>${nomeH(j)}</b><span class="meta">${j.insc.f.filter(f=>f!=='jog').map(f=>FUNC[f]).join(', ')}</span></div><span>›</span></div>`).join('')||'<div class="meta">Ainda sem funções atribuídas.</div>'}
    <button class="btn claro mini" style="margin-top:10px" onclick="ir('jogadores')">Atribuir a outro jogador</button></div>`:''}
   ${p.coord&&eq?`<div class="card"><b>Avisos à equipa</b><p class="meta" style="margin:4px 0 8px">Ficam no painel de todos e podem seguir pelo WhatsApp.</p><button class="btn cor mini" onclick="formAviso()">+ Novo aviso</button>
-   ${D.avisos.filter(a=>a.eq===eq.id).sort((a,b)=>b.data.localeCompare(a.data)).slice(0,5).map(a=>`<div style="margin-top:10px;border-top:1px solid var(--linha);padding-top:8px"><span class="meta">${dataPt(a.data)}</span><div>${esc(a.texto)}</div><div class="acoes" style="margin-top:4px"><button class="btn wa mini" onclick="whatsapp('📢 *${esc(eq.nome)}*\\n\\n'+D.avisos.find(x=>x.id==='${a.id}').texto)">WhatsApp</button><button class="btn perigo mini" onclick="D.avisos=D.avisos.filter(x=>x.id!=='${a.id}');gravar();tudo()">Apagar</button></div></div>`).join('')}</div>`:''}
+   ${D.avisos.filter(a=>a.eq===eq.id).sort((a,b)=>b.data.localeCompare(a.data)).slice(0,5).map(a=>`<div style="margin-top:10px;border-top:1px solid var(--linha);padding-top:8px"><span class="meta">${dataPt(a.data)}</span><div>${esc(a.texto)}</div><div class="acoes" style="margin-top:4px"><button class="btn wa mini" onclick="paraGrupo('📢 *${esc(eq.nome)}*\\n\\n'+D.avisos.find(x=>x.id==='${a.id}').texto)">WhatsApp</button><button class="btn perigo mini" onclick="D.avisos=D.avisos.filter(x=>x.id!=='${a.id}');gravar();tudo()">Apagar</button></div></div>`).join('')}</div>`:''}
+  ${p.coord&&eq?(()=>{const c=estadoGrupo(eq),g=linkGrupoOk(eq.grupo);return `<div class="card" style="border-color:#1f9d55"><b>💬 Grupo de WhatsApp da equipa</b>
+   ${g?`<div class="meta" style="margin:4px 0 8px">Ligado: <b>${esc(eq.grupoNome||eq.nome)}</b></div>
+     <div class="acoes" style="margin:0 0 8px"><button class="btn wa mini" onclick="abrirLink(eqA().grupo)">Abrir o grupo</button><button class="btn claro mini" onclick="formGrupo()">Alterar link</button></div>`
+   :`<p class="meta" style="margin:4px 0 8px">Ligue o grupo da equipa para enviar convites com o link e mandar as convocatórias directamente para lá.</p><button class="btn wa mini" onclick="formGrupo()">Ligar o grupo de WhatsApp</button>`}
+   <div style="margin-top:8px"><span class="tag ok">${c.sim} no grupo</span><span class="tag am">${c.convidado} convidados</span><span class="tag">${c.falta} por convidar</span>${c.sms?`<span class="tag mau">${c.sms} sem WhatsApp</span>`:''}${c.semtel?`<span class="tag mau">${c.semtel} sem telefone</span>`:''}</div>
+   <div class="acoes"><button class="btn wa mini" onclick="convidarQuemFalta()" ${c.falta?'':'disabled'}>Convidar quem falta (${c.falta})</button><button class="btn claro mini" onclick="listaGrupo()">Ver lista</button><button class="btn claro mini" onclick="exportarContactos()">📇 Exportar contactos</button></div>
+   ${!g?`<details style="margin-top:10px"><summary class="meta" style="cursor:pointer"><b>Ainda não há grupo? Como criar em 3 passos</b></summary><ol style="padding-left:18px;font-size:13.5px;margin-top:6px;color:var(--suave)">
+     <li>Toque em <b>📇 Exportar contactos</b> e abra o ficheiro com a app Contactos: os números dos jogadores ficam guardados de uma vez.</li>
+     <li>No WhatsApp: <b>Nova conversa › Novo grupo</b>, escolha os jogadores e dê o nome da equipa.</li>
+     <li>No grupo: toque no nome › <b>Convidar via link › Copiar link</b>, e cole-o aqui em <b>Ligar o grupo</b>.</li></ol></details>`:''}</div>`})():''}
   <div class="card"><b>Todas as equipas</b>${D.equipas.map(e=>`<div class="jrow" style="margin-top:10px"><img class="av p" src="${logoEq(e)}"><div class="info"><b>${esc(e.nome)}</b><span class="meta">${inscAct(e).length} jogadores · ${esc(e.tipo)}</span></div>
     ${minhasEquipas().includes(e)?`<button class="btn claro mini" onclick="D.eqAct='${e.id}';gravar();tudo()">${e.id===eq?.id?'Actual':'Abrir'}</button>`:pedi.includes(e)?'<span class="tag am">Pedido enviado</span>':`<button class="btn cor mini" onclick="pedirInscricao('${e.id}')">Pedir inscrição</button>`}</div>`).join('')||'<div class="vazio">Sem equipas.</div>'}
    ${p.admin?`<button class="btn cor largo" style="margin-top:12px" onclick="formEquipa()">+ Criar equipa</button>`:''}</div>
@@ -1201,8 +1300,8 @@ function rGestao(){
    ${p.admin?`<div class="acoes"><button class="btn perigo mini" onclick="confirmar('Carregar os dados de exemplo? Os dados actuais serão substituídos.',()=>{D=demo();gravar();tudo();toast('Dados de exemplo carregados')})">Carregar exemplo</button><button class="btn perigo mini" onclick="confirmar('Apagar todos os dados deste telemóvel?',()=>{try{localStorage.removeItem(CHAVE)}catch(e){};location.reload()},'Apagar tudo')">Apagar tudo</button></div>`:''}</div>
   <div class="card"><b>Regras de funcionamento</b><ul style="padding-left:18px;font-size:13.5px;margin-top:6px;color:var(--suave)">
    <li>Os jogadores entram por convite da coordenação ou pedem inscrição e aguardam aprovação.</li><li>O administrador e os coordenadores registam jogadores. Um jogador pode estar em várias equipas sem duplicar o cadastro.</li>
-   <li>Cada equipa tem a sua tesouraria. O tesoureiro regista pagamentos em dinheiro e digitais (Multicaixa Express, transferência), com comprovativo opcional.</li><li>Depois de cada evento, o responsável confirma presenças e faltas.</li></ul></div>
-  <p class="meta" style="text-align:center">Futsal em Equipa · versão 1.2</p>`;
+   <li>Cada equipa tem a sua tesouraria. O tesoureiro regista pagamentos em dinheiro e digitais (Multicaixa Express, transferência), com comprovativo opcional.</li><li>Depois de cada evento, o responsável confirma presenças e faltas.</li><li>O WhatsApp não permite que outras apps criem grupos ou adicionem pessoas. A app envia o convite com o link do grupo e a pessoa entra com um toque.</li></ul></div>
+  <p class="meta" style="text-align:center">Futsal em Equipa · versão 1.3</p>`;
 }
 function formEquipa(id){
   const e=D.equipas.find(x=>x.id===id)||{};
@@ -1221,7 +1320,7 @@ function apagarEquipa(id){const e=eqPor(id);confirmar(`Apagar a equipa ${e.nome}
   D.equipas=D.equipas.filter(x=>x.id!==id);D.eventos=D.eventos.filter(x=>x.eq!==id);D.movs=D.movs.filter(x=>x.eq!==id);D.cobrancas=D.cobrancas.filter(x=>x.eq!==id);D.avisos=D.avisos.filter(x=>x.eq!==id);D.material=(D.material||[]).filter(x=>x.eq!==id);
   D.eqAct=(D.equipas[0]||{}).id||'';gravar();tudo();toast('Equipa apagada')},'Apagar equipa')}
 function pedirInscricao(id){const e=eqPor(id);e.insc.push({j:D.eu,f:['jog'],num:0,estado:'pendente',desde:hoje()});gravar();tudo();toast('Pedido enviado à coordenação da '+e.nome)}
-function formAviso(){const eq=eqA();form('Novo aviso',[{k:'texto',l:'Mensagem',t:'area',req:1}],{},o=>{const a={id:uid(),eq:eq.id,data:hoje(),texto:o.texto};D.avisos.push(a);setTimeout(()=>confirmar('Enviar também para o grupo de WhatsApp?',()=>whatsapp('📢 *'+eq.nome+'*\n\n'+a.texto),'Enviar'),100)})}
+function formAviso(){const eq=eqA();form('Novo aviso',[{k:'texto',l:'Mensagem',t:'area',req:1}],{},o=>{const a={id:uid(),eq:eq.id,data:hoje(),texto:o.texto};D.avisos.push(a);setTimeout(()=>confirmar('Enviar também para o grupo de WhatsApp?',()=>paraGrupo('📢 *'+eq.nome+'*\n\n'+a.texto),'Enviar'),100)})}
 function formRestaurar(){
   abrirModal(`<h3>Restaurar cópia</h3><p class="meta" style="margin-bottom:12px">Escolha o ficheiro .json guardado antes. Os dados deste telemóvel serão substituídos.</p><label>Ficheiro<input type="file" id="impf" accept=".json,application/json,text/plain,*/*"></label><div class="acoes"><button class="btn cor" id="impok">Restaurar</button><button class="btn claro" onclick="fecharModal()">Cancelar</button></div>`);
   let txt='';el('impf').onchange=ev=>{const f=ev.target.files[0];if(f)f.text().then(t=>{txt=t;toast('Ficheiro lido. Toque em Restaurar.')})};
