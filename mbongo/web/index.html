@@ -3094,7 +3094,7 @@ function initStore() {
 }
 
 /* ============ estado de UI ============ */
-const ui = { view: "home", evId: null, tab: "resumo", msgTipo: "convocatoria", msgNucleo: "", msgValores: true, msgObs: "", msgResp: "", cronoVista: "fase", cronoOcultar: false, despVista: "itens", despPend: false, doteConf: false, pdf: { saidas: true, membros: true, valoresInd: false, lista: false, rubricas: true, cronograma: true, foco: "completo" }, filtro: "" };
+const ui = { view: "home", evId: null, tab: "resumo", msgTipo: "convocatoria", msgNucleo: "", msgValores: true, msgObs: "", msgResp: "", cronoVista: "fase", cronoOcultar: false, despVista: "itens", despPend: false, doteConf: false, pdf: { saidas: false, membros: true, valoresInd: false, lista: false, rubricas: true, cronograma: true, foco: "completo" }, filtro: "" };
 const cur = () => store.events[ui.evId];
 
 /* ============ toast & sheet ============ */
@@ -3285,7 +3285,8 @@ function tNoivos(ev, k) {
     <h2 class="casal-nome">${titulo}</h2>
     <p class="muted small" style="margin:0">${[ev.data && esc(dLong(ev.data)), casal && h.inicio && "Juntos " + tempoJuntos(h.inicio)].filter(Boolean).join(" · ")}</p>
     <div class="bar" style="width:min(260px,80%)"><i style="width:${pc}%"></i></div><span class="small muted">Perfil ${pc}% preenchido</span>
-    <div class="row" style="justify-content:center"><button class="btn primary" data-act="apresImg">Partilhar apresentação</button><button class="btn" data-act="apresPdf">PDF</button><button class="btn" data-act="apresMsg">Mensagem</button><button class="btn" data-tab="convite">Fazer o convite</button>${!casal && P.pessoas.length < 2 ? `<button class="btn ghost" data-act="addPessoa">+ Outra pessoa</button>` : ""}</div>
+    <div class="row" style="justify-content:center"><button class="btn primary" data-act="apresImg">Partilhar apresentação</button><button class="btn" data-act="apresPdf">PDF</button><button class="btn" data-act="apresMsg">Mensagem</button><button class="btn" data-tab="convite">Fazer o convite</button></div>
+    <div class="row" style="justify-content:center"><button class="btn gold" data-act="colarNoivos">Colar mensagem dos noivos</button><button class="btn ghost" data-act="pedirDadosNoivos">Pedir os dados por mensagem</button>${!casal && P.pessoas.length < 2 ? `<button class="btn ghost" data-act="addPessoa">+ Outra pessoa</button>` : ""}</div>
   </section>`;
   const cards = P.pessoas.map((p, i) => {
     const id = idade(p.nascimento, p.falecimento), fl = filiacao(p);
@@ -3318,7 +3319,7 @@ function formPessoa(ev, idx) {
     <div class="fgrid two">${inp("papel", "Papel no evento", "Ex.: Noiva")}<div class="field"><label for="pp_sexo">Sexo</label><select id="pp_sexo" name="sexo"><option value="F" ${p.sexo === "F" ? "selected" : ""}>Feminino</option><option value="M" ${p.sexo === "M" ? "selected" : ""}>Masculino</option><option value="" ${!p.sexo ? "selected" : ""}>Não indicar</option></select></div></div>
     ${inp("nome", "Nome completo", "")}
     ${inp("alcunha", "Como lhe chamam", "Ex.: Beta, Tó, Mimi")}
-    <div class="fgrid two">${inp("nascimento", "Data de nascimento", "", "date")}${obito ? inp("falecimento", "Data de falecimento", "", "date") : ""}${inp("naturalidade", "Naturalidade", "Ex.: Malanje")}${inp("profissao", "Profissão ou ocupação", "")}</div>
+    <div class="fgrid two">${campoDMA("nascimento", "Data de nascimento", p.nascimento, 1900)}${obito ? campoDMA("falecimento", "Data de falecimento", p.falecimento, 1950) : ""}${inp("naturalidade", "Naturalidade", "Ex.: Malanje")}${inp("profissao", "Profissão ou ocupação", "")}</div>
     <div class="eyebrow">De quem é filho e neto</div>
     <div class="fgrid two">${inp("pai", "Nome do pai", "")}${inp("mae", "Nome da mãe", "")}${inp("avosPaternos", "Avós paternos", "Ex.: Manuel Castelo e Rosa João")}${inp("avosMaternos", "Avós maternos", "")}</div>
     <div class="field"><label for="pp_sobre">${obito ? "Breve história de vida" : "Algo mais sobre " + (p.sexo === "F" ? "ela" : p.sexo === "M" ? "ele" : "a pessoa")}</label><textarea id="pp_sobre" name="sobre" style="min-height:80px" placeholder="Feitio, gostos, percurso, o que a família mais admira...">${esc(p.sobre)}</textarea></div>`, {
@@ -3345,7 +3346,7 @@ function formHistoria(ev) {
   sheet("História e sonhos do casal", `<div class="fgrid">
     <div class="eyebrow">O namoro</div>
     ${ta("h_c", "conheceram", "Como se conheceram", h.conheceram, "Contem a história: onde estavam, quem deu o primeiro passo...", 110)}
-    <div class="fgrid two">${inp("h_o", "onde", "Onde se conheceram", h.onde, "Ex.: na igreja, na faculdade")}${inp("h_i", "inicio", "Começaram a namorar em", h.inicio, "", "date")}</div>
+    <div class="fgrid two">${inp("h_o", "onde", "Onde se conheceram", h.onde, "Ex.: na igreja, na faculdade")}${campoDMA("inicio", "Começaram a namorar em", h.inicio, 1970)}</div>
     ${ta("h_a", "apelidos", "Como se chamam um ao outro", h.apelidos, "Ex.: ele chama-lhe «minha flor» e ela chama-lhe «meu rei»", 70)}
     ${ta("h_p", "pedido", "Como foi o pedido", h.pedido, "", 80)}
     <div class="eyebrow" style="margin-top:6px">Os sonhos</div>
@@ -4382,6 +4383,8 @@ function exportarExcel(ev) {
     { name: "Dinheiro entregue", rows: [["Data", "Pessoa", "Tipo", "Para quê", "Entregue", "Gasto", "Troco", "Reembolso", "Situação", "Comprovativos"]].concat((ev.saidas || []).map(s => [dd(s.data), s.pessoa, s.tipo === "pagamento" ? "Pagamento" : "Adiantamento", s.finalidade || itensTxt(ev, s), Number(s.valor) || 0, saidaGasto(s), saidaDev(s), Number(s.reembolso) || 0, estadoSaida(s, c)[0], (s.prestacao && s.prestacao.comprovativos) || ""])), widths: [12, 22, 14, 32, 13, 13, 12, 12, 22, 20], money: [4, 5, 6, 7] },
     { name: "Cronograma", rows: [["Data", "Hora", "Actividade", "Responsável", "Telefone", "Orçado", "Gasto", "Estado", "Fase"]].concat((ev.actividades || []).slice().sort(porData).map(a => [dd(a.data), a.hora || "", a.titulo, a.responsavel || "", a.telefone || telDe(ev, a.responsavel) || "", actOrcEf(ev, a), actGastoEf(ev, a), EST_ACT[estadoAct(a)][0], faseDe(ev, a)])), widths: [12, 8, 40, 22, 16, 13, 13, 14, 18], money: [5, 6] }
   ];
+  const folha = (R, nome, sec) => { const S = R.secs[sec || 0]; if (!S || !S.rows.length) return; sheets.push({ name: nome, rows: [S.head].concat(S.rows.map(r => r.map((v, i) => (S.right || []).includes(i) && /\d/.test(v) ? parseMoney(v) : v))), widths: S.head.map((h, i) => i === 1 ? 40 : 16), money: S.right || [] }); };
+  folha(relCobranca(ev), "Em falta"); folha(relDinheiro(ev), "Por pessoa"); folha(relCaixa(ev), "Caixa"); folha(relCompras(ev), "Lista de compras");
   if (D.itens.length) sheets.push({ name: "Dote", rows: [["Grupo", "Item", "Qtd", "Unidade", "Observações", "Quem compra", "Custo previsto", "Situação na entrega", "Qtd entregue", "Nota"]].concat(D.itens.map(i => [i.categoria || "Outros", i.desc, Number(i.qtd) || 1, i.unidade || "", i.obs || "", i.responsavel || "", Number(i.valor) || 0, EST_DOTE[estadoDote(i)][0], i.entrega && i.entrega.qtd != null ? i.entrega.qtd : "", (i.entrega && i.entrega.nota) || ""])), widths: [22, 32, 8, 10, 24, 18, 14, 18, 12, 24], money: [6] });
   const blob = xlsxBlob(sheets);
   ofertaFicheiro("Excel pronto", "Mbongo_" + slug(ev.nome) + "_" + todayISO() + ".xlsx", blob, `<p style="margin:0">Um ficheiro com ${sheets.length} folhas: ${sheets.map(s => s.name).join(", ")}. Abre no Excel, no Google Sheets e no WPS.</p>`);
@@ -4389,22 +4392,28 @@ function exportarExcel(ev) {
 
 /* ============ central de relatórios ============ */
 const RELATORIOS = [
-  ["mapa", "Mapa geral do evento", "Contribuições por núcleo, despesas, cronograma e IBAN, com as opções escolhidas abaixo.", { foco: "completo" }, ["pdf", "img"]],
-  ["nucleos", "Situação por núcleo", "Para o grupo da família: quotas, quanto entrou e quanto falta, sem expor valores individuais.", { foco: "contrib", membros: false, lista: false, rubricas: false }, ["pdf", "img"]],
-  ["detalhe", "Contribuições detalhadas", "Para uso interno: cada contribuição, de quem, quando e quanto, e os membros de cada núcleo.", { foco: "contrib", membros: true, valoresInd: true, lista: true, rubricas: false }, ["pdf", "img"]],
-  ["orcamento", "Orçamento detalhado", "Item a item, com quantidade, preço, previsto, gasto e estado. Inclui a ementa.", { foco: "orcamento" }, ["pdf", "img"]],
-  ["despesas", "Despesas e prestação de contas", "Arrecadado, gasto por categoria, dinheiro entregue a cada pessoa e o que falta comprar.", { foco: "despesas" }, ["pdf", "img"]],
-  ["crono", "Cronograma e responsáveis", "Actividades por fase, quem faz o quê, estado e resumo por responsável.", { foco: "crono" }, ["pdf", "img"]],
-  ["dote", "Lista do dote", "O documento da lista, pronto a entregar à outra família.", { foco: "dote" }, ["pdf", "img"], true],
-  ["auto", "Auto de entrega do dote", "O que foi entregue no acto, item a item, com espaço para as assinaturas das duas famílias.", { foco: "doteAuto" }, ["pdf", "img"], true],
-  ["noivos", "Apresentação dos noivos", "Fotos, filiação, a história e os sonhos.", { foco: "noivos" }, ["pdf", "img"]],
-  ["ementa", "Ementa", "Cartão com os pratos, nas cores da decoração.", null, ["pdf", "img"]],
-  ["excel", "Tudo em Excel", "Um ficheiro com folhas para o resumo, núcleos, membros, contribuições, despesas, dinheiro entregue, cronograma e dote.", null, ["xlsx"]]
+  ["mapa", "Mapa geral das contribuições", "Contribuições por núcleo, despesas por categoria, cronograma e IBAN. Não inclui o dinheiro entregue.", { foco: "completo", saidas: false }, ["pdf", "img"], 0, "Contribuições"],
+  ["nucleos", "Situação por núcleo", "Para o grupo da família: quotas, quanto entrou e quanto falta, sem expor valores individuais.", { foco: "contrib", membros: false, lista: false, rubricas: false }, ["pdf", "img"], 0, "Contribuições"],
+  ["cobranca", "Contribuições em falta", "Quem ainda não completou a quota, com o telefone do cabeça, para a coordenação cobrar.", { foco: "cobranca" }, ["pdf", "img"], 0, "Contribuições"],
+  ["detalhe", "Contribuições detalhadas", "Para uso interno: cada contribuição, de quem, quando e quanto, e os membros de cada núcleo.", { foco: "contrib", membros: true, valoresInd: true, lista: true, rubricas: false }, ["pdf", "img"], 0, "Contribuições"],
+  ["saidas", "Dinheiro entregue e prestação de contas", "A quem se entregou dinheiro, para quê, quanto já justificou e o que falta, com resumo por pessoa.", { foco: "saidas" }, ["pdf", "img"], 0, "Dinheiro"],
+  ["caixa", "Movimentos de caixa", "Extracto com todas as entradas e saídas por data e o saldo depois de cada movimento.", { foco: "caixa" }, ["pdf", "img"], 0, "Dinheiro"],
+  ["despesas", "Despesas por categoria", "Previsto e gasto em cada categoria e o que ainda falta comprar ou pagar.", { foco: "despesas" }, ["pdf", "img"], 0, "Despesas"],
+  ["orcamento", "Orçamento detalhado", "Item a item, com quantidade, preço, previsto, gasto e estado. Inclui a ementa.", { foco: "orcamento" }, ["pdf", "img"], 0, "Despesas"],
+  ["compras", "Lista de compras", "Só o que falta comprar e pagar, por categoria, com uma coluna para ir marcando no mercado.", { foco: "compras" }, ["pdf", "img"], 0, "Despesas"],
+  ["crono", "Cronograma e responsáveis", "Actividades por fase, quem faz o quê, estado e resumo por responsável.", { foco: "crono" }, ["pdf", "img"], 0, "Organização"],
+  ["tarefas", "Tarefas por responsável", "O que cada pessoa ainda tem por fazer, com datas e as atrasadas em destaque.", { foco: "tarefas" }, ["pdf", "img"], 0, "Organização"],
+  ["contactos", "Contactos do evento", "Cabeças dos núcleos, responsáveis e fornecedores com os telefones.", { foco: "contactos" }, ["pdf", "img"], 0, "Organização"],
+  ["noivos", "Apresentação dos noivos", "Fotos, filiação, a história e os sonhos.", { foco: "noivos" }, ["pdf", "img"], 0, "Família"],
+  ["dote", "Lista do dote", "O documento da lista, pronto a entregar à outra família.", { foco: "dote" }, ["pdf", "img"], true, "Família"],
+  ["auto", "Auto de entrega do dote", "O que foi entregue no acto, item a item, com espaço para as assinaturas das duas famílias.", { foco: "doteAuto" }, ["pdf", "img"], true, "Família"],
+  ["ementa", "Ementa", "Cartão com os pratos, nas cores da decoração.", null, ["pdf", "img"], 0, "Família"],
+  ["excel", "Tudo em Excel", "Um ficheiro com folhas para o resumo, núcleos, membros, contribuições, contribuições em falta, dinheiro entregue, caixa, despesas, cronograma e dote.", null, ["xlsx"], 0, "Excel"]
 ];
 function painelRelatorios(ev) {
   const casal = ehCasal(ev);
   return `<div class="panel"><div class="panel-head"><div><h2>Relatórios</h2><p class="small muted" style="margin:2px 0 0">Escolha o relatório e o formato. No telemóvel, depois de gerar, pode partilhar logo no WhatsApp.</p></div></div>
-    <div class="nlist">${RELATORIOS.filter(r => !r[5] || casal).map(([id, nome, desc, , fmts]) => `<div class="mrow" style="align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)"><span style="min-width:0"><b>${esc(id === "noivos" && !casal ? "Apresentação do homenageado" : nome)}</b><br><span class="small muted">${esc(desc)}</span></span><span class="row" style="gap:6px;flex-wrap:nowrap">${fmts.map(f => `<button class="btn sm ${f === "pdf" ? "gold" : f === "xlsx" ? "primary" : ""}" data-rel="${id}|${f}">${f === "pdf" ? "PDF" : f === "img" ? "Imagem" : "Excel"}</button>`).join("")}</span></div>`).join("")}</div></div>`;
+    <div class="nlist">${RELATORIOS.filter(r => !r[5] || casal).map(([id, nome, desc, , fmts, , gr], n, A) => `${n === 0 || A[n - 1][6] !== gr ? `<div class="eyebrow" style="margin-top:${n ? 14 : 4}px">${esc(gr)}</div>` : ""}<div class="mrow" style="align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)"><span style="min-width:0"><b>${esc(id === "noivos" && !casal ? "Apresentação do homenageado" : nome)}</b><br><span class="small muted">${esc(desc)}</span></span><span class="row" style="gap:6px;flex-wrap:nowrap">${fmts.map(f => `<button class="btn sm ${f === "pdf" ? "gold" : f === "xlsx" ? "primary" : ""}" data-rel="${id}|${f}">${f === "pdf" ? "PDF" : f === "img" ? "Imagem" : "Excel"}</button>`).join("")}</span></div>`).join("")}</div></div>`;
 }
 function gerarRelatorio(ev, id, fmt) {
   if (id === "excel") return exportarExcel(ev);
@@ -4413,6 +4422,241 @@ function gerarRelatorio(ev, id, fmt) {
   if ((id === "dote" || id === "auto") && !dote(ev).itens.length) return toast("A lista do dote ainda está vazia.");
   const antes = Object.assign({}, ui.pdf); Object.assign(ui.pdf, r[3]);
   return Promise.resolve(fmt === "pdf" ? gerarPdf() : gerarImagem()).finally(() => { ui.pdf = antes; });
+}
+
+/* ============ data por dia, mês e ano (escolha rápida) ============ */
+const MESES_PT = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+function campoDMA(name, label, iso, anoMin, anoMax) {
+  const [a, m, d] = String(iso || "").split("-"), ax = anoMax || new Date().getFullYear(), an = anoMin || 1920;
+  const anos = []; for (let y = ax; y >= an; y--) anos.push(y);
+  return `<div class="field dma"><label for="dma_${name}_d">${label}</label><div style="display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.5fr) minmax(0,1fr);gap:6px">
+    <select id="dma_${name}_d" data-dma="${name}" aria-label="Dia"><option value="">Dia</option>${Array.from({ length: 31 }, (_, i) => `<option value="${String(i + 1).padStart(2, "0")}" ${+d === i + 1 ? "selected" : ""}>${i + 1}</option>`).join("")}</select>
+    <select data-dma="${name}" aria-label="Mês"><option value="">Mês</option>${MESES_PT.map((x, i) => `<option value="${String(i + 1).padStart(2, "0")}" ${+m === i + 1 ? "selected" : ""}>${x}</option>`).join("")}</select>
+    <select data-dma="${name}" aria-label="Ano"><option value="">Ano</option>${anos.map(y => `<option ${+a === y ? "selected" : ""}>${y}</option>`).join("")}</select>
+  </div><input type="hidden" name="${name}" value="${esc(iso || "")}"><span class="small muted dma-aviso" hidden>Falta escolher ${"o dia, o mês ou o ano"}.</span></div>`;
+}
+document.addEventListener("change", e => {
+  const s = e.target.closest && e.target.closest("[data-dma]"); if (!s) return;
+  const box = s.closest(".dma"), [d, m, a] = [...box.querySelectorAll("select")].map(x => x.value), h = box.querySelector('input[type="hidden"]');
+  let iso = "";
+  if (d && m && a) { const max = new Date(+a, +m, 0).getDate(); iso = `${a}-${m}-${String(Math.min(+d, max)).padStart(2, "0")}`; }
+  h.value = iso; box.querySelector(".dma-aviso").hidden = !!iso || !(d || m || a);
+});
+
+/* ============ colar a mensagem dos noivos ============ */
+function dataDeTexto(t) {
+  t = semAcentos(String(t || "")).replace(/\s+/g, " ");
+  let m = t.match(/(\d{4})-(\d{1,2})-(\d{1,2})/); if (m) return iso3(+m[1], +m[2], +m[3]);
+  m = t.match(/(\d{1,2})\s*[\/.\-]\s*(\d{1,2})\s*[\/.\-]\s*(\d{2,4})/); if (m) return iso3(ano2(+m[3]), +m[2], +m[1]);
+  const MS = MESES_PT.map(x => semAcentos(x).slice(0, 3));
+  m = t.match(/(\d{1,2})\s*(?:de\s+)?([a-z]{3,})\.?\s*(?:de\s+|\/\s*)?(\d{2,4})/); if (m && MS.indexOf(m[2].slice(0, 3)) >= 0) return iso3(ano2(+m[3]), MS.indexOf(m[2].slice(0, 3)) + 1, +m[1]);
+  m = t.match(/\b([a-z]{3,})\s*(?:de\s+|\/\s*)?(\d{4})/); if (m && MS.indexOf(m[1].slice(0, 3)) >= 0) return iso3(+m[2], MS.indexOf(m[1].slice(0, 3)) + 1, 1);
+  m = t.match(/\b(\d{1,2})\s*\/\s*(\d{4})\b/); if (m && +m[1] <= 12) return iso3(+m[2], +m[1], 1);
+  return "";
+  function ano2(y) { return y < 100 ? (y > 40 ? 1900 + y : 2000 + y) : y; }
+  function iso3(y, mo, d) { if (!(y > 1900 && y < 2100 && mo >= 1 && mo <= 12 && d >= 1 && d <= 31)) return ""; return `${y}-${String(mo).padStart(2, "0")}-${String(Math.min(d, new Date(y, mo, 0).getDate())).padStart(2, "0")}`; }
+}
+// [campo, onde ("p" pessoa, "h" história, "s" sonhos, "pd" padrinhos), padrões]
+const CAMPOS_MSG = [
+  ["apelidos", "h", /chamam um ao outro|tratam um ao outro|se tratam|apelidos? (do casal|carinhos)|nomes? carinhos|como (te|lhe) chama (ele|ela)|como (o|a) chamas/],
+  ["onde", "h", /^onde se conheceram|^local onde se conheceram|^onde (nos|se) conhecemos/],
+  ["conheceram", "h", /como se conheceram|como (nos|se) conhecemos|historia|conheceram|primeiro encontro|como comecou/],
+  ["inicio", "h", /comecaram a namorar|inicio do namoro|data do namoro|namoro (desde|comecou)|namoram desde|juntos desde|desde quando|comecamos a namorar|quando comecaram/],
+  ["pedido", "h", /pedido|pediu em casamento|proposta/],
+  ["filhos", "s", /filhos/],
+  ["viver", "s", /onde (pensam|querem|vao|vamos|pretendem) (viver|morar)|viver|morar|residir/],
+  ["lema", "s", /lema|versiculo|frase do casal/],
+  ["mensagem", "s", /mensagem|palavra (para|a) familia|recado/],
+  ["sonho", "s", /sonhos?/],
+  ["padrinhos", "pd", /padrinhos?|madrinhas?/],
+  ["avosPaternos", "p", /avos? paterno|avos? (do lado|por parte) do pai|avos? pelo pai/],
+  ["avosMaternos", "p", /avos? materno|avos? (do lado|por parte) da mae|avos? pela mae/],
+  ["pai", "p", /\bpai\b|filiacao paterna/],
+  ["mae", "p", /\bmae\b|filiacao materna/],
+  ["nascimento", "p", /nascimento|data de nasc|nasceu (a|em|no dia)|aniversario|\bd\.?\s?n\.?\b/],
+  ["naturalidade", "p", /naturalidade|natural de|onde nasceu|terra natal|provincia/],
+  ["profissao", "p", /profissao|ocupacao|trabalha|emprego|o que faz|formacao|estuda/],
+  ["alcunha", "p", /alcunha|como (lhe|te) chamam|nome de casa|nome carinhoso|tratam por|conhecid[oa] por/],
+  ["nome", "p", /nome completo|^nome\b|nome d[ao] noiv[ao]|^nome:?$/]
+];
+const LONGOS = ["conheceram", "pedido", "sonho", "mensagem", "apelidos", "padrinhos"];
+function quemNaLinha(t) { if (/\bnoiva\b|\bdela\b|\bela\b|\bmulher\b|\besposa\b/.test(t)) return "F"; if (/\bnoivo\b|\bdele\b|\bele\b|\bhomem\b|\bmarido\b/.test(t)) return "M"; return ""; }
+function lerMensagemNoivos(txt, padrao) {
+  const out = { F: {}, M: {}, h: {}, s: {}, pd: "", sobras: [] };
+  let quem = padrao || "F", ult = null;
+  const por_ = (campo, onde, v, q) => {
+    v = v.trim(); if (!v) return null;
+    if (campo === "nascimento" || campo === "inicio") { const d = dataDeTexto(v); if (!d) { if (onde === "h") { out.h.conheceram = (out.h.conheceram ? out.h.conheceram + "\n" : "") + v; return null; } return null; } v = d; }
+    if (campo === "filhos") { const n = v.match(/\d+/); if (n && v.length < 25) v = n[0]; }
+    if (onde === "p") { out[q][campo] = out[q][campo] && campo !== "nome" ? out[q][campo] + " " + v : v; return { tipo: "p", q, campo }; }
+    if (onde === "pd") { out.pd = out.pd ? out.pd + "\n" + v : v; return { tipo: "pd" }; }
+    out[onde][campo] = out[onde][campo] ? out[onde][campo] + "\n" + v : v; return { tipo: onde, campo };
+  };
+  String(txt || "").replace(/\r/g, "").split("\n").forEach(raw => {
+    let l = raw.replace(/[*_~]/g, "").replace(/^\s*(\[[^\]]*\]\s*[^:]+:\s*)/, "").replace(/^[\s•·\-–>]+/, "").replace(/^\(?\d{1,2}\s*[.)º°:-]\s*(?!\d)/, "").trim();
+    if (!l) { ult = null; return; }
+    const sa = semAcentos(l).toLowerCase();
+    // cabeçalho de secção (ex.: "NOIVA", "Dados do noivo:", "Sobre ela")
+    if (l.length < 40 && !/[?]/.test(l) && /^(dados|sobre|informac\w*|a|o)?\s*(d[ao]s?\s+)?(noiv[ao]|ela|ele)\s*:?\s*$/.test(sa)) { quem = /noiva|ela/.test(sa) ? "F" : "M"; ult = null; return; }
+    if (l.length < 40 && /^(o casal|historia do casal|namoro|sonhos?|nos dois)\s*:?\s*$/.test(sa)) { ult = null; return; }
+    let rot = "", val = "";
+    const mm = l.match(/^([^:?=]{2,70}?)\s*(\?|:|=|\s[-–]\s)\s*(.*)$/);
+    if (mm) { rot = mm[1]; val = mm[3]; }
+    const rs = semAcentos(rot).toLowerCase();
+    const c = rot ? CAMPOS_MSG.find(([, , re]) => re.test(rs)) : null;
+    if (c) {
+      const q = c[1] === "p" ? (quemNaLinha(rs) || quem) : quem;
+      if (c[1] === "p" && quemNaLinha(rs)) quem = q;
+      ult = { campo: c[0], onde: c[1], q };
+      if (val) { const r = por_(c[0], c[1], val, q); if (!r || !LONGOS.includes(c[0])) ult = null; }
+      return;
+    }
+    const cortesia = /^(bom dia|boa tarde|boa noite|ola|oi\b|aqui (vao|estao|esta|seguem?)|segue[m]?\b|obrigad|muito obrigad|agradec|beijos?|bjs|abracos?|um abraco|deus (vos|te) abencoe|fiquem bem|qualquer duvida)/.test(sa);
+    if (ult && !(ult.campo === "padrinhos" && (l.length > 45 || /[.!?]$/.test(l) || cortesia))) { por_(ult.campo, ult.onde, l, ult.q); if (!LONGOS.includes(ult.campo)) ult = null; return; }
+    ult = null; if (!cortesia) out.sobras.push(l);
+  });
+  return out;
+}
+const ROT_CAMPO = { nome: "Nome", alcunha: "Como lhe chamam", nascimento: "Nascimento", naturalidade: "Naturalidade", profissao: "Profissão", pai: "Pai", mae: "Mãe", avosPaternos: "Avós paternos", avosMaternos: "Avós maternos", conheceram: "Como se conheceram", onde: "Onde se conheceram", inicio: "Namoram desde", apelidos: "Como se chamam", pedido: "O pedido", sonho: "O sonho", filhos: "Filhos", viver: "Onde viver", lema: "Lema", mensagem: "Palavra dos noivos" };
+function msgPedirDadosNoivos(ev) {
+  const casal = ehCasal(ev), pess = ["Nome completo:", "Como lhe chamam:", "Data de nascimento:", "Naturalidade:", "Profissão:", "Pai:", "Mãe:", "Avós paternos:", "Avós maternos:"];
+  let t = `${saudacao()}! Estamos a preparar ${ev.nome ? "o *" + ev.nome + "*" : "o evento"} e queremos apresentar ${casal ? "os noivos" : "o homenageado"} à família. Pode responder a esta mensagem escrevendo à frente de cada pergunta? Basta copiar, preencher e devolver.\n`;
+  if (casal) { t += "\n*NOIVA*\n" + pess.join("\n") + "\n\n*NOIVO*\n" + pess.join("\n") + "\n\n*O CASAL*\nComo se conheceram?\nOnde se conheceram?\nComeçaram a namorar em (data):\nComo se chamam um ao outro?\nComo foi o pedido?\nO vosso grande sonho?\nQuantos filhos sonham ter?\nOnde pensam viver?\nLema ou versículo do casal:\nPadrinhos:\nUma palavra para a família:\n"; }
+  else t += "\n" + pess.join("\n") + "\n";
+  return t + "\nE mandem também 3 ou 4 fotos bonitas. Muito obrigado! 🙏🏾";
+}
+function formColarNoivos(ev) {
+  const P = perfil(ev), casal = ehCasal(ev);
+  const form = sheet("Colar a mensagem dos noivos", `<p class="small muted" style="margin:0">Copie a resposta que recebeu por SMS ou WhatsApp e cole aqui. A app procura o nome, a data de nascimento, os pais, os avós, como se conheceram, os sonhos e o resto, e mostra o que encontrou antes de gravar. O que não reconhecer pode ir para a história.</p>
+    <div class="field"><label for="cn_t">Mensagem</label><textarea id="cn_t" name="txt" style="min-height:190px" placeholder="Nome completo: Alberta Agostinho Lumbamba\nData de nascimento: 12/03/1998\nPai: ...\nMãe: ...\nComo se conheceram? Na igreja, em 2019...\nQuantos filhos sonham ter? 3"></textarea></div>
+    ${casal ? `<div class="field"><label for="cn_q">Quando a mensagem não diz de quem são os dados pessoais, são</label><select id="cn_q" name="quem"><option value="F">da noiva</option><option value="M">do noivo</option></select></div>` : ""}
+    <label class="check"><input type="checkbox" name="sobras" checked> Juntar à história o texto que não for reconhecido</label>
+    <label class="check"><input type="checkbox" name="manter"> Não apagar o que já está preenchido (só completar)</label>
+    <div id="cn_p" class="small"></div>`, { submit: "Gravar no perfil", onSubmit: f => {
+      const R = lerMensagemNoivos(val(f, "txt"), casal ? val(f, "quem") : "F"), manter = f.elements.manter.checked; let n = 0;
+      const set = (obj, k2, v) => { if (!v || (manter && obj[k2])) return; obj[k2] = v; n++; };
+      ["F", "M"].forEach(sx => { const p = P.pessoas.find(x => x.sexo === sx) || (!casal && sx === "F" ? P.pessoas[0] : null); if (p) Object.entries(R[sx]).forEach(([k2, v]) => set(p, k2, v)); });
+      P.historia = P.historia || {}; P.sonhos = P.sonhos || {};
+      if (casal) { if (f.elements.sobras.checked && R.sobras.length) R.h.conheceram = [R.h.conheceram, R.sobras.join("\n")].filter(Boolean).join("\n"); Object.entries(R.h).forEach(([k2, v]) => set(P.historia, k2, v)); Object.entries(R.s).forEach(([k2, v]) => set(P.sonhos, k2, v)); if (R.pd) set(P, "padrinhos", R.pd); }
+      else if (f.elements.sobras.checked && R.sobras.length) { const p = P.pessoas[0]; p.sobre = [manter ? p.sobre : "", R.sobras.join("\n")].filter(Boolean).join("\n"); n++; }
+      if (!n) { toast("Não encontrei dados novos nesta mensagem."); return false; }
+      ev.perfil = P; persist(ev); toast(n + (n === 1 ? " dado gravado." : " dados gravados.") + " Reveja e acerte o que for preciso.");
+    } });
+  const ta = $("#cn_t", form), pv = $("#cn_p", form), qs = $("#cn_q", form);
+  const upd = () => { const R = lerMensagemNoivos(ta.value, qs ? qs.value : "F"); const L = [];
+    const nom = { F: casal ? "Noiva" : "Pessoa", M: "Noivo" };
+    ["F", "M"].forEach(sx => Object.entries(R[sx]).forEach(([k2, v]) => L.push([nom[sx], ROT_CAMPO[k2], k2 === "nascimento" ? dLong(v) : v])));
+    Object.entries(R.h).forEach(([k2, v]) => L.push(["Casal", ROT_CAMPO[k2], k2 === "inicio" ? dLong(v) : v])); Object.entries(R.s).forEach(([k2, v]) => L.push(["Casal", ROT_CAMPO[k2], v])); if (R.pd) L.push(["Casal", "Padrinhos", R.pd]);
+    if (R.sobras.length) L.push(["Texto livre", "Vai para a história", R.sobras.join(" ")]);
+    pv.innerHTML = !ta.value.trim() ? "" : L.length ? `<div class="eyebrow" style="margin:4px 0 6px">Encontrei ${L.length} ${L.length === 1 ? "dado" : "dados"}</div><div class="tbl-wrap"><table style="width:100%;border-collapse:collapse;font-size:13px"><tbody>${L.map(r => `<tr style="border-bottom:1px solid var(--line)"><td class="muted" style="padding:5px 8px;white-space:nowrap">${esc(r[0])}</td><td style="padding:5px 8px;white-space:nowrap"><b>${esc(r[1])}</b></td><td style="padding:5px 8px">${esc(String(r[2]).slice(0, 160))}${String(r[2]).length > 160 ? "…" : ""}</td></tr>`).join("")}</tbody></table></div>` : `<span class="muted">Ainda não reconheci nenhum dado.</span>`; };
+  ta.addEventListener("input", upd); if (qs) qs.addEventListener("change", upd);
+}
+
+/* ============ relatórios em tabela (PDF e imagem a partir do mesmo modelo) ============ */
+function relDinheiro(ev) {
+  const k = calc(ev), c = ev.moeda, SS = (ev.saidas || []).slice().sort((a, b) => (a.data || "").localeCompare(b.data || ""));
+  const P = {}; SS.forEach(s => { const n = (s.pessoa || "Sem nome").trim(); const o = P[n] = P[n] || { n, rec: 0, gasto: 0, dev: 0, pend: 0, reemb: 0 }; o.rec += (Number(s.valor) || 0) + (Number(s.reembolso) || 0); o.gasto += saidaGasto(s); o.dev += saidaDev(s); const p = saidaPend(s); if (p > 0) o.pend += p; else o.reemb += -p; });
+  const L = Object.values(P).sort((a, b) => b.rec - a.rec);
+  return { eyebrow: "DINHEIRO ENTREGUE E PRESTAÇÃO DE CONTAS", prefixo: "Dinheiro_entregue_",
+    intro: SS.length ? `Do dinheiro arrecadado foram entregues ${money(k.D.saidas, c)} em ${SS.length} ${SS.length === 1 ? "movimento" : "movimentos"}, a ${L.length} ${L.length === 1 ? "pessoa" : "pessoas"} ou fornecedores. ${k.porJustificar > 0.5 ? "Ainda falta justificar " + money(k.porJustificar, c) + "." : "Está tudo justificado."}` : "Ainda não foi entregue dinheiro a ninguém.",
+    kpis: [["Entregue", money(k.D.saidas, c), "ink"], ["Gasto justificado", money(k.D.gastoSaidas, c), "ok"], ["Troco devolvido", money(k.D.devolvido, c), "ink"], ["Por justificar", money(k.porJustificar, c), k.porJustificar > 0.5 ? "bad" : "ok"]],
+    secs: [
+      { titulo: "Resumo por pessoa", head: ["Pessoa", "Recebeu", "Gastou", "Devolveu", "Situação"], right: [1, 2, 3], status: 4,
+        rows: L.map(o => [o.n, money(o.rec, false), money(o.gasto, false), money(o.dev, false), o.pend > 0.5 ? "Falta justificar " + moneyShort(o.pend, c) : o.reemb > 0.5 ? "A reembolsar " + moneyShort(o.reemb, c) : "Contas fechadas"]),
+        foot: ["Total", money(k.D.saidas, false), money(k.D.gastoSaidas, false), money(k.D.devolvido, false), ""] },
+      { titulo: "Movimento a movimento", head: ["Data", "Quem recebeu", "Para quê", "Entregue", "Gasto", "Situação"], right: [3, 4], status: 5, widths: { 0: 21, 1: 30, 3: 24, 4: 24, 5: 32 },
+        rows: SS.map(s => [dShort(s.data), s.pessoa + (s.tipo === "pagamento" ? " (pagamento)" : ""), (s.finalidade || itensTxt(ev, s) || "-") + (s.prestacao && s.prestacao.comprovativos ? "\nComprovativos: " + s.prestacao.comprovativos : ""), money((Number(s.valor) || 0) + (Number(s.reembolso) || 0), false), saidaFechada(s) ? money(saidaGasto(s), false) : "-", estadoSaida(s, c)[0]]) }
+    ] };
+}
+function relCobranca(ev) {
+  const k = calc(ev), c = ev.moeda, N = k.nuc.filter(x => x.falta > 0.5).sort((a, b) => b.falta - a.falta);
+  const M = []; ev.nucleos.forEach(n => (n.membros || []).forEach(m => { const q = Number(m.quota) || 0, d = contribM(ev, m.id); if (q > 0 && d < q - 0.5) M.push([n.nome, m.nome, m.telefone || "", money(q, false), money(d, false), money(q - d, false)]); }));
+  return { eyebrow: "CONTRIBUIÇÕES EM FALTA", prefixo: "Contribuicoes_em_falta_",
+    intro: N.length ? `${N.length} ${N.length === 1 ? "núcleo ainda não completou" : "núcleos ainda não completaram"} a quota. No total faltam ${money(sum(N, x => x.falta), c)}${ev.prazo ? ", e o prazo " + (daysTo(ev.prazo) < 0 ? "terminou a " : "termina a ") + dLong(ev.prazo) : ""}. Lista para uso da coordenação.` : "Todos os núcleos já completaram a quota. Obrigado a todos!",
+    kpis: [["Meta", money(k.orc, c), "ink"], ["Contribuído", money(k.total, c), "ok"], ["Falta recolher", money(k.falta, c), k.falta > 0.5 ? "bad" : "ok"], ["Núcleos em falta", String(N.length) + " de " + ev.nucleos.length, N.length ? "warn" : "ok"]],
+    secs: [{ titulo: "Por núcleo", head: ["Núcleo", "Cabeça", "Telefone", "Quota", "Deu", "Falta"], right: [3, 4, 5], rows: N.map(x => [x.n.nome, x.n.cabeca || "", x.n.telefone || "", money(x.q, false), money(x.c, false), money(x.falta, false)]), foot: ["Total", "", "", "", "", money(sum(N, x => x.falta), false)] }]
+      .concat(M.length ? [{ titulo: "Por membro (quotas individuais)", head: ["Núcleo", "Membro", "Telefone", "Quota", "Deu", "Falta"], right: [3, 4, 5], rows: M }] : []) };
+}
+function relCompras(ev) {
+  const c = ev.moeda, P = (ev.itens || []).filter(i => !i.ofertaPor && ["pendente", "parcial", "entregue"].includes(estadoItem(ev, i)) && i.tipo !== "servico");
+  const S = (ev.itens || []).filter(i => !i.ofertaPor && ["pendente", "parcial", "entregue"].includes(estadoItem(ev, i)) && i.tipo === "servico");
+  const cat = (a, b) => ((CATS.indexOf(a.categoria) + 1 || 99) - (CATS.indexOf(b.categoria) + 1 || 99)) || String(a.descricao).localeCompare(b.descricao);
+  const falta = i => Math.max(0, itemEst(i) - itemPago(ev, i.id));
+  return { eyebrow: "LISTA DE COMPRAS", prefixo: "Lista_de_compras_",
+    intro: P.length || S.length ? `O que ainda falta comprar e pagar, agrupado por categoria, para levar às compras. Valor estimado em falta: ${money(sum(P.concat(S), falta), c)}.` : "Já está tudo comprado e pago.",
+    kpis: [["Itens por comprar", String(P.length), P.length ? "warn" : "ok"], ["Serviços por pagar", String(S.length), S.length ? "warn" : "ok"], ["Valor em falta", money(sum(P.concat(S), falta), c), "ink"]],
+    secs: [{ titulo: "Compras", head: ["Feito", "Categoria", "Item", "Quantidade", "Preço unit.", "Em falta"], right: [4, 5], widths: { 0: 12, 1: 32, 3: 26, 4: 24, 5: 26 }, rows: P.sort(cat).map(i => ["", i.categoria || "Outros", i.descricao + (i.fornecedor ? "\n" + i.fornecedor : "") + (estadoItem(ev, i) === "entregue" ? "\n(já há dinheiro entregue)" : ""), fmtQtd(i.qtd) + " " + ((Number(i.qtd) > 1 && DOTE_PL[i.unidade]) || i.unidade || ""), money(i.preco || 0, false), money(falta(i), false)]), foot: ["", "", "Total", "", "", money(sum(P, falta), false)] }]
+      .concat(S.length ? [{ titulo: "Serviços por pagar", head: ["Categoria", "Serviço", "Fornecedor", "Contacto", "Em falta"], right: [4], rows: S.sort(cat).map(i => [i.categoria || "Outros", i.descricao, i.fornecedor || "", i.contacto || "", money(falta(i), false)]), foot: ["", "Total", "", "", money(sum(S, falta), false)] }] : []) };
+}
+function relCaixa(ev) {
+  const k = calc(ev), c = ev.moeda, M = [];
+  ev.contribuicoes.forEach(x => { const n = nucleoById(ev, x.nucleoId); M.push({ d: x.data || "", t: x.membroId ? "Contribuição de " + nomeContrib(ev, x) + (n ? " (" + n.nome.replace(/^Núcleo d[ao]s?\s+/i, "") + ")" : "") : "Contribuição " + (n ? (/^núcleo/i.test(n.nome) ? "do " : "de ") + n.nome : "avulsa"), e: Number(x.valor) || 0, s: 0 }); });
+  (ev.saidas || []).forEach(x => { const v = (Number(x.valor) || 0) + (Number(x.reembolso) || 0); M.push({ d: x.data || "", t: (x.tipo === "pagamento" ? "Pagamento a " : "Entregue a ") + x.pessoa + (x.finalidade ? ": " + x.finalidade : ""), e: 0, s: v }); if (saidaDev(x)) M.push({ d: (x.prestacao && x.prestacao.data) || x.data || "", t: "Troco devolvido por " + x.pessoa, e: saidaDev(x), s: 0 }); });
+  if (k.D.gastoManual) M.push({ d: "", t: "Gastos registados só no cronograma", e: 0, s: k.D.gastoManual });
+  M.sort((a, b) => (a.d || "9999").localeCompare(b.d || "9999")); let sd = 0;
+  const rows = M.map(m => { sd += m.e - m.s; return [m.d ? dShort(m.d) : "-", m.t, m.e ? money(m.e, false) : "", m.s ? money(m.s, false) : "", money(sd, false)]; });
+  return { eyebrow: "MOVIMENTOS DE CAIXA", prefixo: "Caixa_",
+    intro: `Todas as entradas e saídas de dinheiro por ordem de data, com o saldo depois de cada movimento. O saldo final deve bater com o dinheiro que a tesouraria tem em mão e no banco.`,
+    kpis: [["Entradas", money(k.total + k.D.devolvido, c), "ok"], ["Saídas", money(k.D.saidas + k.D.gastoManual, c), "ink"], ["Saldo em caixa", money(k.saldo, c), k.saldo < 0 ? "bad" : "ok"]],
+    secs: [{ titulo: "Extracto", head: ["Data", "Movimento", "Entrada", "Saída", "Saldo"], right: [2, 3, 4], widths: { 0: 21, 2: 26, 3: 26, 4: 28 }, rows, foot: ["", "Totais", money(sum(M, m => m.e), false), money(sum(M, m => m.s), false), money(sd, false)] }] };
+}
+function relContactos(ev) {
+  const N = ev.nucleos.map(n => [n.nome, n.cabeca || "", n.telefone || "", (n.membros || []).length ? String(n.membros.length) : ""]);
+  const R = {}; (ev.actividades || []).forEach(a => { if (!a.responsavel) return; const r = R[a.responsavel] = R[a.responsavel] || { n: a.responsavel, tel: a.telefone || telDe(ev, a.responsavel) || "", t: 0, p: 0 }; r.t++; if (!["feita", "cancelada"].includes(estadoAct(a))) r.p++; });
+  const S = {}; (ev.itens || []).forEach(i => { if (i.fornecedor) S[i.fornecedor] = S[i.fornecedor] || [i.fornecedor, i.contacto || "", i.categoria || ""]; });
+  return { eyebrow: "CONTACTOS DO EVENTO", prefixo: "Contactos_", intro: "Cabeças dos núcleos, responsáveis das actividades e fornecedores, num só lugar.",
+    kpis: [["Núcleos", String(ev.nucleos.length), "ink"], ["Responsáveis", String(Object.keys(R).length), "ink"], ["Fornecedores", String(Object.keys(S).length), "ink"]],
+    secs: [{ titulo: "Núcleos", head: ["Núcleo", "Cabeça", "Telefone", "Membros"], right: [3], rows: N },
+      { titulo: "Responsáveis das actividades", head: ["Nome", "Telefone", "Actividades", "Por fazer"], right: [2, 3], rows: Object.values(R).sort((a, b) => a.n.localeCompare(b.n)).map(r => [r.n, r.tel, String(r.t), String(r.p)]) },
+      { titulo: "Fornecedores", head: ["Fornecedor", "Contacto", "Categoria"], rows: Object.values(S) }].filter(s => s.rows.length) };
+}
+function relTarefas(ev) {
+  const A = (ev.actividades || []).filter(a => !["feita", "cancelada"].includes(estadoAct(a))).sort(porData), G = {};
+  A.forEach(a => { const r = a.responsavel || "Sem responsável"; (G[r] = G[r] || []).push(a); });
+  const at = A.filter(a => estadoAct(a) === "atrasada").length;
+  return { eyebrow: "TAREFAS POR FAZER", prefixo: "Tarefas_", intro: A.length ? `Faltam ${A.length} ${A.length === 1 ? "actividade" : "actividades"}${at ? ", das quais " + at + (at === 1 ? " está atrasada" : " estão atrasadas") : ""}. Cada responsável vê aqui o que é seu.` : "Todas as actividades estão concluídas.",
+    kpis: [["Por fazer", String(A.length), A.length ? "warn" : "ok"], ["Atrasadas", String(at), at ? "bad" : "ok"], ["Responsáveis", String(Object.keys(G).length), "ink"]],
+    secs: Object.keys(G).sort().map(r => ({ titulo: r + (telDe(ev, r) ? "  ·  " + telDe(ev, r) : ""), head: ["Data", "Actividade", "Orçado", "Situação"], right: [2], status: 3, widths: { 0: 22, 2: 28, 3: 28 }, rows: G[r].map(a => [a.data ? dShort(a.data) + (a.hora ? " " + a.hora : "") : "-", a.titulo, actOrcEf(ev, a) ? money(actOrcEf(ev, a), false) : "", EST_ACT[estadoAct(a)][0]]) })) };
+}
+const REL_TAB = { saidas: relDinheiro, cobranca: relCobranca, compras: relCompras, caixa: relCaixa, contactos: relContactos, tarefas: relTarefas };
+const COR_REL = { ink: "#17221D", ok: "#2B7A4B", warn: "#A8670F", bad: "#B03F2B" };
+function corEstado(t) { t = String(t); return /^(Justificado|Pago|Contas fechadas|Concluída)/.test(t) ? "ok" : /^(Falta|Por justificar|Atrasada)|há \d/.test(t) ? "bad" : /^(A reembolsar|Em curso)/.test(t) ? "warn" : "ink"; }
+function buildPdfTab(ev, R) {
+  const { jsPDF } = window.jspdf, doc = new jsPDF({ unit: "mm", format: "a4" }), TT = tema(ev), W = 210, M = 14;
+  const G = hex(TT.p), GOLD = hex(TT.d), INK = hex("#17221D"), MUT = hex("#5B6862"), LINE = hex("#D7DDD6");
+  doc.setFillColor(...G); doc.rect(0, 0, W, 38, "F"); doc.setFillColor(...GOLD); doc.rect(0, 38, W, 1.6, "F");
+  doc.setTextColor(...GOLD); doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.text(R.eyebrow, M, 13);
+  doc.setTextColor(255, 255, 255); doc.setFontSize(19); doc.text(doc.splitTextToSize(ev.nome || "Evento", W - 2 * M)[0], M, 23);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.text([ev.data ? dLong(ev.data) : "", ev.local, "Emitido a " + dLong(todayISO())].filter(Boolean).join("   |   "), M, 31);
+  let y = 48; const ensure = h => { if (y + h > 278) { doc.addPage(); y = 18; } };
+  doc.setTextColor(...INK); doc.setFontSize(10); const it = doc.splitTextToSize(R.intro, W - 2 * M); doc.text(it, M, y, { lineHeightFactor: 1.4 }); y += it.length * 4.9 + 4;
+  const bw = (W - 2 * M - 3 * (R.kpis.length - 1)) / R.kpis.length;
+  R.kpis.forEach((b, i) => { const x = M + i * (bw + 3); doc.setDrawColor(...LINE); doc.setFillColor(247, 249, 246); doc.roundedRect(x, y, bw, 18, 2, 2, "FD"); doc.setTextColor(...MUT); doc.setFontSize(6.8); doc.setFont("helvetica", "bold"); doc.text(b[0].toUpperCase(), x + 3, y + 6); doc.setTextColor(...hex(COR_REL[b[2]] || "#17221D")); doc.setFontSize(10.5); doc.text(doc.splitTextToSize(b[1], bw - 5)[0], x + 3, y + 13.5); });
+  y += 26;
+  R.secs.forEach(s => {
+    ensure(24); doc.setTextColor(...INK); doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text(s.titulo, M, y);
+    const cs = {}; (s.right || []).forEach(i => cs[i] = { halign: "right" }); Object.entries(s.widths || {}).forEach(([i, w]) => cs[i] = Object.assign(cs[i] || {}, { cellWidth: w }));
+    doc.autoTable({ showFoot: "lastPage", startY: y + 2, margin: { left: M, right: M }, head: [s.head], body: s.rows.length ? s.rows : [[{ content: "Sem registos.", colSpan: s.head.length, styles: { textColor: MUT, fontStyle: "italic" } }]], foot: s.foot ? [s.foot] : undefined,
+      styles: { font: "helvetica", fontSize: 8.5, cellPadding: 1.9, textColor: INK, lineColor: LINE, lineWidth: 0.1, valign: "middle" }, headStyles: { fillColor: G, textColor: 255, fontStyle: "bold", fontSize: 8 }, footStyles: { fillColor: [233, 237, 231], textColor: INK, fontStyle: "bold" }, columnStyles: cs,
+      didParseCell: d => { if (d.section === "body" && s.status != null && d.column.index === s.status && typeof d.cell.raw === "string") { d.cell.styles.fontStyle = "bold"; d.cell.styles.textColor = hex(COR_REL[corEstado(d.cell.raw)]); } if ((d.section === "foot") && (s.right || []).includes(d.column.index)) d.cell.styles.halign = "right"; } });
+    y = doc.lastAutoTable.finalY + 9;
+  });
+  const pages = doc.getNumberOfPages();
+  for (let i = 1; i <= pages; i++) { doc.setPage(i); doc.setDrawColor(...LINE); doc.line(M, 287, W - M, 287); doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(...MUT); doc.text((ev.nome || "") + "  ·  valores em " + ev.moeda, M, 291.5); doc.text("Página " + i + " de " + pages, W - M, 291.5, { align: "right" }); }
+  return doc;
+}
+function tabHTML(ev, R) {
+  const DS = "'Bricolage Grotesque',Arial,sans-serif";
+  const box = b => `<div style="flex:1;border:1px solid #D7DDD6;background:#F7F9F6;border-radius:10px;padding:9px 11px"><div style="font-size:10px;font-weight:700;color:#5B6862;letter-spacing:.05em">${esc(b[0].toUpperCase())}</div><div style="font-weight:800;font-size:16px;color:${COR_REL[b[2]] || "#17221D"}">${esc(b[1])}</div></div>`;
+  const td = (t, r, st) => `<td style="padding:6px 8px;border-bottom:1px solid #E3E8E2;vertical-align:top;${r ? "text-align:right;white-space:nowrap;" : ""}${st || ""}">${esc(t).replace(/\n/g, "<br>")}</td>`;
+  return `<div style="width:760px;background:#fff;color:#17221D;font-family:Figtree,Arial,sans-serif;font-size:14px;line-height:1.45">
+  <div style="background:#14412F;color:#fff;padding:24px 28px 20px;border-bottom:5px solid #C99A3B"><div style="color:#C99A3B;font-weight:700;font-size:12px;letter-spacing:.12em">${esc(R.eyebrow)}</div>
+    <div style="font-family:${DS};font-weight:800;font-size:28px;margin:4px 0">${esc(ev.nome || "Evento")}</div><div style="opacity:.9;font-size:13px">${esc([ev.data ? dLong(ev.data) : "", ev.local, "Emitido a " + dLong(todayISO())].filter(Boolean).join("  ·  "))}</div></div>
+  <div style="padding:18px 28px 24px"><p style="margin:0 0 14px">${esc(R.intro)}</p><div style="display:flex;gap:10px;margin-bottom:8px">${R.kpis.map(box).join("")}</div>
+  ${R.secs.map(s => `<div style="font-family:${DS};font-weight:800;font-size:17px;margin:18px 0 6px">${esc(s.titulo)}</div><table style="width:100%;border-collapse:collapse;font-size:13px"><tr>${s.head.map((h, i) => `<th style="text-align:${(s.right || []).includes(i) ? "right" : "left"};padding:6px 8px;background:#14412F;color:#fff;font-size:11.5px">${esc(h)}</th>`).join("")}</tr>
+    ${s.rows.length ? s.rows.map(r => `<tr>${r.map((v, i) => td(v, (s.right || []).includes(i), s.status === i ? "font-weight:700;color:" + COR_REL[corEstado(v)] : "")).join("")}</tr>`).join("") : `<tr><td colspan="${s.head.length}" style="padding:8px;color:#5B6862;font-style:italic">Sem registos.</td></tr>`}
+    ${s.foot ? `<tr style="font-weight:700;background:#F2F4F0">${s.foot.map((v, i) => td(v, (s.right || []).includes(i))).join("")}</tr>` : ""}</table>`).join("")}
+  <div style="margin-top:14px;color:#5B6862;font-size:12px">Valores em ${esc(ev.moeda)}.</div></div></div>`;
 }
 
 /* ============ despesas e compras: cálculos ============ */
@@ -5205,7 +5449,7 @@ function tMsg(ev) {
 function tPdf(ev, k) {
   const o = ui.pdf, f = o.foco, s = k.act, ld = linhasDespesa(ev), cont = f === "completo" || f === "contrib";
   const focos = [["completo", "Completo"], ["contrib", "Só contribuições"], ["crono", "Só cronograma"], ["despesas", "Só despesas"], ["orcamento", "Orçamento detalhado"], ["noivos", ehCasal(ev) ? "Apresentação dos noivos" : "Homenageado"]];
-  const comCrono = f === "crono" || (f === "completo" && o.cronograma), comSaidas = f === "despesas" || (f === "completo" && o.saidas);
+  const comCrono = f === "crono" || (f === "completo" && o.cronograma), comSaidas = f === "completo" && o.saidas;
   const nS = (ev.saidas || []).length;
   return painelRelatorios(ev) + `<div class="grid2" style="margin-top:16px"><div class="panel stack">
     <div><h2>Relatório à medida</h2><p class="small muted" style="margin:2px 0 0">O mesmo mapa em dois formatos. A imagem aparece logo na conversa do WhatsApp, sem ser preciso abrir ficheiro. As opções abaixo valem para os dois.</p></div>
@@ -5219,7 +5463,7 @@ function tPdf(ev, k) {
     <label class="check"><input type="checkbox" data-pdf="cronograma" ${o.cronograma ? "checked" : ""}> Incluir cronograma de actividades</label>` : ""}
     <p class="note" style="margin:0">Por defeito o relatório mostra os totais por núcleo e não expõe valores individuais, em linha com a ideia de não pressionar ninguém.</p>`
     : f === "orcamento" ? `<p class="small muted" style="margin:0">Todas as despesas, item a item, com quantidade, preço unitário, previsto, gasto e estado, agrupadas por categoria e com subtotais. Inclui a ementa. Serve para imprimir e levar às compras.</p>` : f === "noivos" ? `<p class="small muted" style="margin:0">Uma apresentação para partilhar no grupo da família, com as fotos, de quem ${ehCasal(ev) ? "são filhos e netos, a história do namoro e os sonhos do casal" : "é filho e neto e um pouco da sua história"}. Os dados preenchem-se no separador ${rotPerfil(ev)}.</p>` : f === "crono" ? `<p class="small muted" style="margin:0">Folha de trabalho para os responsáveis: actividades por fase, quem faz o quê, orçamento e estado de cada tarefa. O PDF traz também um resumo por responsável.</p>`
-    : `<p class="small muted" style="margin:0">Prestação de contas para a família: quanto se arrecadou, quanto se gastou em cada categoria, a quem foi entregue dinheiro e se já justificou, e o que ainda falta comprar ou pagar.</p>`}
+    : `<p class="small muted" style="margin:0">Quanto se arrecadou, quanto se gastou em cada categoria e o que ainda falta comprar ou pagar. O dinheiro entregue a cada pessoa tem um relatório próprio, na lista acima.</p>`}
     <div class="row"><button class="btn gold" data-act="gerarPdf">Gerar e guardar PDF</button><button class="btn primary" data-act="gerarImg">Extrair como imagem</button></div>
     <p class="small muted" style="margin:0" id="pdfHint">No telemóvel aparece o botão Partilhar, que envia o ficheiro directamente para o WhatsApp.</p>
   </div>
@@ -5242,6 +5486,7 @@ function hex(h) { h = h.replace("#",""); return [parseInt(h.slice(0,2),16), pars
 function buildPdf(ev) {
   if (ui.pdf.foco === "orcamento") return buildPdfOrcamento(ev);
   if (ui.pdf.foco === "dote" || ui.pdf.foco === "doteAuto") return buildPdfDote(ev, ui.pdf.foco === "doteAuto");
+  if (REL_TAB[ui.pdf.foco]) return buildPdfTab(ev, REL_TAB[ui.pdf.foco](ev));
   const { jsPDF } = window.jspdf; const doc = new jsPDF({ unit: "mm", format: "a4" });
   const o = ui.pdf, k = calc(ev), c = ev.moeda; const W = 210, M = 14;
   const TT = tema(ev), G = hex(TT.p), GOLD = hex(TT.d), INK = hex("#17221D"), MUT = hex("#5B6862"), LINE = hex("#D7DDD6"), OK = hex("#2B7A4B"), WARN = hex("#A8670F"), BAD = hex("#B03F2B");
@@ -5249,7 +5494,7 @@ function buildPdf(ev) {
   doc.setFillColor(...G); doc.rect(0, 0, W, 44, "F");
   doc.setFillColor(...GOLD); doc.rect(0, 44, W, 1.6, "F");
   doc.setTextColor(...GOLD); doc.setFont("helvetica", "bold"); doc.setFontSize(9);
-  doc.text(o.foco === "crono" ? "CRONOGRAMA DE ACTIVIDADES" : o.foco === "despesas" ? "DESPESAS E PRESTAÇÃO DE CONTAS" : "MAPA DE CONTRIBUIÇÕES DA FAMÍLIA", M, 13);
+  doc.text(o.foco === "crono" ? "CRONOGRAMA DE ACTIVIDADES" : o.foco === "despesas" ? "DESPESAS POR CATEGORIA" : "MAPA DE CONTRIBUIÇÕES DA FAMÍLIA", M, 13);
   doc.setTextColor(255, 255, 255); doc.setFontSize(20);
   const tl = doc.splitTextToSize(ev.nome || "Evento", W - 2 * M); doc.text(tl.slice(0, 2), M, 23);
   doc.setFont("helvetica", "normal"); doc.setFontSize(10);
@@ -5343,7 +5588,7 @@ function buildPdf(ev) {
       columnStyles: { 1: { halign: "right" }, 2: { halign: "right" }, 3: { halign: "right" } } });
     y = doc.lastAutoTable.finalY + 8;
   }
-  if (o.foco === "despesas" || (o.foco === "completo" && o.saidas)) {
+  if (o.foco === "completo" && o.saidas) {
     const SS = (ev.saidas || []).slice().sort((a, b) => (a.data || "").localeCompare(b.data || ""));
     if (SS.length) {
       ensure(26); doc.setTextColor(...INK); doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.text("Dinheiro entregue e prestação de contas", M, y);
@@ -5402,7 +5647,7 @@ function ofertaFicheiro(titulo, nome, blob, previewHTML) {
   if (share) $("#fShare").onclick = async () => { try { await navigator.share({ files: [file], title: titulo }); } catch (e) { if (!e || e.name !== "AbortError") toast("Não foi possível partilhar. Use Descarregar."); } };
   $("#fDown").onclick = () => { baixar(nome, blob); toast("Ficheiro descarregado."); };
 }
-function prefixo() { if (ui.pdf.foco === "dote") return "Lista_dote_"; if (ui.pdf.foco === "doteAuto") return "Auto_entrega_dote_"; if (ui.pdf.foco === "orcamento") return "Orcamento_"; if (ui.pdf.foco === "noivos") return ehCasal(cur()) ? "Noivos_" : "Homenagem_"; return ui.pdf.foco === "crono" ? "Cronograma_" : ui.pdf.foco === "despesas" ? "Despesas_" : "Contribuicoes_"; }
+function prefixo() { if (REL_TAB[ui.pdf.foco]) return REL_TAB[ui.pdf.foco](cur()).prefixo; if (ui.pdf.foco === "dote") return "Lista_dote_"; if (ui.pdf.foco === "doteAuto") return "Auto_entrega_dote_"; if (ui.pdf.foco === "orcamento") return "Orcamento_"; if (ui.pdf.foco === "noivos") return ehCasal(cur()) ? "Noivos_" : "Homenagem_"; return ui.pdf.foco === "crono" ? "Cronograma_" : ui.pdf.foco === "despesas" ? "Despesas_" : "Contribuicoes_"; }
 async function gerarPdf() {
   const ev = cur(); if (!ev) return;
   if (ui.pdf.foco === "noivos") return gerarPdfImagem(ev);
@@ -5470,6 +5715,7 @@ function reportHTML(ev) {
   if (ui.pdf.foco === "noivos") return apresentacaoHTML(ev);
   if (ui.pdf.foco === "orcamento") return orcamentoHTML(ev);
   if (ui.pdf.foco === "dote" || ui.pdf.foco === "doteAuto") return doteHTML(ev, ui.pdf.foco === "doteAuto");
+  if (REL_TAB[ui.pdf.foco]) return tabHTML(ev, REL_TAB[ui.pdf.foco](ev));
   const k = calc(ev), c = ev.moeda, b = ev.banco || {}, o = ui.pdf, crono = o.foco === "crono", desp = o.foco === "despesas", s = k.act;
   const fotosHdr = !crono && !desp ? fotosCabecalho(ev) : "";
   const est = x => x.estado === "ok" ? ["Completo", "#2B7A4B"] : x.estado === "parcial" ? ["Em curso", "#A8670F"] : ["Por contribuir", "#B03F2B"];
@@ -5487,13 +5733,13 @@ function reportHTML(ev) {
   const mostraCrono = crono || (o.foco === "completo" && o.cronograma);
   return `<div style="width:720px;background:#fff;color:#17221D;font-family:Figtree,Arial,sans-serif;font-size:15px;line-height:1.4">
   <div style="background:#14412F;color:#fff;padding:26px ${fotosHdr ? 240 : 30}px 22px 30px;border-bottom:5px solid #C99A3B;position:relative;min-height:${fotosHdr ? 100 : 0}px">${fotosHdr}
-    <div style="color:#C99A3B;font-weight:700;font-size:12px;letter-spacing:.1em">${crono ? "CRONOGRAMA DE ACTIVIDADES" : desp ? "DESPESAS E PRESTAÇÃO DE CONTAS" : "MAPA DE CONTRIBUIÇÕES DA FAMÍLIA"}</div>
+    <div style="color:#C99A3B;font-weight:700;font-size:12px;letter-spacing:.1em">${crono ? "CRONOGRAMA DE ACTIVIDADES" : desp ? "DESPESAS POR CATEGORIA" : "MAPA DE CONTRIBUIÇÕES DA FAMÍLIA"}</div>
     <div style="font-family:'Bricolage Grotesque',Arial,sans-serif;font-weight:800;font-size:32px;margin:6px 0 6px">${esc(ev.nome)}</div>
     <div style="opacity:.9;font-size:14px">${esc([ev.data ? dLong(ev.data) : "", ev.local, !crono && !desp && ev.prazo ? "Prazo: " + dLong(ev.prazo) : ""].filter(Boolean).join("  ·  "))}</div></div>
   <div style="padding:22px 30px">
     ${topo}
     ${mostraCrono ? cronoImg(ev, k) : ""}
-    ${crono ? "" : despesasImg(ev, k)}${desp || (o.foco === "completo" && o.saidas) ? saidasImg(ev, k) : ""}${desp ? pendentesImg(ev, k) : ""}
+    ${crono ? "" : despesasImg(ev, k)}${o.foco === "completo" && o.saidas ? saidasImg(ev, k) : ""}${desp ? pendentesImg(ev, k) : ""}
     ${!crono && !desp && (b.iban || b.titular) ? `<div style="margin-top:18px;border:1px solid #C99A3B;background:#FBF5E6;border-radius:10px;padding:12px 14px"><div style="font-weight:700;margin-bottom:4px">Dados para contribuição</div>${[b.iban && "IBAN: " + b.iban, b.banco && "Banco: " + b.banco, b.titular && "Titular: " + b.titular, b.outro].filter(Boolean).map(esc).join("<br>")}</div>` : ""}
     <div style="margin-top:16px;font-size:12px;color:#5B6862">Actualizado em ${dShort(todayISO())} às ${new Date().toTimeString().slice(0, 5)}</div>
   </div></div>`;
@@ -5804,6 +6050,8 @@ document.addEventListener("click", e => {
     case "ementaPdf": ementaExport(ev, true); break;
     case "ementaImg": ementaExport(ev, false); break;
     case "doteDados": formDoteDados(ev); break;
+    case "colarNoivos": formColarNoivos(ev); break;
+    case "pedirDadosNoivos": { const txt = msgPedirDadosNoivos(ev); sheet("Pedir os dados aos noivos", `<p class="small muted" style="margin:0">Envie esta mensagem. Quando responderem, copie a resposta e use <b>Colar mensagem dos noivos</b>: a app lê cada linha e preenche o perfil.</p><textarea class="msg-box" id="msgOut" aria-label="Mensagem">${esc(txt)}</textarea>`, { extra: `<button type="button" class="btn" data-act="copiarMsg">Copiar</button><a class="btn primary" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(txt)}">Abrir no WhatsApp</a>` }); break; }
     case "doteModelo": formDoteModelo(ev); break;
     case "doteColar": formDoteColar(ev); break;
     case "doteItem": formDoteItem(ev); break;
