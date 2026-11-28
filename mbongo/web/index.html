@@ -3078,11 +3078,26 @@ function setPill() {
   const t = store.mode === "memoria" ? "Não está a guardar" : precisaCopia ? "Guardado · fazer cópia" : "Guardado" + (store.lastSave ? " · " + store.lastSave.toTimeString().slice(0, 5) : "");
   const el = $("#storePill"); el.textContent = t; el.classList.toggle("alert", store.mode === "memoria" || precisaCopia);
 }
+/* programa do dia do noivado (modelo da família) */
+const PROGRAMA_NOIVADO = [["10:00","Montagem final: decoração, mesas, som e cozinha","Logística"],["12:30","Família da noiva a postos, noiva recolhida","Protocolo"],["13:00","Chegada e acolhimento dos convidados","Protocolo"],["14:00","Chegada da família do noivo","Protocolo"],["14:15","Oração de abertura","Coordenação"],["14:25","Apresentação das famílias","Protocolo"],["14:45","O pedido e leitura da carta","Coordenação"],["15:05","Entrega e conferência do dote, auto de entrega","Coordenação"],["15:45","Apresentação da noiva","Protocolo"],["16:00","Aceitação e anel de noivado","Protocolo"],["16:10","Palavra dos pais e conselhos","Coordenação"],["16:30","Oração de bênção e brinde","Equipa de Catering"],["16:45","Sessão fotográfica","Protocolo"],["17:15","Refeição","Equipa de Catering"],["18:30","Primeira dança e convívio","Música e Entretenimento"],["20:15","Bolo e agradecimentos","Coordenação"],["20:45","Despedida da família do noivo","Protocolo"],["21:00","Encerramento e arrumação","Logística"]];
+function addProgramaNoivado(e, dia) {
+  e.actividades = e.actividades || []; dia = dia || e.data; if (!dia) return 0;
+  const ex = new Set(e.actividades.filter(a => a.data === dia).map(a => semAcentos(a.titulo || "").toLowerCase().trim())); let n = 0;
+  PROGRAMA_NOIVADO.forEach(([hora, titulo, resp]) => { if (ex.has(semAcentos(titulo).toLowerCase())) return; e.actividades.push({ id: uid("a"), titulo, data: dia, hora, responsavel: resp, telefone: "", orcado: 0, gasto: 0, estado: "pendente", notas: "" }); n++; });
+  return n;
+}
+let programaAvisar = 0;
+function programaAuto(e) {
+  if (e.progAuto || e.data !== "2026-11-28" || !/noivado|alambamento|pedido/i.test((e.tipo || "") + " " + (e.nome || ""))) return false;
+  e.progAuto = true; if (!(e.actividades || []).some(a => a.data === e.data && a.hora)) programaAvisar += addProgramaNoivado(e);
+  return true;
+}
 let migrou = false;
 function normAll(o) {
   Object.values(o).forEach(e => {
     if (!e) return;
     ["actividades", "rubricas", "itens", "saidas"].forEach(k => { if (!Array.isArray(e[k])) e[k] = []; });
+    if (programaAuto(e)) migrou = true;
     if (e.rubricas.length) {
       e.rubricas.forEach(r => {
         const it = { id: uid("i"), categoria: "Outros", descricao: r.desc || "Despesa", tipo: "servico", qtd: 1, unidade: "vb", preco: Number(r.orcado) || 0, fornecedor: "", contacto: "", actividadeId: "", concluido: false, ofertaPor: "", notas: "" };
@@ -3094,12 +3109,13 @@ function normAll(o) {
   });
   return o;
 }
-function persist(ev) { ev.atualizadoEm = new Date().toISOString(); store.events[ev.id] = ev; return lsWrite(); }
+function persist(ev) { programaAuto(ev); ev.atualizadoEm = new Date().toISOString(); store.events[ev.id] = ev; return lsWrite(); }
 async function removeEvent(id) { delete store.events[id]; lsWrite(); }
 function initStore() {
   const c = lsRead(); if (c) { store.events = normAll(c); if (migrou) lsWrite(); }
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch {}
   setPill(); render();
+  if (programaAvisar) { const n = programaAvisar; programaAvisar = 0; setTimeout(() => toast("O programa do dia do noivado (" + n + " momentos) já está no cronograma."), 500); }
   window.addEventListener("storage", e => { if (e.key === LS) { store.events = normAll(lsRead() || {}); setPill(); if (!document.querySelector(".scrim")) render(); } });
 }
 
@@ -5203,7 +5219,7 @@ function tCrono(ev, k) {
   const c = ev.moeda, s = k.act, vista = ui.cronoVista;
   let L = (ev.actividades || []).slice().sort(porData);
   const head = `<div class="panel"><div class="panel-head"><div><h2>Cronograma de actividades</h2><p class="small muted" style="margin:2px 0 0">Cada tarefa com data, responsável e orçamento. As despesas daqui entram no orçamento do evento.</p></div>
-    <div class="row"><button class="btn" data-act="modeloCrono">Carregar modelo</button><button class="btn" data-act="colarLista">Colar cronograma</button><button class="btn primary" data-act="addAct">+ Actividade</button></div>${programaDia(ev).L.length ? `<div class="row"><span class="small muted" style="align-self:center">Programa do dia (${programaDia(ev).L.length} momentos):</span><button class="btn gold sm" data-rel="programa|pdf">PDF</button><button class="btn sm" data-rel="programa|img">Imagem</button><button class="btn sm" data-act="programaMsg">Mensagem</button></div>` : ""}</div>
+    <div class="row"><button class="btn" data-act="modeloCrono">Carregar modelo</button><button class="btn" data-act="colarLista">Colar cronograma</button><button class="btn primary" data-act="addAct">+ Actividade</button></div>${programaDia(ev).L.length ? `<div class="row"><span class="small muted" style="align-self:center">Programa do dia (${programaDia(ev).L.length} momentos):</span><button class="btn gold sm" data-rel="programa|pdf">PDF</button><button class="btn sm" data-rel="programa|img">Imagem</button><button class="btn sm" data-act="programaMsg">Mensagem</button></div>` : ehCasal(ev) && ev.data ? `<div class="row"><button class="btn sm gold" data-act="programaModelo">Carregar o programa do dia do noivado</button></div>` : ""}</div>
   ${s.total ? `<div class="kpis num">
     <div class="kpi"><div class="eyebrow">Concluídas</div><div class="v">${s.feitas} de ${s.total}</div></div>
     <div class="kpi ${s.atrasadas ? "neg" : ""}"><div class="eyebrow">Atrasadas</div><div class="v">${s.atrasadas}</div></div>
@@ -6173,6 +6189,7 @@ document.addEventListener("click", e => {
     case "ementaImg": ementaExport(ev, false); break;
     case "doteDados": formDoteDados(ev); break;
     case "colarNoivos": formColarNoivos(ev); break;
+    case "programaModelo": { const n = addProgramaNoivado(ev); persist(ev); toast(n ? n + " momentos do programa acrescentados ao dia " + dShort(ev.data) + ". Ajuste as horas se for preciso." : "O programa já está no cronograma."); render(); break; }
     case "programaMsg": { const txt = msgPrograma(ev); sheet("Programa do dia", `<textarea class="msg-box" id="msgOut" aria-label="Mensagem">${esc(txt)}</textarea>`, { extra: `<button type="button" class="btn" data-act="copiarMsg">Copiar</button><a class="btn primary" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(txt)}">Abrir no WhatsApp</a>` }); break; }
     case "pedirDadosNoivos": { const txt = msgPedirDadosNoivos(ev); sheet("Pedir os dados aos noivos", `<p class="small muted" style="margin:0">Envie esta mensagem. Quando responderem, copie a resposta e use <b>Colar mensagem dos noivos</b>: a app lê cada linha e preenche o perfil.</p><textarea class="msg-box" id="msgOut" aria-label="Mensagem">${esc(txt)}</textarea>`, { extra: `<button type="button" class="btn" data-act="copiarMsg">Copiar</button><a class="btn primary" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(txt)}">Abrir no WhatsApp</a>` }); break; }
     case "doteModelo": formDoteModelo(ev); break;
