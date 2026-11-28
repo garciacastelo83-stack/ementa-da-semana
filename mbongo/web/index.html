@@ -82,6 +82,15 @@ button,input,select,textarea{font:inherit;color:inherit}
 .fe-sl{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--muted)}
 .fe-sl input{width:100%;accent-color:var(--brand,#14412F)}
 .fe-formas{justify-content:center}
+.pg-list{display:grid;gap:0}
+.pg-row{display:grid;grid-template-columns:72px minmax(0,1fr) 34px;gap:8px;align-items:start;padding:10px 0;border-bottom:1px solid var(--line)}
+.pg-row:last-child{border-bottom:0}
+.pg-h{font-weight:800;font-size:17px;text-align:center;padding:8px 4px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--ink);width:100%}
+.pg-txt{display:grid;gap:4px;min-width:0}
+.pg-t{resize:none;field-sizing:content;min-height:0;line-height:1.35}
+.pg-t,.pg-r{width:100%;border:1px solid transparent;border-radius:8px;padding:6px 8px;background:transparent;color:var(--ink);font:inherit}
+.pg-t{font-weight:700}.pg-r{font-size:13px;color:var(--muted)}
+.pg-t:hover,.pg-r:hover,.pg-t:focus,.pg-r:focus{border-color:var(--line);background:var(--surface-2);outline:none}
 .ev-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;cursor:pointer;display:flex;flex-direction:column;gap:10px;text-align:left;box-shadow:var(--shadow)}
 .ev-card:hover{border-color:var(--brand)}
 .ev-card h3{font-size:19px}
@@ -3079,17 +3088,19 @@ function setPill() {
   const el = $("#storePill"); el.textContent = t; el.classList.toggle("alert", store.mode === "memoria" || precisaCopia);
 }
 /* programa do dia do noivado (modelo da família) */
-const PROGRAMA_NOIVADO = [["10:00","Montagem final: decoração, mesas, som e cozinha","Logística"],["12:30","Família da noiva a postos, noiva recolhida","Protocolo"],["13:00","Chegada e acolhimento dos convidados","Protocolo"],["14:00","Chegada da família do noivo","Protocolo"],["14:15","Oração de abertura","Coordenação"],["14:25","Apresentação das famílias","Protocolo"],["14:45","O pedido e leitura da carta","Coordenação"],["15:05","Entrega e conferência do dote, auto de entrega","Coordenação"],["15:45","Apresentação da noiva","Protocolo"],["16:00","Aceitação e anel de noivado","Protocolo"],["16:10","Palavra dos pais e conselhos","Coordenação"],["16:30","Oração de bênção e brinde","Equipa de Catering"],["16:45","Sessão fotográfica","Protocolo"],["17:15","Refeição","Equipa de Catering"],["18:30","Primeira dança e convívio","Música e Entretenimento"],["20:15","Bolo e agradecimentos","Coordenação"],["20:45","Despedida da família do noivo","Protocolo"],["21:00","Encerramento e arrumação","Logística"]];
+const PROGRAMA_NOIVADO = [["12:00", "Montagem final: decoração, mesas, som e cozinha", "Logística"], ["14:30", "Família da noiva a postos, noiva recolhida", "Protocolo"], ["15:00", "Chegada e acolhimento dos convidados", "Protocolo"], ["16:00", "Chegada da família do noivo", "Protocolo"], ["16:15", "Oração de abertura", "Coordenação"], ["16:25", "Apresentação das famílias", "Protocolo"], ["16:45", "O pedido e leitura da carta", "Coordenação"], ["17:05", "Entrega e conferência do dote, auto de entrega", "Coordenação"], ["17:45", "Apresentação da noiva", "Protocolo"], ["18:00", "Aceitação e anel de noivado", "Protocolo"], ["18:10", "Palavra dos pais e conselhos", "Coordenação"], ["18:30", "Oração de bênção e brinde", "Equipa de Catering"], ["18:45", "Sessão fotográfica", "Protocolo"], ["19:15", "Refeição", "Equipa de Catering"], ["20:30", "Primeira dança e convívio", "Música e Entretenimento"], ["22:15", "Bolo e agradecimentos", "Coordenação"], ["22:45", "Despedida da família do noivo", "Protocolo"], ["23:00", "Encerramento e arrumação", "Logística"]];
 function addProgramaNoivado(e, dia) {
   e.actividades = e.actividades || []; dia = dia || e.data; if (!dia) return 0;
   const ex = new Set(e.actividades.filter(a => a.data === dia).map(a => semAcentos(a.titulo || "").toLowerCase().trim())); let n = 0;
   PROGRAMA_NOIVADO.forEach(([hora, titulo, resp]) => { if (ex.has(semAcentos(titulo).toLowerCase())) return; e.actividades.push({ id: uid("a"), titulo, data: dia, hora, responsavel: resp, telefone: "", orcado: 0, gasto: 0, estado: "pendente", notas: "" }); n++; });
   return n;
 }
-let programaAvisar = 0;
+let programaAvisar = 0, programaMudou = 0;
+const PROGRAMA_ANTIGO = {"Montagem final: decoração, mesas, som e cozinha": "10:00", "Família da noiva a postos, noiva recolhida": "12:30", "Chegada e acolhimento dos convidados": "13:00", "Chegada da família do noivo": "14:00", "Oração de abertura": "14:15", "Apresentação das famílias": "14:25", "O pedido e leitura da carta": "14:45", "Entrega e conferência do dote, auto de entrega": "15:05", "Apresentação da noiva": "15:45", "Aceitação e anel de noivado": "16:00", "Palavra dos pais e conselhos": "16:10", "Oração de bênção e brinde": "16:30", "Sessão fotográfica": "16:45", "Refeição": "17:15", "Primeira dança e convívio": "18:30", "Bolo e agradecimentos": "20:15", "Despedida da família do noivo": "20:45", "Encerramento e arrumação": "21:00"};
 function programaAuto(e) {
+  if (e.progAuto && !e.progV2) { e.progV2 = true; (e.actividades || []).forEach(a => { if (a.data === e.data && PROGRAMA_ANTIGO[a.titulo] === a.hora) { const [h, m] = a.hora.split(":"); const t = (+h) * 60 + (+m) + 120; a.hora = String(Math.floor(t / 60) % 24).padStart(2, "0") + ":" + String(t % 60).padStart(2, "0"); programaMudou++; } }); return true; }
   if (e.progAuto || e.data !== "2026-11-28" || !/noivado|alambamento|pedido/i.test((e.tipo || "") + " " + (e.nome || ""))) return false;
-  e.progAuto = true; if (!(e.actividades || []).some(a => a.data === e.data && a.hora)) programaAvisar += addProgramaNoivado(e);
+  e.progAuto = true; e.progV2 = true; if (!(e.actividades || []).some(a => a.data === e.data && a.hora)) programaAvisar += addProgramaNoivado(e);
   return true;
 }
 let migrou = false;
@@ -3115,7 +3126,8 @@ function initStore() {
   const c = lsRead(); if (c) { store.events = normAll(c); if (migrou) lsWrite(); }
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch {}
   setPill(); render();
-  if (programaAvisar) { const n = programaAvisar; programaAvisar = 0; setTimeout(() => toast("O programa do dia do noivado (" + n + " momentos) já está no cronograma."), 500); }
+  if (programaAvisar) { const n = programaAvisar; programaAvisar = 0; setTimeout(() => toast("O programa do dia do noivado (" + n + " momentos) já está no separador Programa."), 500); }
+  else if (programaMudou) { programaMudou = 0; setTimeout(() => toast("Programa acertado: a família do noivo chega às 16h00. Pode mudar no separador Programa."), 500); }
   window.addEventListener("storage", e => { if (e.key === LS) { store.events = normAll(lsRead() || {}); setPill(); if (!document.querySelector(".scrim")) render(); } });
 }
 
@@ -3179,7 +3191,7 @@ function renderHome() {
   <p class="small muted" style="margin-top:8px">Os dados ficam guardados neste aparelho. Exporte uma cópia de vez em quando e restaure-a para continuar noutro aparelho.</p>`;
 }
 
-const TABS = [["resumo","Resumo"],["noivos","Noivos"],["convite","Convite"],["nucleos","Núcleos e membros"],["contrib","Contribuições"],["orcamento","Orçamento"],["despesas","Despesas"],["dote","Dote"],["crono","Cronograma"],["mensagens","Mensagens"],["pdf","Relatórios"],["config","Definições"]];
+const TABS = [["resumo","Resumo"],["noivos","Noivos"],["convite","Convite"],["nucleos","Núcleos e membros"],["contrib","Contribuições"],["orcamento","Orçamento"],["despesas","Despesas"],["dote","Dote"],["crono","Cronograma"],["programa","Programa"],["mensagens","Mensagens"],["pdf","Relatórios"],["config","Definições"]];
 function renderEvento(ev) {
   const k = calc(ev), dp = daysTo(ev.prazo), d = daysTo(ev.data);
   const prazoTxt = ev.prazo ? (dp < 0 ? "Prazo terminou a " + dShort(ev.prazo) : dp === 0 ? "Prazo termina hoje" : "Prazo: " + dShort(ev.prazo) + " (" + dp + " dias)") : "Sem prazo";
@@ -3193,7 +3205,7 @@ function renderEvento(ev) {
     <div class="meta num"><span>${k.p}% recolhido</span>${k.act.total ? `<span>${k.act.feitas} de ${k.act.total} actividades feitas${k.act.atrasadas ? ", " + k.act.atrasadas + " atrasada" + (k.act.atrasadas > 1 ? "s" : "") : ""}</span>` : ""}<span>${k.excedente > 0 ? "Excedente: " + money(k.excedente, ev.moeda) : "Falta: " + money(k.falta, ev.moeda)}</span></div>
   </section>
   <nav class="tabs" role="tablist">${TABS.filter(([id]) => id !== "dote" || ehCasal(ev)).map(([id, t]) => `<button class="tab" role="tab" aria-selected="${ui.tab === id}" data-tab="${id}">${id === "noivos" ? rotPerfil(ev) : t}</button>`).join("")}</nav>
-  <section id="tabBody">${(ui.tab === "dote" && !ehCasal(ev) ? (ui.tab = "resumo", 0) : 0, "")}${({ resumo: tResumo, dote: tDote, noivos: tNoivos, convite: tConvite, nucleos: tNucleos, contrib: tContrib, orcamento: tOrc, despesas: tDesp, crono: tCrono, mensagens: tMsg, pdf: tPdf, config: tConfig })[ui.tab](ev, k)}</section>`;
+  <section id="tabBody">${(ui.tab === "dote" && !ehCasal(ev) ? (ui.tab = "resumo", 0) : 0, "")}${({ resumo: tResumo, dote: tDote, noivos: tNoivos, convite: tConvite, nucleos: tNucleos, contrib: tContrib, orcamento: tOrc, despesas: tDesp, programa: tPrograma, crono: tCrono, mensagens: tMsg, pdf: tPdf, config: tConfig })[ui.tab](ev, k)}</section>`;
 }
 function estadoChip(x) { return x.estado === "ok" ? `<span class="chip ok">Completo</span>` : x.estado === "parcial" ? `<span class="chip warn">${x.p}%</span>` : `<span class="chip bad">Por contribuir</span>`; }
 
@@ -4700,7 +4712,7 @@ function diaPrograma(ev) {
   return Object.keys(n).sort((a, b) => n[b] - n[a])[0] || ev.data || "";
 }
 function programaDia(ev) {
-  const dia = diaPrograma(ev);
+  const dia = ui.progDia && (ev.actividades || []).some(a => a.data === ui.progDia && a.hora) ? ui.progDia : diaPrograma(ev);
   return { dia, L: (ev.actividades || []).filter(a => a.data === dia && a.hora && estadoAct(a) !== "cancelada").sort((a, b) => a.hora.localeCompare(b.hora)) };
 }
 function horaTxt(h) { const [a, b] = String(h || "").split(":"); return a ? (+a) + "h" + (b || "00") : ""; }
@@ -4793,6 +4805,57 @@ function editarFoto(src, o) {
     img.src = src;
   });
 }
+
+/* ============ separador Programa ============ */
+function normHora(t) { const m = String(t || "").trim().match(/^(\d{1,2})\s*(?:[:hH.,]\s*(\d{1,2})?)?\s*(?:min)?$/) || String(t || "").trim().match(/^(\d{1,2})(\d{2})$/); if (!m) return ""; const h = +m[1], n = +(m[2] || 0); return h < 24 && n < 60 ? String(h).padStart(2, "0") + ":" + String(n).padStart(2, "0") : ""; }
+const minH = h => { const [a, b] = String(h || "0:0").split(":"); return (+a) * 60 + (+b || 0); };
+const hMin = m => { m = ((Math.round(m) % 1440) + 1440) % 1440; return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0"); };
+function tPrograma(ev) {
+  const { dia, L } = programaDia(ev), diaSel = ui.progDia || dia || ev.data || todayISO();
+  const M = (ev.actividades || []).filter(a => a.data === diaSel && a.hora && estadoAct(a) !== "cancelada").sort((a, b) => a.hora.localeCompare(b.hora));
+  const dur = (i) => i < M.length - 1 ? minH(M[i + 1].hora) - minH(M[i].hora) : 0;
+  const head = `<div class="panel stack"><div class="panel-head" style="margin:0"><div><h2>Programa do dia</h2><p class="small muted" style="margin:2px 0 0">Os momentos do dia, hora a hora. Altere directamente a hora, o texto ou o responsável: grava sozinho e aparece também no cronograma.</p></div></div>
+    <div class="row" style="align-items:flex-end"><div class="field" style="margin:0"><label for="pgDia">Dia</label><input type="date" id="pgDia" value="${esc(diaSel)}"></div>
+      ${M.length ? `<span class="small muted" style="align-self:center">${M.length} momentos, das ${horaTxt(M[0].hora)} às ${horaTxt(M[M.length - 1].hora)}</span>` : ""}</div>
+    <div class="row"><button class="btn primary" data-act="pgAdd">+ Momento</button>${M.length ? `<button class="btn" data-act="pgDesloca">Mudar as horas</button>` : ""}${ehCasal(ev) ? `<button class="btn ghost" data-act="pgModelo">Carregar modelo do noivado</button>` : ""}</div>
+    ${M.length ? `<div class="row"><button class="btn gold" data-rel="programa|pdf">PDF</button><button class="btn" data-rel="programa|img">Imagem</button><button class="btn" data-act="programaMsg">Mensagem</button></div>` : ""}</div>`;
+  const lista = M.length ? `<div class="panel"><datalist id="pgPessoas">${pessoasTodas(ev).concat(["Coordenação", "Protocolo", "Logística", "Equipa de Catering", "Música e Entretenimento", "Equipa de Decoração"]).filter((x, i, A) => A.indexOf(x) === i).map(p => `<option value="${esc(p)}"></option>`).join("")}</datalist>
+    <div class="pg-list">${M.map((a, i) => `<div class="pg-row">
+      <input class="pg-h" data-pg="hora" data-id="${a.id}" value="${esc(a.hora)}" inputmode="numeric" maxlength="5" placeholder="16:00" aria-label="Hora">
+      <div class="pg-txt"><textarea class="pg-t" data-pg="titulo" data-id="${a.id}" rows="2" aria-label="Momento">${esc(a.titulo)}</textarea>
+        <input class="pg-r" data-pg="responsavel" data-id="${a.id}" list="pgPessoas" value="${esc(a.responsavel || "")}" placeholder="Responsável" aria-label="Responsável">
+        ${dur(i) > 0 ? `<span class="small muted">${dur(i) >= 60 ? Math.floor(dur(i) / 60) + "h" + (dur(i) % 60 ? String(dur(i) % 60).padStart(2, "0") : "") : dur(i) + " min"} até ao momento seguinte</span>` : ""}</div>
+      <button class="icon-btn" data-pgrm="${a.id}" aria-label="Retirar">✕</button></div>`).join("")}</div></div>`
+    : `<div class="empty"><h2>Ainda sem programa para este dia</h2><p class="muted" style="margin:0">Acrescente os momentos um a um${ehCasal(ev) ? " ou carregue o modelo do noivado e acerte as horas" : ""}.</p></div>`;
+  return `<div class="stack">${head}${lista}</div>`;
+}
+function formPgDesloca(ev) {
+  const dia = ui.progDia || programaDia(ev).dia, M = (ev.actividades || []).filter(a => a.data === dia && a.hora && estadoAct(a) !== "cancelada").sort((a, b) => a.hora.localeCompare(b.hora));
+  const ref = M.find(a => /chegada da fam[ií]lia do noivo/i.test(a.titulo)) || M[0];
+  const form = sheet("Mudar as horas", `<p class="small muted" style="margin:0">Escolha um momento e a nova hora. Esse momento e os seguintes andam o mesmo tempo, e os intervalos entre eles mantêm-se. Pode também mudar os anteriores.</p>
+    <div class="field"><label for="pd_m">Momento de referência</label><select id="pd_m" name="m">${M.map(a => `<option value="${a.id}" ${a === ref ? "selected" : ""}>${horaTxt(a.hora)} · ${esc(a.titulo)}</option>`).join("")}</select></div>
+    <div class="field"><label for="pd_h">Nova hora</label><input id="pd_h" name="h" inputmode="numeric" maxlength="5" placeholder="16:00" value="${esc(ref ? ref.hora : "")}"></div>
+    <label class="check"><input type="checkbox" name="todos" checked> Mudar também os momentos anteriores (preparação)</label>
+    <div id="pd_p" class="small muted"></div>`, { submit: "Mudar", onSubmit: f => {
+      const a = M.find(x => x.id === val(f, "m")), h = normHora(val(f, "h")); if (!a || !h) { toast("Escreva a hora, por exemplo 16:00."); return false; }
+      const d = minH(h) - minH(a.hora), todos = f.elements.todos.checked, i0 = M.indexOf(a);
+      if (!d) return; M.forEach((x, i) => { if (todos || i >= i0) x.hora = hMin(minH(x.hora) + d); });
+      persist(ev); toast("Horas mudadas " + (d > 0 ? "+" : "−") + Math.floor(Math.abs(d) / 60) + "h" + String(Math.abs(d) % 60).padStart(2, "0") + ".");
+    } });
+  const upd = () => { const a = M.find(x => x.id === $("#pd_m", form).value), h = normHora($("#pd_h", form).value); if (!a || !h) return; const d = minH(h) - minH(a.hora), todos = form.elements.todos.checked, i0 = M.indexOf(a), L = M.map((x, i) => todos || i >= i0 ? hMin(minH(x.hora) + d) : x.hora);
+    $("#pd_p", form).innerHTML = d ? `Fica a começar às <b>${horaTxt(L[0])}</b> e a acabar às <b>${horaTxt(L[L.length - 1])}</b>.` + (L.some((x, i) => i && minH(x) < minH(L[i - 1])) ? " <b>Atenção:</b> alguns momentos passam da meia-noite." : "") : ""; };
+  form.addEventListener("input", upd); form.addEventListener("change", upd); upd();
+}
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.id === "pgDia") { ui.progDia = t.value; render(); return; }
+  if (!t.dataset || !t.dataset.pg) return;
+  const ev = cur(); if (!ev) return; const a = (ev.actividades || []).find(x => x.id === t.dataset.id); if (!a) return;
+  let v = t.value.replace(/\s*\n\s*/g, " ").trim(); if (t.dataset.pg === "hora") { v = normHora(v); if (!v) { toast("Escreva a hora assim: 16:00"); t.value = a.hora || ""; return; } }
+  if (t.dataset.pg !== "responsavel" && !v) { t.value = a[t.dataset.pg] || ""; return; }
+  a[t.dataset.pg] = v; if (t.dataset.pg === "responsavel") a.telefone = telDe(ev, v) || a.telefone || "";
+  persist(ev); if (t.dataset.pg === "hora") render(); else toast("Guardado.");
+});
 
 /* ============ despesas e compras: cálculos ============ */
 const CATS = ["Alimentação", "Bebidas", "Cocktail e salgados", "Bolo e doces", "Decoração", "Aluguer de material", "Cozinha e catering", "Som e animação", "Fotografia e vídeo", "Transporte", "Trajes", "Descartáveis", "Dote e presentes", "Outros"];
@@ -6154,6 +6217,7 @@ document.addEventListener("click", e => {
   if (d.pessoa !== undefined && ev) return formPessoa(ev, Number(d.pessoa));
   if (d.galrm && ev) { const P = perfil(ev); P.galeria = (P.galeria || []).filter(g => g.id !== d.galrm); ev.perfil = P; persist(ev); render(); return; }
   if (d.galleg && ev) return formLegenda(ev, d.galleg);
+  if (d.pgrm && ev) { const a = (ev.actividades || []).find(x => x.id === d.pgrm); if (a) confirmSheet("Retirar este momento?", horaTxt(a.hora) + " · " + a.titulo, "Retirar", () => { ev.actividades = ev.actividades.filter(x => x.id !== a.id); persist(ev); toast("Momento retirado."); }); return; }
   if (d.galadj && ev) { const P = perfil(ev), g = (P.galeria || []).find(x => x.id === d.galadj); if (g) editarFoto(g.orig || g.src, { aspecto: 0, formas: true, max: 1000, q: 0.74 }).then(r => { if (!r) return; const a = g.src; g.src = r; ev.perfil = P; if (!persist(ev)) { g.src = a; persist(ev); return toast("Sem espaço para guardar."); } render(); toast("Foto ajustada."); }); return; }
   if (d.tema && ev) { ev.tema = { id: d.tema }; persist(ev); render(); toast("Cores da decoração aplicadas."); return; }
   if (d.convfmt && ev) { ev.convite = Object.assign({}, ev.convite || {}, { formato: d.convfmt }); persist(ev); render(); return; }
@@ -6189,6 +6253,9 @@ document.addEventListener("click", e => {
     case "ementaImg": ementaExport(ev, false); break;
     case "doteDados": formDoteDados(ev); break;
     case "colarNoivos": formColarNoivos(ev); break;
+    case "pgModelo": { const n = addProgramaNoivado(ev, ui.progDia || programaDia(ev).dia || ev.data); persist(ev); toast(n ? n + " momentos acrescentados." : "O modelo já está no programa."); render(); break; }
+    case "pgAdd": { const { L } = programaDia(ev), dia = ui.progDia || programaDia(ev).dia || ev.data || todayISO(); const last = L.length ? L[L.length - 1].hora : "15:45"; ev.actividades.push({ id: uid("a"), titulo: "Novo momento", data: dia, hora: hMin(minH(last) + 15), responsavel: "", telefone: "", orcado: 0, gasto: 0, estado: "pendente", notas: "" }); persist(ev); render(); setTimeout(() => { const x = [...document.querySelectorAll(".pg-t")].find(i => i.value === "Novo momento"); if (x) { x.focus(); x.select(); x.scrollIntoView({ block: "center" }); } }, 80); break; }
+    case "pgDesloca": formPgDesloca(ev); break;
     case "programaModelo": { const n = addProgramaNoivado(ev); persist(ev); toast(n ? n + " momentos do programa acrescentados ao dia " + dShort(ev.data) + ". Ajuste as horas se for preciso." : "O programa já está no cronograma."); render(); break; }
     case "programaMsg": { const txt = msgPrograma(ev); sheet("Programa do dia", `<textarea class="msg-box" id="msgOut" aria-label="Mensagem">${esc(txt)}</textarea>`, { extra: `<button type="button" class="btn" data-act="copiarMsg">Copiar</button><a class="btn primary" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(txt)}">Abrir no WhatsApp</a>` }); break; }
     case "pedirDadosNoivos": { const txt = msgPedirDadosNoivos(ev); sheet("Pedir os dados aos noivos", `<p class="small muted" style="margin:0">Envie esta mensagem. Quando responderem, copie a resposta e use <b>Colar mensagem dos noivos</b>: a app lê cada linha e preenche o perfil.</p><textarea class="msg-box" id="msgOut" aria-label="Mensagem">${esc(txt)}</textarea>`, { extra: `<button type="button" class="btn" data-act="copiarMsg">Copiar</button><a class="btn primary" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(txt)}">Abrir no WhatsApp</a>` }); break; }
