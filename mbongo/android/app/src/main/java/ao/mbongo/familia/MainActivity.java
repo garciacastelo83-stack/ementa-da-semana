@@ -127,7 +127,7 @@ public class MainActivity extends Activity {
     public void onBackPressed() {
         // Primeiro fecha a janela aberta; depois volta à lista de eventos; só depois sai da app
         web.evaluateJavascript(
-                "(function(){var b=document.querySelector('#sheetHost [data-close]');if(b){b.click();return 'x'}"
+                "(function(){var e=document.querySelector('.fe-ov [data-fe=cancelar]');if(e){e.click();return 'x'}var b=document.querySelector('#sheetHost [data-close]');if(b){b.click();return 'x'}"
                         + "var h=document.querySelector('[data-act=home]');if(h){h.click();window.scrollTo(0,0);return 'x'}return ''})()",
                 value -> {
                     if (value == null || !value.contains("x")) finish();

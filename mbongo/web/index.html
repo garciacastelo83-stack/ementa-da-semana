@@ -72,6 +72,16 @@ button,input,select,textarea{font:inherit;color:inherit}
 .home-head{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-bottom:18px}
 .home-head h1{font-size:clamp(26px,5vw,34px)}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.fe-ov{position:fixed;inset:0;z-index:2000;background:rgba(8,14,11,.66);display:grid;place-items:center;padding:10px}
+.fe-box{background:var(--surface);color:var(--ink);border-radius:18px;padding:14px;width:min(380px,100%);display:grid;gap:10px;max-height:100%;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.fe-head{display:grid;gap:2px}
+.fe-stage{position:relative;margin:0 auto;overflow:hidden;border-radius:10px;background:#000;touch-action:none}
+.fe-cv{display:block;touch-action:none;cursor:grab}.fe-cv:active{cursor:grabbing}
+.fe-mask{position:absolute;inset:0;pointer-events:none;border-radius:50%;box-shadow:0 0 0 999px rgba(255,255,255,.55)}
+.fe-grid{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent 33.2%,rgba(255,255,255,.45) 33.3%,transparent 33.5%,transparent 66.5%,rgba(255,255,255,.45) 66.6%,transparent 66.8%),linear-gradient(180deg,transparent 33.2%,rgba(255,255,255,.45) 33.3%,transparent 33.5%,transparent 66.5%,rgba(255,255,255,.45) 66.6%,transparent 66.8%)}
+.fe-sl{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--muted)}
+.fe-sl input{width:100%;accent-color:var(--brand,#14412F)}
+.fe-formas{justify-content:center}
 .ev-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;cursor:pointer;display:flex;flex-direction:column;gap:10px;text-align:left;box-shadow:var(--shadow)}
 .ev-card:hover{border-color:var(--brand)}
 .ev-card h3{font-size:19px}
@@ -212,7 +222,7 @@ tfoot td{font-weight:700;background:var(--surface-2)}
 .lema{font-family:var(--f-display);font-size:18px;color:var(--gold);text-align:center;margin:14px 0 0;font-style:italic}
 .galeria{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
 .galeria figure{margin:0;display:grid;gap:4px;min-width:0}
-.galeria img{width:100%;max-width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block}
+.galeria{align-items:start}.galeria img{width:100%;max-width:100%;height:auto;border-radius:10px;display:block;background:var(--surface-2)}
 .galeria figcaption{font-size:13px;overflow-wrap:anywhere}
 .foto-edit{display:flex;gap:16px;align-items:center}
 .vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
@@ -3306,16 +3316,16 @@ function tNoivos(ev, k) {
       ${so.mensagem ? qa("Uma palavra dos noivos", so.mensagem) : ""}
       ${P.padrinhos ? qa("Padrinhos e madrinhas", P.padrinhos) : ""}</div>` : "";
   const galeria = `<div class="panel"><div class="panel-head"><div><h2>Fotos</h2><p class="small muted" style="margin:2px 0 0">Até 6 fotos. Aparecem na apresentação partilhada.</p></div>${gal.length < 6 ? `<label class="btn primary" for="galFile">+ Fotos<input type="file" id="galFile" class="vh" accept="image/*" multiple></label>` : ""}</div>
-    ${gal.length ? `<div class="galeria">${gal.map(g => `<figure><img src="${g.src}" alt="${esc(g.legenda || "Foto")}"><figcaption>${g.legenda ? esc(g.legenda) : `<span class="muted">Sem legenda</span>`}</figcaption><div class="row" style="gap:2px"><button class="icon-btn" data-galleg="${g.id}">Legenda</button><button class="icon-btn" data-galrm="${g.id}">Remover</button></div></figure>`).join("")}</div>` : `<p class="small muted" style="margin:0">Ainda sem fotos.</p>`}</div>`;
+    ${gal.length ? `<div class="galeria">${gal.map(g => `<figure><img src="${g.src}" alt="${esc(g.legenda || "Foto")}"><figcaption>${g.legenda ? esc(g.legenda) : `<span class="muted">Sem legenda</span>`}</figcaption><div class="row" style="gap:2px"><button class="icon-btn" data-galadj="${g.id}">Ajustar</button><button class="icon-btn" data-galleg="${g.id}">Legenda</button><button class="icon-btn" data-galrm="${g.id}">Remover</button></div></figure>`).join("")}</div>` : `<p class="small muted" style="margin:0">Ainda sem fotos.</p>`}</div>`;
   return `<div class="stack">${head}<div class="pgrid">${cards}</div>${hist}${galeria}</div>`;
 }
 function formPessoa(ev, idx) {
-  const P = perfil(ev), p = P.pessoas[idx]; if (!p) return; let foto = p.foto || "";
+  const P = perfil(ev), p = P.pessoas[idx]; if (!p) return; let foto = p.foto || "", orig = p.fotoOrig || "";
   const obito = ehObito(ev);
   const inp = (n, lbl, ph, type) => `<div class="field"><label for="pp_${n}">${lbl}</label><input id="pp_${n}" name="${n}" ${type ? `type="${type}"` : ""} value="${esc(p[n])}" placeholder="${ph || ""}"></div>`;
   const form = sheet("Dados " + (p.sexo === "F" ? "da " : p.sexo === "M" ? "do " : "de ") + (p.papel || "pessoa").toLowerCase(), `
     <div class="foto-edit"><span class="avatar lg" id="pf_prev">${foto ? `<img src="${foto}" alt="">` : `<span>${esc(iniciais(p.nome) || "+")}</span>`}</span>
-      <div class="stack" style="gap:8px"><label class="btn sm" for="pf_file">${foto ? "Trocar foto" : "Escolher foto"}<input id="pf_file" class="vh" type="file" accept="image/*"></label><button type="button" class="btn sm ghost" id="pf_rm" ${foto ? "" : "hidden"}>Remover foto</button><span class="small muted">A foto é recortada em quadrado e reduzida para ocupar pouco espaço.</span></div></div>
+      <div class="stack" style="gap:8px"><label class="btn sm" for="pf_file">${foto ? "Trocar foto" : "Escolher foto"}<input id="pf_file" class="vh" type="file" accept="image/*"></label><button type="button" class="btn sm" id="pf_adj" ${foto ? "" : "hidden"}>Ajustar foto</button><button type="button" class="btn sm ghost" id="pf_rm" ${foto ? "" : "hidden"}>Remover foto</button><span class="small muted">Depois de escolher, pode enquadrar o rosto, aproximar, rodar e dar mais luz.</span></div></div>
     <div class="fgrid two">${inp("papel", "Papel no evento", "Ex.: Noiva")}<div class="field"><label for="pp_sexo">Sexo</label><select id="pp_sexo" name="sexo"><option value="F" ${p.sexo === "F" ? "selected" : ""}>Feminino</option><option value="M" ${p.sexo === "M" ? "selected" : ""}>Masculino</option><option value="" ${!p.sexo ? "selected" : ""}>Não indicar</option></select></div></div>
     ${inp("nome", "Nome completo", "")}
     ${inp("alcunha", "Como lhe chamam", "Ex.: Beta, Tó, Mimi")}
@@ -3327,16 +3337,18 @@ function formPessoa(ev, idx) {
     onSubmit: f => {
       const antes = Object.assign({}, p);
       ["papel", "sexo", "nome", "alcunha", "nascimento", "falecimento", "naturalidade", "profissao", "pai", "mae", "avosPaternos", "avosMaternos", "sobre"].forEach(n => { if (f.elements[n]) p[n] = val(f, n); });
-      p.foto = foto; ev.perfil = P;
-      if (!persist(ev)) { Object.assign(p, antes); persist(ev); return; }
+      p.foto = foto; p.fotoOrig = foto ? orig : ""; ev.perfil = P;
+      if (!persist(ev)) { p.fotoOrig = ""; if (!persist(ev)) { Object.assign(p, antes); persist(ev); return; } }
       toast("Dados guardados.");
     }
   });
-  const prev = $("#pf_prev", form), rm = $("#pf_rm", form);
-  $("#pf_file", form).onchange = async e => { const fl = e.target.files[0]; if (!fl) return;
-    try { foto = await lerFoto(fl, 560, 0.82, true); prev.innerHTML = `<img src="${foto}" alt="">`; rm.hidden = false; }
+  const prev = $("#pf_prev", form), rm = $("#pf_rm", form), adj = $("#pf_adj", form);
+  const ajusta = async src => { const r = await editarFoto(src, { aspecto: 1, redondo: true, max: 600, q: 0.84, titulo: "Enquadrar a foto" }); if (!r) return; foto = r; prev.innerHTML = `<img src="${foto}" alt="">`; rm.hidden = adj.hidden = false; };
+  $("#pf_file", form).onchange = async e => { const fl = e.target.files[0]; e.target.value = ""; if (!fl) return;
+    try { orig = await lerFoto(fl, 1400, 0.82, false); await ajusta(orig); }
     catch { toast("Não foi possível ler esta foto. Experimente outra, em JPG ou PNG."); } };
-  rm.onclick = () => { foto = ""; prev.innerHTML = `<span>${esc(iniciais(p.nome) || "+")}</span>`; rm.hidden = true; };
+  adj.onclick = () => ajusta(orig || foto);
+  rm.onclick = () => { foto = ""; orig = ""; prev.innerHTML = `<span>${esc(iniciais(p.nome) || "+")}</span>`; rm.hidden = adj.hidden = true; };
   const del = $("#pf_del"); if (del) del.onclick = () => { P.pessoas.splice(idx, 1); ev.perfil = P; persist(ev); $("#sheetHost").innerHTML = ""; render(); toast("Pessoa retirada."); };
 }
 function formHistoria(ev) {
@@ -3371,7 +3383,8 @@ async function addFotosGaleria(ev, files) {
   const L = [...files].slice(0, Math.max(0, 6 - P.galeria.length)); if (!L.length) return toast("Já tem 6 fotos. Retire alguma para acrescentar outra.");
   toast("A preparar as fotos…"); let n = 0;
   for (const f of L) {
-    try { const src = await lerFoto(f, 900, 0.72, false); P.galeria.push({ id: uid("g"), src, legenda: "" }); if (!persist(ev)) { P.galeria.pop(); persist(ev); break; } n++; }
+    try { const orig = await lerFoto(f, 1200, 0.74, false), src = await editarFoto(orig, { aspecto: 0, formas: true, max: 1000, q: 0.74, titulo: "Ajustar a foto " + (n + 1) + (L.length > 1 ? " de " + L.length : "") }); if (!src) continue;
+      const g = { id: uid("g"), src, orig, legenda: "" }; P.galeria.push(g); if (!persist(ev)) { delete g.orig; if (!persist(ev)) { P.galeria.pop(); persist(ev); toast("Sem espaço para mais fotos neste aparelho."); break; } } n++; }
     catch { toast("Não foi possível ler uma das fotos."); }
   }
   if (n) toast(n === 1 ? "Foto adicionada." : n + " fotos adicionadas."); render();
@@ -3430,7 +3443,7 @@ function apresentacaoHTML(ev) {
     ${so.lema ? `<div style="text-align:center;font-family:${DS};font-style:italic;font-size:19px;color:#C99A3B;margin:22px 10px 4px">«${esc(so.lema)}»</div>` : ""}
     ${so.mensagem ? H("Uma palavra dos noivos") + `<div style="border-left:4px solid #C99A3B;padding:4px 0 4px 14px;font-style:italic;white-space:pre-line">${esc(so.mensagem)}</div>` : ""}
     ${casal && P.padrinhos ? H("Padrinhos e madrinhas") + `<div>${P.padrinhos.split("\n").map(x => x.trim()).filter(Boolean).map(esc).join(" · ")}</div>` : ""}
-    ${gal.length ? H("Momentos") + `<div style="display:flex;flex-wrap:wrap;gap:12px">${gal.map(g => `<div style="width:212px"><div style="width:212px;height:212px;border-radius:10px;background-image:url(${g.src});background-size:cover;background-position:center"></div>${g.legenda ? `<div style="font-size:12px;color:#5B6862;margin-top:4px">${esc(g.legenda)}</div>` : ""}</div>`).join("")}</div>` : ""}
+    ${gal.length ? H("Momentos") + `<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start">${gal.map(g => `<div style="width:212px"><img src="${g.src}" style="width:212px;height:auto;border-radius:10px;display:block">${g.legenda ? `<div style="font-size:12px;color:#5B6862;margin-top:4px">${esc(g.legenda)}</div>` : ""}</div>`).join("")}</div>` : ""}
     <div style="margin-top:24px;text-align:center;font-size:13px;color:#5B6862">${ev.organizador ? "Com carinho, " + esc(ev.organizador) : "Com carinho, a família"}</div>
   </div></div>`;
 }
@@ -4709,6 +4722,60 @@ function programaHTML(ev) {
       <div style="width:16px;display:flex;flex-direction:column;align-items:center"><span style="width:13px;height:13px;border-radius:50%;background:${i % 2 ? "#F4E7C8" : "#C99A3B"};border:2px solid #C99A3B;margin-top:6px;flex:none"></span>${i < L.length - 1 ? `<span style="flex:1;width:2px;background:#F4E7C8"></span>` : ""}</div>
       <div style="flex:1;padding-bottom:14px"><div style="font-weight:700;font-size:16.5px;line-height:1.3">${esc(a.titulo)}</div>${a.responsavel ? `<div style="color:#5B6862;font-size:13px">${esc(a.responsavel)}</div>` : ""}</div></div>`).join("") || `<p style="color:#5B6862">Ainda não há actividades com hora para este dia.</p>`}
   </div><div style="padding:0 34px 24px;color:#5B6862;font-size:13px;text-align:center">Pedimos a todos pontualidade. Que seja um dia abençoado!</div></div>`;
+}
+
+/* ============ editor de fotografia: enquadrar, aproximar, rodar, clarear ============ */
+function editarFoto(src, o) {
+  o = Object.assign({ aspecto: 1, formas: false, redondo: false, max: 900, q: 0.8, titulo: "Ajustar a foto" }, o || {});
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onerror = () => { toast("Não foi possível abrir a foto."); resolve(null); };
+    img.onload = () => {
+      const FORMAS = [["1", "Quadrada"], ["0.8", "Retrato"], ["1.333", "Paisagem"], ["0", "Original"]];
+      const ov = document.createElement("div");
+      ov.className = "fe-ov"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", o.titulo);
+      ov.innerHTML = `<div class="fe-box"><div class="fe-head"><b>${esc(o.titulo)}</b><span class="small muted">Arraste a foto para a enquadrar. Use dois dedos ou a barra para aproximar.</span></div>
+        <div class="fe-stage"><canvas class="fe-cv"></canvas>${o.redondo ? `<div class="fe-mask"></div>` : ""}<div class="fe-grid"></div></div>
+        ${o.formas ? `<div class="seg fe-formas" role="group" aria-label="Formato">${FORMAS.map(([v, t]) => `<button type="button" data-fe-forma="${v}" aria-pressed="${String(o.aspecto) === v || (v === "0" && !o.aspecto)}">${t}</button>`).join("")}</div>` : ""}
+        <label class="fe-sl"><span>Aproximar</span><input type="range" class="fe-zoom" min="1" max="4" step="0.01" value="1"></label>
+        <label class="fe-sl"><span>Luz</span><input type="range" class="fe-luz" min="0.6" max="1.6" step="0.02" value="1"></label>
+        <div class="row" style="justify-content:space-between"><span class="row" style="gap:6px"><button type="button" class="btn sm" data-fe="rodar">Rodar ↻</button><button type="button" class="btn sm ghost" data-fe="repor">Repor</button></span>
+        <span class="row" style="gap:6px"><button type="button" class="btn" data-fe="cancelar">Cancelar</button><button type="button" class="btn primary" data-fe="ok">Usar esta foto</button></span></div></div>`;
+      document.body.appendChild(ov);
+      const cv = ov.querySelector(".fe-cv"), cx = cv.getContext("2d"), zr = ov.querySelector(".fe-zoom"), lr = ov.querySelector(".fe-luz");
+      let asp = o.aspecto || 0, rot = 0, z = 1, ox = 0, oy = 0, luz = 1, cw = 300, ch = 300;
+      const dims = () => rot % 2 ? [img.height, img.width] : [img.width, img.height];
+      const base = () => { const [iw, ih] = dims(); return Math.max(cw / iw, ch / ih); };
+      const limita = () => { const [iw, ih] = dims(), s = base() * z, mx = Math.max(0, (iw * s - cw) / 2), my = Math.max(0, (ih * s - ch) / 2); ox = Math.max(-mx, Math.min(mx, ox)); oy = Math.max(-my, Math.min(my, oy)); };
+      const desenha = (c, W, H, F) => { const s = base() * z * F; c.save(); c.fillStyle = "#fff"; c.fillRect(0, 0, W, H); try { c.filter = luz !== 1 ? `brightness(${luz})` : "none"; } catch {} c.translate(W / 2 + ox * F, H / 2 + oy * F); c.rotate(rot * Math.PI / 2); c.drawImage(img, -img.width * s / 2, -img.height * s / 2, img.width * s, img.height * s); c.restore(); };
+      const medidas = () => { const [iw, ih] = dims(), a = asp || iw / ih, lim = Math.min(330, window.innerWidth - 56), limH = Math.min(380, window.innerHeight * 0.48); cw = lim; ch = cw / a; if (ch > limH) { ch = limH; cw = ch * a; } const d = window.devicePixelRatio || 1; cv.width = Math.round(cw * d); cv.height = Math.round(ch * d); cv.style.width = cw + "px"; cv.style.height = ch + "px"; ov.querySelector(".fe-stage").style.width = cw + "px"; ov.querySelector(".fe-stage").style.height = ch + "px"; };
+      const pinta = () => { limita(); const d = cv.width / cw; desenha(cx, cv.width, cv.height, d); };
+      const tudo = () => { medidas(); pinta(); };
+      tudo();
+      // arrastar e beliscar
+      const pts = new Map(); let ini = null;
+      cv.addEventListener("pointerdown", e => { cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); ini = { ox, oy, z, pts: new Map(pts) }; });
+      cv.addEventListener("pointermove", e => { if (!pts.has(e.pointerId) || !ini) return; pts.set(e.pointerId, [e.clientX, e.clientY]);
+        if (pts.size === 1 && ini.pts.size === 1) { const [a] = [...ini.pts.values()]; ox = ini.ox + e.clientX - a[0]; oy = ini.oy + e.clientY - a[1]; }
+        else if (pts.size >= 2 && ini.pts.size >= 2) { const A = [...pts.values()], B = [...ini.pts.values()], d = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1]); z = Math.max(1, Math.min(4, ini.z * d(A[0], A[1]) / Math.max(1, d(B[0], B[1])))); zr.value = z; }
+        pinta(); });
+      const fim = e => { pts.delete(e.pointerId); ini = { ox, oy, z, pts: new Map(pts) }; };
+      cv.addEventListener("pointerup", fim); cv.addEventListener("pointercancel", fim);
+      cv.addEventListener("wheel", e => { e.preventDefault(); z = Math.max(1, Math.min(4, z * (e.deltaY < 0 ? 1.08 : 0.93))); zr.value = z; pinta(); }, { passive: false });
+      zr.oninput = () => { z = +zr.value; pinta(); };
+      lr.oninput = () => { luz = +lr.value; pinta(); };
+      const fecha = v => { ov.remove(); resolve(v); };
+      ov.addEventListener("click", e => { const b = e.target.closest("[data-fe],[data-fe-forma]"); if (!b) return;
+        if (b.dataset.feForma != null) { asp = +b.dataset.feForma; ov.querySelectorAll("[data-fe-forma]").forEach(x => x.setAttribute("aria-pressed", x === b)); ox = oy = 0; tudo(); return; }
+        const a = b.dataset.fe;
+        if (a === "rodar") { rot = (rot + 1) % 4; ox = oy = 0; tudo(); }
+        else if (a === "repor") { rot = 0; z = 1; ox = oy = 0; luz = 1; zr.value = 1; lr.value = 1; tudo(); }
+        else if (a === "cancelar") fecha(null);
+        else if (a === "ok") { const r = cw / ch, W = Math.round(r >= 1 ? o.max : o.max * r), H = Math.round(r >= 1 ? o.max / r : o.max), out = document.createElement("canvas"); out.width = W; out.height = H; desenha(out.getContext("2d"), W, H, W / cw); fecha(out.toDataURL("image/jpeg", o.q)); } });
+      ov.addEventListener("keydown", e => { if (e.key === "Escape") fecha(null); });
+    };
+    img.src = src;
+  });
 }
 
 /* ============ despesas e compras: cálculos ============ */
@@ -6071,6 +6138,7 @@ document.addEventListener("click", e => {
   if (d.pessoa !== undefined && ev) return formPessoa(ev, Number(d.pessoa));
   if (d.galrm && ev) { const P = perfil(ev); P.galeria = (P.galeria || []).filter(g => g.id !== d.galrm); ev.perfil = P; persist(ev); render(); return; }
   if (d.galleg && ev) return formLegenda(ev, d.galleg);
+  if (d.galadj && ev) { const P = perfil(ev), g = (P.galeria || []).find(x => x.id === d.galadj); if (g) editarFoto(g.orig || g.src, { aspecto: 0, formas: true, max: 1000, q: 0.74 }).then(r => { if (!r) return; const a = g.src; g.src = r; ev.perfil = P; if (!persist(ev)) { g.src = a; persist(ev); return toast("Sem espaço para guardar."); } render(); toast("Foto ajustada."); }); return; }
   if (d.tema && ev) { ev.tema = { id: d.tema }; persist(ev); render(); toast("Cores da decoração aplicadas."); return; }
   if (d.convfmt && ev) { ev.convite = Object.assign({}, ev.convite || {}, { formato: d.convfmt }); persist(ev); render(); return; }
   if (d.convmod && ev) { ev.convite = Object.assign({}, ev.convite || {}, { modelo: d.convmod }); persist(ev); render(); return; }
