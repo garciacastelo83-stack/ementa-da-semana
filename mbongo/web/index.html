@@ -3883,8 +3883,11 @@ function parseLinhaCrono(l) {
   const fx = t.match(/^\[(x|X|✓|v)\]\s*/); if (fx) { feita = true; t = t.slice(fx[0].length); } else if (/^\[\s?\]\s*/.test(t)) t = t.replace(/^\[\s?\]\s*/, "");
   const m = t.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?(?:\s+(\d{1,2})[:h](\d{2}))?\s*(?:\||-|–|—)\s*(.+)$/);
   const partes = (m ? m[6] : t).split("|").map(x => x.trim());
+  let hx = m && m[4] ? m[4].padStart(2, "0") + ":" + m[5] : "";
+  const hm = !hx && partes[0].match(/^(\d{1,2})\s*(?:h|:)\s*(\d{2})?\s*(?:min)?\s*[-–:]?\s+(.+)$/i);
+  if (hm && +hm[1] < 24) { hx = hm[1].padStart(2, "0") + ":" + (hm[2] || "00"); partes[0] = hm[3].trim(); }
   if (!partes[0]) return null;
-  return { dia: m ? Number(m[1]) : 0, mes: m ? Number(m[2]) : 0, ano: m && m[3] ? Number(m[3].length === 2 ? "20" + m[3] : m[3]) : 0, hora: m && m[4] ? m[4].padStart(2, "0") + ":" + m[5] : "", titulo: partes[0], responsavel: partes[1] || "", valor: partes[2] ? parseMoney(partes[2]) : 0, feita };
+  return { dia: m ? Number(m[1]) : 0, mes: m ? Number(m[2]) : 0, ano: m && m[3] ? Number(m[3].length === 2 ? "20" + m[3] : m[3]) : 0, hora: hx, titulo: partes[0], responsavel: partes[1] || "", valor: partes[2] ? parseMoney(partes[2]) : 0, feita };
 }
 function lerLista(txt) {
   const plano = { itens: [], ementa: [], comprado: null, crono: [], ignoradas: [] };
@@ -4402,6 +4405,7 @@ const RELATORIOS = [
   ["orcamento", "Orçamento detalhado", "Item a item, com quantidade, preço, previsto, gasto e estado. Inclui a ementa.", { foco: "orcamento" }, ["pdf", "img"], 0, "Despesas"],
   ["compras", "Lista de compras", "Só o que falta comprar e pagar, por categoria, com uma coluna para ir marcando no mercado.", { foco: "compras" }, ["pdf", "img"], 0, "Despesas"],
   ["crono", "Cronograma e responsáveis", "Actividades por fase, quem faz o quê, estado e resumo por responsável.", { foco: "crono" }, ["pdf", "img"], 0, "Organização"],
+  ["programa", "Programa do dia", "As actividades do dia do evento por hora, numa linha do tempo para imprimir ou partilhar no grupo.", { foco: "programa" }, ["pdf", "img"], 0, "Organização"],
   ["tarefas", "Tarefas por responsável", "O que cada pessoa ainda tem por fazer, com datas e as atrasadas em destaque.", { foco: "tarefas" }, ["pdf", "img"], 0, "Organização"],
   ["contactos", "Contactos do evento", "Cabeças dos núcleos, responsáveis e fornecedores com os telefones.", { foco: "contactos" }, ["pdf", "img"], 0, "Organização"],
   ["noivos", "Apresentação dos noivos", "Fotos, filiação, a história e os sonhos.", { foco: "noivos" }, ["pdf", "img"], 0, "Família"],
@@ -4657,6 +4661,54 @@ function tabHTML(ev, R) {
     ${s.rows.length ? s.rows.map(r => `<tr>${r.map((v, i) => td(v, (s.right || []).includes(i), s.status === i ? "font-weight:700;color:" + COR_REL[corEstado(v)] : "")).join("")}</tr>`).join("") : `<tr><td colspan="${s.head.length}" style="padding:8px;color:#5B6862;font-style:italic">Sem registos.</td></tr>`}
     ${s.foot ? `<tr style="font-weight:700;background:#F2F4F0">${s.foot.map((v, i) => td(v, (s.right || []).includes(i))).join("")}</tr>` : ""}</table>`).join("")}
   <div style="margin-top:14px;color:#5B6862;font-size:12px">Valores em ${esc(ev.moeda)}.</div></div></div>`;
+}
+
+/* ============ programa do dia ============ */
+function diaPrograma(ev) {
+  const A = (ev.actividades || []).filter(a => a.data && a.hora && estadoAct(a) !== "cancelada"), n = {};
+  A.forEach(a => { n[a.data] = (n[a.data] || 0) + 1; });
+  if (ev.data && n[ev.data]) return ev.data;
+  return Object.keys(n).sort((a, b) => n[b] - n[a])[0] || ev.data || "";
+}
+function programaDia(ev) {
+  const dia = diaPrograma(ev);
+  return { dia, L: (ev.actividades || []).filter(a => a.data === dia && a.hora && estadoAct(a) !== "cancelada").sort((a, b) => a.hora.localeCompare(b.hora)) };
+}
+function horaTxt(h) { const [a, b] = String(h || "").split(":"); return a ? (+a) + "h" + (b || "00") : ""; }
+function msgPrograma(ev) {
+  const { dia, L } = programaDia(ev);
+  return `*Programa: ${ev.nome}*\n${dia ? dLong(dia) : ""}${ev.local ? ", " + ev.local : ""}\n\n` + L.map(a => `*${horaTxt(a.hora)}*  ${a.titulo}${a.responsavel ? " _(" + a.responsavel + ")_" : ""}`).join("\n") + "\n\nPedimos a todos pontualidade. Que seja um dia abençoado! 🙏🏾";
+}
+function buildPdfPrograma(ev) {
+  const { jsPDF } = window.jspdf, doc = new jsPDF({ unit: "mm", format: "a4" }), TT = tema(ev), W = 210, M = 18, { dia, L } = programaDia(ev);
+  const G = hex(TT.p), GOLD = hex(TT.d), CL = hex(TT.c), INK = hex("#17221D"), MUT = hex("#5B6862"), LINE = hex("#D7DDD6");
+  doc.setFillColor(...G); doc.rect(0, 0, W, 44, "F"); doc.setFillColor(...GOLD); doc.rect(0, 44, W, 1.6, "F");
+  doc.setTextColor(...GOLD); doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); doc.text("PROGRAMA DO DIA", W / 2, 14, { align: "center" });
+  doc.setTextColor(255, 255, 255); doc.setFontSize(22); doc.text(doc.splitTextToSize(ev.nome || "Evento", W - 2 * M)[0], W / 2, 26, { align: "center" });
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); doc.text([dia ? dLong(dia) : "", ev.local].filter(Boolean).join("   |   "), W / 2, 35, { align: "center" });
+  const top = 56, bottom = 272, n = Math.max(1, L.length), step = Math.min(13.5, (bottom - top) / n), xL = M + 30;
+  doc.setDrawColor(...CL); doc.setLineWidth(0.8); if (L.length > 1) doc.line(xL, top, xL, top + step * (L.length - 1));
+  L.forEach((a, i) => {
+    const y = top + i * step;
+    doc.setLineWidth(0.6); doc.setDrawColor(...GOLD); doc.setFillColor(...(i % 2 ? [255, 255, 255] : GOLD)); doc.circle(xL, y, 1.9, "FD"); doc.setDrawColor(...CL); doc.setLineWidth(0.8);
+    doc.setTextColor(...G); doc.setFont("helvetica", "bold"); doc.setFontSize(12.5); doc.text(horaTxt(a.hora), xL - 6, y + 1.6, { align: "right" });
+    doc.setTextColor(...INK); doc.setFontSize(11); const t = doc.splitTextToSize(a.titulo, W - M - xL - 8); doc.text(t[0] + (t.length > 1 ? "…" : ""), xL + 7, y + 1.2);
+    if (a.responsavel) { doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(...MUT); doc.text(a.responsavel, xL + 7, y + 5.6); }
+  });
+  if (!L.length) { doc.setTextColor(...MUT); doc.setFontSize(11); doc.text("Ainda não há actividades com hora para este dia.", W / 2, 80, { align: "center" }); }
+  doc.setDrawColor(...LINE); doc.setLineWidth(0.2); doc.line(M, 284, W - M, 284); doc.setFontSize(8); doc.setTextColor(...MUT); doc.text("Pedimos a todos pontualidade.", M, 289); doc.text(ev.nome || "", W - M, 289, { align: "right" });
+  return doc;
+}
+function programaHTML(ev) {
+  const { dia, L } = programaDia(ev), DS = "'Bricolage Grotesque',Arial,sans-serif";
+  return `<div style="width:720px;background:#fff;color:#17221D;font-family:Figtree,Arial,sans-serif">
+  <div style="background:#14412F;color:#fff;padding:28px 30px 24px;text-align:center;border-bottom:5px solid #C99A3B"><div style="color:#C99A3B;font-weight:700;font-size:12px;letter-spacing:.16em">PROGRAMA DO DIA</div>
+    <div style="font-family:${DS};font-weight:800;font-size:34px;margin:6px 0 4px">${esc(ev.nome || "Evento")}</div><div style="opacity:.9;font-size:15px">${esc([dia ? dLong(dia) : "", ev.local].filter(Boolean).join("  ·  "))}</div></div>
+  <div style="padding:26px 34px 18px">${L.map((a, i) => `<div style="display:flex;gap:18px;align-items:stretch">
+      <div style="width:72px;text-align:right;font-family:${DS};font-weight:800;font-size:19px;color:#14412F;padding-top:2px">${esc(horaTxt(a.hora))}</div>
+      <div style="width:16px;display:flex;flex-direction:column;align-items:center"><span style="width:13px;height:13px;border-radius:50%;background:${i % 2 ? "#F4E7C8" : "#C99A3B"};border:2px solid #C99A3B;margin-top:6px;flex:none"></span>${i < L.length - 1 ? `<span style="flex:1;width:2px;background:#F4E7C8"></span>` : ""}</div>
+      <div style="flex:1;padding-bottom:14px"><div style="font-weight:700;font-size:16.5px;line-height:1.3">${esc(a.titulo)}</div>${a.responsavel ? `<div style="color:#5B6862;font-size:13px">${esc(a.responsavel)}</div>` : ""}</div></div>`).join("") || `<p style="color:#5B6862">Ainda não há actividades com hora para este dia.</p>`}
+  </div><div style="padding:0 34px 24px;color:#5B6862;font-size:13px;text-align:center">Pedimos a todos pontualidade. Que seja um dia abençoado!</div></div>`;
 }
 
 /* ============ despesas e compras: cálculos ============ */
@@ -5084,7 +5136,7 @@ function tCrono(ev, k) {
   const c = ev.moeda, s = k.act, vista = ui.cronoVista;
   let L = (ev.actividades || []).slice().sort(porData);
   const head = `<div class="panel"><div class="panel-head"><div><h2>Cronograma de actividades</h2><p class="small muted" style="margin:2px 0 0">Cada tarefa com data, responsável e orçamento. As despesas daqui entram no orçamento do evento.</p></div>
-    <div class="row"><button class="btn" data-act="modeloCrono">Carregar modelo</button><button class="btn" data-act="colarLista">Colar cronograma</button><button class="btn primary" data-act="addAct">+ Actividade</button></div></div>
+    <div class="row"><button class="btn" data-act="modeloCrono">Carregar modelo</button><button class="btn" data-act="colarLista">Colar cronograma</button><button class="btn primary" data-act="addAct">+ Actividade</button></div>${programaDia(ev).L.length ? `<div class="row"><span class="small muted" style="align-self:center">Programa do dia (${programaDia(ev).L.length} momentos):</span><button class="btn gold sm" data-rel="programa|pdf">PDF</button><button class="btn sm" data-rel="programa|img">Imagem</button><button class="btn sm" data-act="programaMsg">Mensagem</button></div>` : ""}</div>
   ${s.total ? `<div class="kpis num">
     <div class="kpi"><div class="eyebrow">Concluídas</div><div class="v">${s.feitas} de ${s.total}</div></div>
     <div class="kpi ${s.atrasadas ? "neg" : ""}"><div class="eyebrow">Atrasadas</div><div class="v">${s.atrasadas}</div></div>
@@ -5487,6 +5539,7 @@ function buildPdf(ev) {
   if (ui.pdf.foco === "orcamento") return buildPdfOrcamento(ev);
   if (ui.pdf.foco === "dote" || ui.pdf.foco === "doteAuto") return buildPdfDote(ev, ui.pdf.foco === "doteAuto");
   if (REL_TAB[ui.pdf.foco]) return buildPdfTab(ev, REL_TAB[ui.pdf.foco](ev));
+  if (ui.pdf.foco === "programa") return buildPdfPrograma(ev);
   const { jsPDF } = window.jspdf; const doc = new jsPDF({ unit: "mm", format: "a4" });
   const o = ui.pdf, k = calc(ev), c = ev.moeda; const W = 210, M = 14;
   const TT = tema(ev), G = hex(TT.p), GOLD = hex(TT.d), INK = hex("#17221D"), MUT = hex("#5B6862"), LINE = hex("#D7DDD6"), OK = hex("#2B7A4B"), WARN = hex("#A8670F"), BAD = hex("#B03F2B");
@@ -5647,7 +5700,7 @@ function ofertaFicheiro(titulo, nome, blob, previewHTML) {
   if (share) $("#fShare").onclick = async () => { try { await navigator.share({ files: [file], title: titulo }); } catch (e) { if (!e || e.name !== "AbortError") toast("Não foi possível partilhar. Use Descarregar."); } };
   $("#fDown").onclick = () => { baixar(nome, blob); toast("Ficheiro descarregado."); };
 }
-function prefixo() { if (REL_TAB[ui.pdf.foco]) return REL_TAB[ui.pdf.foco](cur()).prefixo; if (ui.pdf.foco === "dote") return "Lista_dote_"; if (ui.pdf.foco === "doteAuto") return "Auto_entrega_dote_"; if (ui.pdf.foco === "orcamento") return "Orcamento_"; if (ui.pdf.foco === "noivos") return ehCasal(cur()) ? "Noivos_" : "Homenagem_"; return ui.pdf.foco === "crono" ? "Cronograma_" : ui.pdf.foco === "despesas" ? "Despesas_" : "Contribuicoes_"; }
+function prefixo() { if (ui.pdf.foco === "programa") return "Programa_"; if (REL_TAB[ui.pdf.foco]) return REL_TAB[ui.pdf.foco](cur()).prefixo; if (ui.pdf.foco === "dote") return "Lista_dote_"; if (ui.pdf.foco === "doteAuto") return "Auto_entrega_dote_"; if (ui.pdf.foco === "orcamento") return "Orcamento_"; if (ui.pdf.foco === "noivos") return ehCasal(cur()) ? "Noivos_" : "Homenagem_"; return ui.pdf.foco === "crono" ? "Cronograma_" : ui.pdf.foco === "despesas" ? "Despesas_" : "Contribuicoes_"; }
 async function gerarPdf() {
   const ev = cur(); if (!ev) return;
   if (ui.pdf.foco === "noivos") return gerarPdfImagem(ev);
@@ -5716,6 +5769,7 @@ function reportHTML(ev) {
   if (ui.pdf.foco === "orcamento") return orcamentoHTML(ev);
   if (ui.pdf.foco === "dote" || ui.pdf.foco === "doteAuto") return doteHTML(ev, ui.pdf.foco === "doteAuto");
   if (REL_TAB[ui.pdf.foco]) return tabHTML(ev, REL_TAB[ui.pdf.foco](ev));
+  if (ui.pdf.foco === "programa") return programaHTML(ev);
   const k = calc(ev), c = ev.moeda, b = ev.banco || {}, o = ui.pdf, crono = o.foco === "crono", desp = o.foco === "despesas", s = k.act;
   const fotosHdr = !crono && !desp ? fotosCabecalho(ev) : "";
   const est = x => x.estado === "ok" ? ["Completo", "#2B7A4B"] : x.estado === "parcial" ? ["Em curso", "#A8670F"] : ["Por contribuir", "#B03F2B"];
@@ -6051,6 +6105,7 @@ document.addEventListener("click", e => {
     case "ementaImg": ementaExport(ev, false); break;
     case "doteDados": formDoteDados(ev); break;
     case "colarNoivos": formColarNoivos(ev); break;
+    case "programaMsg": { const txt = msgPrograma(ev); sheet("Programa do dia", `<textarea class="msg-box" id="msgOut" aria-label="Mensagem">${esc(txt)}</textarea>`, { extra: `<button type="button" class="btn" data-act="copiarMsg">Copiar</button><a class="btn primary" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(txt)}">Abrir no WhatsApp</a>` }); break; }
     case "pedirDadosNoivos": { const txt = msgPedirDadosNoivos(ev); sheet("Pedir os dados aos noivos", `<p class="small muted" style="margin:0">Envie esta mensagem. Quando responderem, copie a resposta e use <b>Colar mensagem dos noivos</b>: a app lê cada linha e preenche o perfil.</p><textarea class="msg-box" id="msgOut" aria-label="Mensagem">${esc(txt)}</textarea>`, { extra: `<button type="button" class="btn" data-act="copiarMsg">Copiar</button><a class="btn primary" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(txt)}">Abrir no WhatsApp</a>` }); break; }
     case "doteModelo": formDoteModelo(ev); break;
     case "doteColar": formDoteColar(ev); break;
